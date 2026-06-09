@@ -120,19 +120,33 @@ def spin(balance):
     slots = get_slot_machine_spin(ROWS,COLS,symbol_count)
     print_slot_machine(slots)
     winings,winings_lines = check_winnings(slots,lines,bet,symbol_values)
-    print(f"You won ${winings}")
-    print(f"You won on lines: ", *winings_lines)
+    if winings == 0:
+        print("Opps! you lost better luck next time.")
+    else:
+        print(f"You won ${winings}")
+        print(f"You won on lines: ", *winings_lines)
     return winings - total_bet
 
 
 def main():
     balance = deposit()
     while True:
+        if balance == 0:
+            print(f"Your wallet is empty! Press (Y) if you want to add balance or Press any key to quit")
+            answer = input()
+            if answer.lower() == 'y':
+                # main()
+                balance += deposit()
+                continue
+            else:
+                break
         print(f"Current balance is ${balance}")
         answer = input("Press enter to play (q to quit).")
         if answer == "q":
             break
         balance += spin(balance)
+        
+
 
     print(f"You left with {balance}")
 
