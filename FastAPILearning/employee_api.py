@@ -48,7 +48,7 @@ class EmployeeCreate(BaseModel):
         Salary must be greater than zero.
         """
         if v <= 0:
-            raise ValueError("Salary must be positive")
+                raise ValueError("Salary must be positive")
         return v
 
     @field_validator("name")
