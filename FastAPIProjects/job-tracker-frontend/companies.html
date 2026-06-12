@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Tracker — Companies</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="logo">JobTrack</div>
+    <div class="tagline">Application tracker</div>
+  </div>
+  <nav class="sidebar-nav">
+    <span class="nav-label">Overview</span>
+    <a href="index.html" class="nav-link">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </a>
+    <span class="nav-label">Manage</span>
+    <a href="companies.html" class="nav-link active">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21V11h6v10"/></svg>
+      Companies
+    </a>
+    <a href="applications.html" class="nav-link">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 0 2-2h2a2 2 0 0 0 2 2"/></svg>
+      Applications
+    </a>
+    <a href="contacts.html" class="nav-link">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Contacts
+    </a>
+    <a href="interviews.html" class="nav-link">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      Interviews
+    </a>
+  </nav>
+</aside>
+
+<main class="main">
+  <div class="page-header">
+    <div>
+      <h1>Companies</h1>
+      <p>Companies you've applied to or are tracking</p>
+    </div>
+    <button class="btn btn-primary" onclick="openAddModal()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+      Add Company
+    </button>
+  </div>
+
+  <div class="toolbar">
+    <input type="text" class="search-input" placeholder="Search companies…" id="search-input" oninput="onSearch()" />
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Industry</th>
+          <th>Location</th>
+          <th>Website</th>
+          <th>Added</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="companies-table">
+        <tr><td colspan="6"><div class="loading"><div class="spinner"></div> Loading…</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pagination" id="pagination"></div>
+</main>
+
+<!-- ADD / EDIT MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2 id="modal-title">Add Company</h2>
+    <input type="hidden" id="edit-id" />
+
+    <div class="form-group">
+      <label>Company Name *</label>
+      <input type="text" id="f-name" placeholder="e.g. Google" />
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Industry</label>
+        <input type="text" id="f-industry" placeholder="e.g. Technology" />
+      </div>
+      <div class="form-group">
+        <label>Location</label>
+        <input type="text" id="f-location" placeholder="e.g. Hyderabad, India" />
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Website URL</label>
+      <input type="text" id="f-website" placeholder="https://careers.example.com" />
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCompany()">Save Company</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+<script src="js/api.js"></script>
+<script src="js/companies.js"></script>
+</body>
+</html>

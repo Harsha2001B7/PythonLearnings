@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Tracker — Dashboard</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="logo">JobTrack</div>
+    <div class="tagline">Application tracker</div>
+  </div>
+  <nav class="sidebar-nav">
+    <span class="nav-label">Overview</span>
+    <a href="index.html" class="nav-link active">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </a>
+    <span class="nav-label">Manage</span>
+    <a href="companies.html" class="nav-link">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21V11h6v10"/></svg>
+      Companies
+    </a>
+    <a href="applications.html" class="nav-link">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 0 2-2h2a2 2 0 0 0 2 2"/></svg>
+      Applications
+    </a>
+    <a href="contacts.html" class="nav-link">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Contacts
+    </a>
+    <a href="interviews.html" class="nav-link">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      Interviews
+    </a>
+  </nav>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="page-header">
+    <div>
+      <h1>Dashboard</h1>
+      <p>Your job search at a glance</p>
+    </div>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="stats-grid" id="stats-grid">
+    <div class="stat-card blue">
+      <div class="label">Total Applied</div>
+      <div class="value" id="stat-total">—</div>
+      <div class="sub">across all companies</div>
+    </div>
+    <div class="stat-card amber">
+      <div class="label">In Progress</div>
+      <div class="value" id="stat-active">—</div>
+      <div class="sub">screening + interview</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="label">Offers</div>
+      <div class="value" id="stat-offers">—</div>
+      <div class="sub">pending decision</div>
+    </div>
+    <div class="stat-card green">
+      <div class="label">Accepted</div>
+      <div class="value" id="stat-accepted">—</div>
+      <div class="sub">success</div>
+    </div>
+    <div class="stat-card red">
+      <div class="label">Rejected</div>
+      <div class="value" id="stat-rejected">—</div>
+      <div class="sub">this cycle</div>
+    </div>
+  </div>
+
+  <!-- PIPELINE VISUAL -->
+  <div class="section-title">Application Pipeline</div>
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;margin-bottom:32px;">
+    <div class="pipeline" id="pipeline-bar"></div>
+    <div id="pipeline-legend" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;font-size:12px;color:var(--muted);font-family:var(--mono);"></div>
+  </div>
+
+  <!-- RECENT APPLICATIONS -->
+  <div class="section-title">Recent Applications</div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Company</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Applied</th>
+        </tr>
+      </thead>
+      <tbody id="recent-table">
+        <tr><td colspan="4"><div class="loading"><div class="spinner"></div> Loading…</div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</main>
+
+<div id="toast"></div>
+<script src="js/api.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>
