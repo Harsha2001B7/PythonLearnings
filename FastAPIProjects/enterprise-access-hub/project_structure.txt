@@ -1,0 +1,56 @@
+enterprise-access-hub/
+
+main.py
+
+database.py
+
+.env
+
+models/
+    __init__.py
+    base.py
+    role.py
+    user.py
+    workspace.py
+
+schemas/
+    __init__.py
+    auth_schema.py
+    user_schema.py
+    workspace_schema.py
+
+repositories/
+    __init__.py
+    user_repository.py
+    role_repository.py
+    workspace_repository.py
+
+services/
+    __init__.py
+    auth_service.py
+    workspace_service.py
+
+routers/
+    __init__.py
+    auth_router.py
+    workspace_router.py
+    user_router.py
+
+auth/
+    __init__.py
+    password_handler.py
+    jwt_handler.py
+    dependencies.py
+
+middleware/
+    __init__.py
+    request_timer.py
+
+exceptions/
+    __init__.py
+    app_exceptions.py
+    handlers.py
+
+seed/
+    __init__.py
+    seed_data.py
