@@ -17,6 +17,7 @@ class TrailerSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cardHeight = cardWidth / 0.72 + 78;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -26,7 +27,7 @@ class TrailerSection extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         SizedBox(
-          height: cardWidth / 0.72 + 44,
+          height: cardHeight,
           child: ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             scrollDirection: Axis.horizontal,
@@ -35,6 +36,7 @@ class TrailerSection extends StatelessWidget {
             itemBuilder: (_, index) => TrailerCard(trailer: trailers[index], width: cardWidth),
           ),
         ),
+        const SizedBox(height: 20),
       ],
     );
   }

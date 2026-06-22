@@ -15,10 +15,12 @@ class TrailerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final titleStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600);
     return SizedBox(
       width: width,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           AspectRatio(
             aspectRatio: 0.72,
@@ -44,9 +46,14 @@ class TrailerCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          Text(trailer.title, maxLines: 1, overflow: TextOverflow.ellipsis),
+          Text(trailer.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: titleStyle),
           const SizedBox(height: 4),
-          Text(trailer.subtitle, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(color: AppColors.textGrey, fontSize: 12)),
+          Text(
+            trailer.subtitle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(color: AppColors.textGrey, fontSize: 12),
+          ),
         ],
       ),
     );
