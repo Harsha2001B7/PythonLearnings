@@ -64,3 +64,6 @@ def delete_student(
         student_service.delete_student(db, student_id)
     except StudentNotFoundException as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+        # 8121971741

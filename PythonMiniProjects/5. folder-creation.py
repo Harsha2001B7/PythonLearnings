@@ -1,45 +1,68 @@
 import os
 
-# Your existing base folder
-base = r"C:\Users\renuk\PythonLearnings\FastAPIProjects\school-report-api"
+# Root project folder
+base = r"C:\Users\renuk\PythonLearnings\ai_task_hub\ai_task_hub_backend"
 
-# Files + folders to create
+# Files to create
 files = [
-    "main.py",
-    "database.py",
-    ".env",
+    "app/main.py",
 
-    "models/user.py",
-    "models/student.py",
+    "app/core/config.py",
+    "app/core/security.py",
 
-    "schemas/auth_schema.py",
-    "schemas/student_schema.py",
+    "app/database/db.py",
 
-    "repositories/user_repository.py",
-    "repositories/student_repository.py",
+    "app/models/user.py",
+    "app/models/task.py",
 
-    "services/auth_service.py",
-    "services/report_service.py",
+    "app/schemas/user.py",
+    "app/schemas/task.py",
 
-    "routers/auth_router.py",
-    "routers/report_router.py",
+    "app/routers/auth_router.py",
+    "app/routers/task_router.py",
+    "app/routers/dashboard_router.py",
 
-    "auth/jwt_handler.py",
-    "auth/password_handler.py",
-    "auth/dependencies.py",
+    "app/services/auth_service.py",
+    "app/services/task_service.py",
 
-    "utils/constants.py"
+    "app/dependencies/auth_dependency.py",
+
+    "requirements.txt"
+]
+
+# Folders where __init__.py should be created
+folders = [
+    "app",
+    "app/core",
+    "app/database",
+    "app/models",
+    "app/schemas",
+    "app/routers",
+    "app/services",
+    "app/dependencies"
 ]
 
 
+# Create folders + files
 for file in files:
     path = os.path.join(base, file)
 
-    # create folder if not exists
+    # Create parent directories if needed
     os.makedirs(os.path.dirname(path), exist_ok=True)
 
-    # create file if not exists
-    with open(path, "w") as f:
-        pass
+    # Create file only if it doesn't exist
+    if not os.path.exists(path):
+        with open(path, "w", encoding="utf-8") as f:
+            pass
 
-print("✅ Project structure created successfully")
+
+# Create __init__.py in every folder except root
+for folder in folders:
+    init_path = os.path.join(base, folder, "__init__.py")
+
+    if not os.path.exists(init_path):
+        with open(init_path, "w", encoding="utf-8") as f:
+            pass
+
+
+print("✅ ai_task_hub_backend project structure created successfully")
