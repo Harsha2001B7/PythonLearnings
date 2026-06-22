@@ -1,16 +1,53 @@
 import 'package:flutter/material.dart';
 
-import '../../../../shared/widgets/coming_soon_widget.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../data/mock/home_dummy_data.dart';
+import '../widgets/hero_carousel.dart';
+import '../widgets/trailer_section.dart';
+import '../widgets/trending_now.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: ComingSoonWidget(
-        icon: Icons.home_rounded,
-        title: 'Home',
+    return Scaffold(
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            const SliverToBoxAdapter(child: _HomeHeader()),
+            SliverToBoxAdapter(child: HeroCarousel(trailers: HomeDummyData.featured)),
+            SliverToBoxAdapter(child: TrendingNow(trailers: HomeDummyData.byCategory('Trending'))),
+            SliverToBoxAdapter(child: TrailerSection(title: '🇮🇳 Telugu', trailers: HomeDummyData.byCategory('Telugu'))),
+            SliverToBoxAdapter(child: TrailerSection(title: '🎬 Hindi', trailers: HomeDummyData.byCategory('Hindi'))),
+            SliverToBoxAdapter(child: TrailerSection(title: '📺 Web Series', trailers: HomeDummyData.byCategory('Web Series'))),
+            SliverToBoxAdapter(child: TrailerSection(title: 'Upcoming Releases', trailers: HomeDummyData.upcoming, cardWidth: 170)),
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeHeader extends StatelessWidget {
+  const _HomeHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+      child: Row(
+        children: [
+          Text('TrailerBaaz', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: AppColors.primaryRed, fontWeight: FontWeight.w800)),
+          const Spacer(),
+          IconButton(onPressed: () {}, icon: const Icon(Icons.notifications_none_rounded)),
+          CircleAvatar(
+            radius: 18,
+            backgroundColor: AppColors.card,
+            child: const Icon(Icons.person_outline_rounded, color: AppColors.textWhite),
+          ),
+        ],
       ),
     );
   }
