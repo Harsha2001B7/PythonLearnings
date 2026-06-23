@@ -40,19 +40,35 @@ class _SplashScreenState extends State<SplashScreen> {
               decoration: BoxDecoration(
                 color: AppColors.card,
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: AppColors.primaryRed.withValues(alpha: 0.4)),
+                border: Border.all(
+                  color: AppColors.primaryRed.withValues(alpha: 0.4),
+                ),
               ),
-              child: const Icon(Icons.local_movies_rounded, size: 46, color: AppColors.primaryRed),
+              child: Image.asset(
+                'assets/images/trailerbaaz_logo.png',
+                width: 220,
+              ),
             ),
             const SizedBox(height: 24),
-            Text('TrailerBaaz', style: textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700)),
+            Text(
+              'TrailerBaaz',
+              style: textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
             const SizedBox(height: 8),
-            Text('Your trailer universe starts here', style: textTheme.bodyMedium?.copyWith(color: AppColors.textGrey)),
+            Text(
+              'Your trailer universe starts here',
+              style: textTheme.bodyMedium?.copyWith(color: AppColors.textGrey),
+            ),
             const SizedBox(height: 32),
             const SizedBox(
               width: 32,
               height: 32,
-              child: CircularProgressIndicator(strokeWidth: 3, color: AppColors.primaryRed),
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+                color: AppColors.primaryRed,
+              ),
             ),
           ],
         ),

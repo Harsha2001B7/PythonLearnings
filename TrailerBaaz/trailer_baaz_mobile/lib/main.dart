@@ -1,9 +1,18 @@
 import 'package:flutter/material.dart';
 
 import 'core/theme/app_theme.dart';
-import 'features/splash/presentation/screens/splash_screen.dart';
+import 'features/auth/presentation/screens/login_screen.dart';
 
-void main() {
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
   runApp(const TrailerBaazApp());
 }
 
@@ -16,7 +25,7 @@ class TrailerBaazApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'TrailerBaaz',
       theme: AppTheme.darkTheme,
-      home: const SplashScreen(),
+      home: const LoginScreen(),
     );
   }
 }

@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "388732329252",
+    "project_id": "trailerbaaz-71fa4",
+    "storage_bucket": "trailerbaaz-71fa4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:388732329252:android:8d8653d9d12a6a8ae667b1",
+        "android_client_info": {
+          "package_name": "com.example.trailer_baaz_mobile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "388732329252-cen8o1qc64a8ijf07m3coial5itslpe6.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.trailer_baaz_mobile",
+            "certificate_hash": "06b1c02a0ea4b72447d9b3ef76cb325abb06f8ac"
+          }
+        },
+        {
+          "client_id": "388732329252-bt5cg0a5r2t2essubm6kjhsl7bc7o5fc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC86phYzMGzwv4BzHCcJ3OOof2uqwp4v3M"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "388732329252-bt5cg0a5r2t2essubm6kjhsl7bc7o5fc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

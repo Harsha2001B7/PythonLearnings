@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../shared/models/trailer_model.dart';
 import '../../data/mock/home_dummy_data.dart';
+import 'trailer_details_screen.dart';
 import '../widgets/hero_carousel.dart';
 import '../widgets/trailer_section.dart';
 import '../widgets/trending_now.dart';
@@ -11,17 +13,23 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    void openDetails(TrailerModel trailer) {
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => TrailerDetailsScreen(trailer: trailer)),
+      );
+    }
+
     return Scaffold(
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
             const SliverToBoxAdapter(child: _HomeHeader()),
-            SliverToBoxAdapter(child: HeroCarousel(trailers: HomeDummyData.featured)),
-            SliverToBoxAdapter(child: TrendingNow(trailers: HomeDummyData.byCategory('Trending'))),
-            SliverToBoxAdapter(child: TrailerSection(title: '🇮🇳 Telugu', trailers: HomeDummyData.byCategory('Telugu'))),
-            SliverToBoxAdapter(child: TrailerSection(title: '🎬 Hindi', trailers: HomeDummyData.byCategory('Hindi'))),
-            SliverToBoxAdapter(child: TrailerSection(title: '📺 Web Series', trailers: HomeDummyData.byCategory('Web Series'))),
-            SliverToBoxAdapter(child: TrailerSection(title: 'Upcoming Releases', trailers: HomeDummyData.upcoming, cardWidth: 158)),
+            SliverToBoxAdapter(child: HeroCarousel(trailers: HomeDummyData.featured, onDetails: openDetails)),
+            SliverToBoxAdapter(child: TrendingNow(trailers: HomeDummyData.byCategory('Trending'), onTap: openDetails)),
+            SliverToBoxAdapter(child: TrailerSection(title: '🇮🇳 Telugu', trailers: HomeDummyData.byCategory('Telugu'), onTap: openDetails)),
+            SliverToBoxAdapter(child: TrailerSection(title: '🎬 Hindi', trailers: HomeDummyData.byCategory('Hindi'), onTap: openDetails)),
+            SliverToBoxAdapter(child: TrailerSection(title: '📺 Web Series', trailers: HomeDummyData.byCategory('Web Series'), onTap: openDetails)),
+            SliverToBoxAdapter(child: TrailerSection(title: 'Upcoming Releases', trailers: HomeDummyData.upcoming, cardWidth: 158, onTap: openDetails)),
             const SliverToBoxAdapter(child: SizedBox(height: 32)),
           ],
         ),

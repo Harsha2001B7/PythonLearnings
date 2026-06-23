@@ -9,6 +9,7 @@ class ReelOverlay extends StatelessWidget {
   final bool paused;
   final VoidCallback onMute;
   final VoidCallback onPlayPause;
+  final VoidCallback onDetails;
 
   const ReelOverlay({
     super.key,
@@ -17,6 +18,7 @@ class ReelOverlay extends StatelessWidget {
     required this.paused,
     required this.onMute,
     required this.onPlayPause,
+    required this.onDetails,
   });
 
   @override
@@ -57,7 +59,7 @@ class ReelOverlay extends StatelessWidget {
                 ),
               ),
             ),
-            const Align(alignment: Alignment.bottomRight, child: _ActionRail()),
+            Align(alignment: Alignment.bottomRight, child: _ActionRail(onDetails: onDetails)),
           ],
         ),
       ),
@@ -66,21 +68,23 @@ class ReelOverlay extends StatelessWidget {
 }
 
 class _ActionRail extends StatelessWidget {
-  const _ActionRail();
+  final VoidCallback onDetails;
+
+  const _ActionRail({required this.onDetails});
 
   @override
   Widget build(BuildContext context) {
     // TODO: Connect like/save/share flows to Firebase notifications later if needed.
     return Column(
       mainAxisSize: MainAxisSize.min,
-      children: const [
-        _RailButton(icon: Icons.favorite_border_rounded, label: 'Like'),
-        SizedBox(height: 14),
-        _RailButton(icon: Icons.bookmark_border_rounded, label: 'Save'),
-        SizedBox(height: 14),
-        _RailButton(icon: Icons.share_outlined, label: 'Share'),
-        SizedBox(height: 14),
-        _RailButton(icon: Icons.info_outline_rounded, label: 'Details'),
+      children: [
+        const _RailButton(icon: Icons.favorite_border_rounded, label: 'Like'),
+        const SizedBox(height: 14),
+        const _RailButton(icon: Icons.bookmark_border_rounded, label: 'Save'),
+        const SizedBox(height: 14),
+        const _RailButton(icon: Icons.share_outlined, label: 'Share'),
+        const SizedBox(height: 14),
+        _RailButton(icon: Icons.info_outline_rounded, label: 'Details', onTap: onDetails),
       ],
     );
   }
@@ -89,9 +93,10 @@ class _ActionRail extends StatelessWidget {
 class _RailButton extends StatelessWidget {
   final IconData icon;
   final String label;
-  const _RailButton({required this.icon, required this.label});
+  final VoidCallback? onTap;
+  const _RailButton({required this.icon, required this.label, this.onTap});
   @override
-  Widget build(BuildContext context) => Column(children: [TweenAnimationBuilder<double>(tween: Tween(begin: 0.95, end: 1), duration: const Duration(milliseconds: 220), builder: (_, v, child) => Transform.scale(scale: v, child: child), child: _GlassIcon(icon: icon, onTap: () {})), const SizedBox(height: 6), Text(label, style: const TextStyle(fontSize: 12))]);
+  Widget build(BuildContext context) => Column(children: [TweenAnimationBuilder<double>(tween: Tween(begin: 0.95, end: 1), duration: const Duration(milliseconds: 220), builder: (_, v, child) => Transform.scale(scale: v, child: child), child: _GlassIcon(icon: icon, onTap: onTap ?? () {})), const SizedBox(height: 6), Text(label, style: const TextStyle(fontSize: 12))]);
 }
 
 class _GlassIcon extends StatelessWidget {
