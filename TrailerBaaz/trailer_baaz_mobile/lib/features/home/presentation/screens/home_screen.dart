@@ -11,7 +11,6 @@ class HomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Replace dummy home sections with FastAPI-powered content later.
     return Scaffold(
       body: SafeArea(
         child: CustomScrollView(
