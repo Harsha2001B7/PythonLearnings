@@ -1,7 +1,7 @@
 import '../../../../shared/models/trailer_model.dart';
 
 class HomeDummyData {
-  static const _v1 = 'https://www.youtube.com/embed/4GPvYMKtrtI?si=jtyqS4i0CAEGzPrf';
+  static const _v1 = 'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4';
   static const _v2 = 'https://samplelib.com/lib/preview/mp4/sample-5s.mp4';
   static const _v3 = 'https://samplelib.com/lib/preview/mp4/sample-10s.mp4';
 
