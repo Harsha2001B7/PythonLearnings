@@ -15,7 +15,7 @@ class RelatedTrailersSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cardHeight = 150 / 0.72 + 92;
+    final cardHeight = 260 * 0.84;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -27,7 +27,7 @@ class RelatedTrailersSection extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             itemCount: trailers.length,
             separatorBuilder: (_, _) => const SizedBox(width: 12),
-            itemBuilder: (_, index) => TrailerCard(trailer: trailers[index], width: 150, onTap: () => onTap(trailers[index])),
+            itemBuilder: (_, index) => TrailerCard(trailer: trailers[index], width: 260, onTap: () => onTap(trailers[index])),
           ),
         ),
       ],

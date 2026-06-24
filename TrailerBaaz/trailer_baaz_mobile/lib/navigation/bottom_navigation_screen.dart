@@ -3,10 +3,10 @@ import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 import '../features/calendar/presentation/screens/calendar_screen.dart';
 import '../features/home/presentation/screens/home_screen.dart';
-import '../features/profile/presentation/screens/profile_screen.dart';
 import '../features/reels/presentation/screens/reels_screen.dart';
 import '../features/saved/presentation/screens/saved_screen.dart';
 import '../features/search/presentation/screens/search_screen.dart';
+import '../features/profile/presentation/screens/profile_screen.dart';
 
 class BottomNavigationScreen extends StatefulWidget {
   const BottomNavigationScreen({super.key});
@@ -17,6 +17,7 @@ class BottomNavigationScreen extends StatefulWidget {
 
 class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
   int _currentIndex = 0;
+  bool _preferencesOpen = false;
 
   static const _screens = [
     HomeScreen(),
@@ -24,7 +25,6 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
     SearchScreen(),
     CalendarScreen(),
     SavedScreen(),
-    ProfileScreen(),
   ];
 
   static const _items = [
@@ -33,8 +33,29 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
     _NavItem(Icons.search_outlined, Icons.search, 'Search'),
     _NavItem(Icons.calendar_month_outlined, Icons.calendar_month, 'Calendar'),
     _NavItem(Icons.favorite_border, Icons.favorite, 'Saved'),
-    _NavItem(Icons.person_outline, Icons.person, 'Profile'),
+    _NavItem(Icons.tune_outlined, Icons.tune, 'Preferences'),
   ];
+
+  Future<void> _openPreferencesSheet() async {
+    setState(() => _preferencesOpen = true);
+    try {
+      await showModalBottomSheet<void>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        barrierColor: Colors.black.withValues(alpha: 0.72),
+        useSafeArea: true,
+        builder: (_) => FractionallySizedBox(
+          heightFactor: 0.92,
+          child: const ProfileScreen(),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _preferencesOpen = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,12 +89,18 @@ class _BottomNavigationScreenState extends State<BottomNavigationScreen> {
                   child: Row(
                     children: List.generate(_items.length, (index) {
                       final item = _items[index];
-                      final active = index == _currentIndex;
+                      final active = index == _currentIndex || (index == _items.length - 1 && _preferencesOpen);
                       return Expanded(
                         child: _NavButton(
                           item: item,
                           active: active,
-                          onTap: () => setState(() => _currentIndex = index),
+                          onTap: () {
+                            if (index == _items.length - 1) {
+                              _openPreferencesSheet();
+                              return;
+                            }
+                            setState(() => _currentIndex = index);
+                          },
                         ),
                       );
                     }),
@@ -112,7 +139,10 @@ class _NavButtonState extends State<_NavButton> {
 
   @override
   Widget build(BuildContext context) {
-    final iconColor = widget.active ? AppColors.primaryRed : AppColors.textMuted;
+    final isPreferences = widget.item.label == 'Preferences';
+    final iconColor = widget.active
+        ? (isPreferences ? AppColors.amber : AppColors.primaryRed)
+        : AppColors.textMuted;
     final labelColor = widget.active ? AppColors.amber : AppColors.textMuted;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,

@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/models/trailer_model.dart';
@@ -19,15 +19,13 @@ class HeroCarousel extends StatefulWidget {
 class _HeroCarouselState extends State<HeroCarousel> {
   late final PageController _page;
   Timer? _timer;
-  VideoPlayerController? _video;
   int _index = 0;
-  bool _muted = true, _paused = false;
+  bool _muted = true;
 
   @override
   void initState() {
     super.initState();
     _page = PageController();
-    _loadVideo();
     _timer = Timer.periodic(const Duration(seconds: 6), (_) {
       if (!_page.hasClients || widget.trailers.length < 2) return;
       final next = (_index + 1) % widget.trailers.length;
@@ -35,35 +33,10 @@ class _HeroCarouselState extends State<HeroCarousel> {
     });
   }
 
-  Future<void> _loadVideo() async {
-    await _video?.dispose();
-    final controller = VideoPlayerController.networkUrl(
-      Uri.parse(widget.trailers[_index].videoUrl),
-    );
-    _video = controller;
-    await controller.setLooping(true);
-    await controller.setVolume(_muted ? 0 : 1);
-    await controller.initialize();
-    if (!mounted || _video != controller) {
-      await controller.dispose();
-      return;
-    }
-    if (!_paused) controller.play();
-    setState(() {});
-  }
-
-  void _sync() {
-    final video = _video;
-    if (video == null || !video.value.isInitialized) return;
-    video.setVolume(_muted ? 0 : 1);
-    _paused ? video.pause() : video.play();
-  }
-
   @override
   void dispose() {
     _timer?.cancel();
     _page.dispose();
-    _video?.dispose();
     super.dispose();
   }
 
@@ -78,35 +51,93 @@ class _HeroCarouselState extends State<HeroCarousel> {
         itemCount: widget.trailers.length,
         onPageChanged: (i) {
           setState(() => _index = i);
-          _loadVideo();
         },
         itemBuilder: (_, i) => _HeroSlide(
+          key: ValueKey(widget.trailers[i].youtubeUrl),
           trailer: widget.trailers[i],
-          video: i == _index ? _video : null,
-          muted: _muted,
-          paused: _paused,
           active: i == _index,
+          muted: _muted,
           count: widget.trailers.length,
           index: _index,
           onDetails: () => widget.onDetails(widget.trailers[i]),
-          onMute: () => setState(() { _muted = !_muted; _sync(); }),
-          onPause: () => setState(() { _paused = !_paused; _sync(); }),
+          onMute: () => setState(() => _muted = !_muted),
         ),
       ),
     );
   }
 }
 
-class _HeroSlide extends StatelessWidget {
-  final TrailerModel trailer; final VideoPlayerController? video; final bool muted, paused, active; final int index, count; final VoidCallback onMute, onPause, onDetails;
-  const _HeroSlide({required this.trailer, required this.video, required this.muted, required this.paused, required this.active, required this.index, required this.count, required this.onMute, required this.onPause, required this.onDetails});
+class _HeroSlide extends StatefulWidget {
+  final TrailerModel trailer;
+  final bool active;
+  final bool muted;
+  final int index, count;
+  final VoidCallback onMute, onDetails;
+
+  const _HeroSlide({
+    super.key,
+    required this.trailer,
+    required this.active,
+    required this.muted,
+    required this.index,
+    required this.count,
+    required this.onMute,
+    required this.onDetails,
+  });
+
+  @override
+  State<_HeroSlide> createState() => _HeroSlideState();
+}
+
+class _HeroSlideState extends State<_HeroSlide> {
+  late final YoutubePlayerController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = YoutubePlayerController(
+      initialVideoId: YoutubePlayer.convertUrlToId(widget.trailer.youtubeUrl)!,
+      flags: YoutubePlayerFlags(
+        autoPlay: widget.active,
+        mute: true,
+        disableDragSeek: true,
+        hideControls: true,
+        hideThumbnail: true,
+        enableCaption: false,
+      ),
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant _HeroSlide oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.active != widget.active) {
+      if (widget.active) {
+        _controller.play();
+      } else {
+        _controller.pause();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final topInset = MediaQuery.of(context).padding.top;
     return Stack(fit: StackFit.expand, children: [
-      _SafeImage(url: trailer.imageUrl),
-      if (video != null && video!.value.isInitialized) Opacity(opacity: active ? 0.9 : 0, child: FittedBox(fit: BoxFit.cover, child: SizedBox(width: video!.value.size.width, height: video!.value.size.height, child: VideoPlayer(video!)))),
+      YoutubePlayerBuilder(
+        player: YoutubePlayer(
+          controller: _controller,
+          showVideoProgressIndicator: false,
+          progressIndicatorColor: Colors.transparent,
+        ),
+        builder: (context, player) => Positioned.fill(child: player),
+      ),
       const Positioned.fill(
         child: DecoratedBox(
           decoration: BoxDecoration(
@@ -126,30 +157,55 @@ class _HeroSlide extends StatelessWidget {
           ),
         ),
       ),
-      Positioned(top: topInset + 112, right: 16, child: Row(children: [_CircleIcon(icon: muted ? Icons.volume_off_rounded : Icons.volume_up_rounded, onTap: onMute), const SizedBox(width: 10), _CircleIcon(icon: paused ? Icons.play_arrow_rounded : Icons.pause_rounded, onTap: onPause)])),
+      Positioned(
+        top: topInset + 112,
+        right: 16,
+        child: Row(
+          children: [
+            _CircleIcon(
+              icon: widget.muted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
+              onTap: () {
+                setState(() {
+                  widget.muted ? _controller.unMute() : _controller.mute();
+                });
+                widget.onMute();
+              },
+            ),
+            const SizedBox(width: 10),
+            _CircleIcon(
+              icon: Icons.fullscreen_rounded,
+              onTap: () => _controller.toggleFullScreenMode(),
+              backgroundAlpha: 0.18,
+            ),
+          ],
+        ),
+      ),
       Positioned(left: 20, right: 20, bottom: 30, child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-        Text(trailer.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800, shadows: const [Shadow(color: Colors.black87, blurRadius: 14, offset: Offset(0, 2))])),
+        Text(widget.trailer.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800, shadows: const [Shadow(color: Colors.black87, blurRadius: 14, offset: Offset(0, 2))])),
         const SizedBox(height: 8),
-        Text('${trailer.language} • ${trailer.genre}', style: const TextStyle(color: AppColors.textGrey, shadows: [Shadow(color: Colors.black87, blurRadius: 10)])),
+        Text('${widget.trailer.language} • ${widget.trailer.genre}', style: const TextStyle(color: AppColors.textGrey, shadows: [Shadow(color: Colors.black87, blurRadius: 10)])),
         const SizedBox(height: 14),
-        Row(children: [_ActionButton(icon: Icons.play_arrow_rounded, label: 'Play', filled: true, onTap: () {}), const SizedBox(width: 12), _ActionButton(icon: Icons.info_outline_rounded, label: 'More Info', onTap: onDetails)]),
+        Row(children: [_ActionButton(icon: Icons.play_arrow_rounded, label: 'Play', filled: true, onTap: () {}), const SizedBox(width: 12), _ActionButton(icon: Icons.info_outline_rounded, label: 'More Info', onTap: widget.onDetails)]),
         const SizedBox(height: 18),
-        Row(children: List.generate(count, (i) => AnimatedContainer(duration: const Duration(milliseconds: 250), curve: Curves.easeOutCubic, margin: const EdgeInsets.only(right: 6), width: index == i ? 24 : 8, height: 8, decoration: BoxDecoration(color: index == i ? AppColors.amber : Colors.white.withValues(alpha: 0.25), borderRadius: BorderRadius.circular(99))))),
+        Row(children: List.generate(widget.count, (i) => AnimatedContainer(duration: const Duration(milliseconds: 250), curve: Curves.easeOutCubic, margin: const EdgeInsets.only(right: 6), width: widget.index == i ? 24 : 8, height: 8, decoration: BoxDecoration(color: widget.index == i ? AppColors.amber : Colors.white.withValues(alpha: 0.25), borderRadius: BorderRadius.circular(99))))),
       ])),
     ]);
   }
 }
 
 class _CircleIcon extends StatelessWidget {
-  final IconData icon; final VoidCallback onTap;
-  const _CircleIcon({required this.icon, required this.onTap});
+  final IconData icon;
+  final VoidCallback onTap;
+  final double backgroundAlpha;
+
+  const _CircleIcon({required this.icon, required this.onTap, this.backgroundAlpha = 0.10});
   @override
   Widget build(BuildContext context) => _SpringPress(
     onTap: onTap,
-    child: Container(
+  child: Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.10),
+        color: Colors.white.withValues(alpha: backgroundAlpha),
         shape: BoxShape.circle,
         border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
       ),
@@ -210,32 +266,6 @@ class _SpringPressState extends State<_SpringPress> {
         widget.onTap();
       },
       child: AnimatedScale(scale: _pressed ? 0.95 : 1, duration: const Duration(milliseconds: 420), curve: Curves.elasticOut, child: widget.child),
-    );
-  }
-}
-
-class _SafeImage extends StatefulWidget {
-  final String url;
-  const _SafeImage({required this.url});
-
-  @override
-  State<_SafeImage> createState() => _SafeImageState();
-}
-
-class _SafeImageState extends State<_SafeImage> {
-  bool _failed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final valid = widget.url.startsWith('http') && widget.url.contains('/t/p/');
-    if (_failed || !valid) return const ColoredBox(color: AppColors.card, child: Center(child: Icon(Icons.movie_outlined, color: AppColors.textGrey, size: 42)));
-    return Image.network(
-      widget.url,
-      fit: BoxFit.cover,
-      errorBuilder: (_, _, _) {
-        if (!_failed) WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) setState(() => _failed = true); });
-        return const ColoredBox(color: AppColors.card, child: Center(child: Icon(Icons.movie_outlined, color: AppColors.textGrey, size: 42)));
-      },
     );
   }
 }

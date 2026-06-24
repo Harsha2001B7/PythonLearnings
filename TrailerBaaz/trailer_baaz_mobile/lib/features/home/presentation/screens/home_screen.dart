@@ -2,14 +2,35 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/models/trailer_model.dart';
+import '../../../auth/presentation/screens/login_screen.dart';
+import '../../../search/presentation/screens/search_screen.dart';
 import '../../data/mock/home_dummy_data.dart';
 import 'trailer_details_screen.dart';
 import '../widgets/hero_carousel.dart';
 import '../widgets/trailer_section.dart';
 import '../widgets/trending_now.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late final ScrollController _scrollController;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,14 +45,23 @@ class HomeScreen extends StatelessWidget {
       body: Stack(
         children: [
           CustomScrollView(
-            physics: const BouncingScrollPhysics(),
+            controller: _scrollController,
+            physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
             slivers: [
-              SliverToBoxAdapter(child: HeroCarousel(trailers: HomeDummyData.featured, onDetails: openDetails)),
-              SliverToBoxAdapter(child: TrendingNow(trailers: HomeDummyData.byCategory('Trending'), onTap: openDetails)),
-              SliverToBoxAdapter(child: TrailerSection(title: '🇮🇳 Telugu', trailers: HomeDummyData.byCategory('Telugu'), onTap: openDetails)),
-              SliverToBoxAdapter(child: TrailerSection(title: '🎬 Hindi', trailers: HomeDummyData.byCategory('Hindi'), onTap: openDetails)),
-              SliverToBoxAdapter(child: TrailerSection(title: '📺 Web Series', trailers: HomeDummyData.byCategory('Web Series'), onTap: openDetails)),
-              SliverToBoxAdapter(child: TrailerSection(title: 'Upcoming Releases', trailers: HomeDummyData.upcoming, cardWidth: 158, onTap: openDetails)),
+              SliverToBoxAdapter(
+                child: HeroCarousel(trailers: HomeDummyData.featured, onDetails: openDetails),
+              ),
+              SliverToBoxAdapter(
+                child: TrendingNow(
+                  scrollController: _scrollController,
+                  trailers: HomeDummyData.byCategory('Trending'),
+                  onTap: openDetails,
+                ),
+              ),
+              SliverToBoxAdapter(child: TrailerSection(scrollController: _scrollController, title: '🇮🇳 Telugu', trailers: HomeDummyData.byCategory('Telugu'), cardWidth: 260, onTap: openDetails)),
+              SliverToBoxAdapter(child: TrailerSection(scrollController: _scrollController, title: '🎬 Hindi', trailers: HomeDummyData.byCategory('Hindi'), cardWidth: 260, onTap: openDetails)),
+              SliverToBoxAdapter(child: TrailerSection(scrollController: _scrollController, title: '📺 Web Series', trailers: HomeDummyData.byCategory('Web Series'), cardWidth: 260, onTap: openDetails)),
+              SliverToBoxAdapter(child: TrailerSection(scrollController: _scrollController, title: 'Upcoming Releases', trailers: HomeDummyData.upcoming, cardWidth: 260, onTap: openDetails)),
               const SliverToBoxAdapter(child: SizedBox(height: 108)),
             ],
           ),
@@ -42,8 +72,51 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
-class _HomeHeader extends StatelessWidget {
+class _HomeHeader extends StatefulWidget {
   const _HomeHeader();
+
+  @override
+  State<_HomeHeader> createState() => _HomeHeaderState();
+}
+
+class _HomeHeaderState extends State<_HomeHeader> {
+  static const _languages = ['English', 'हिन्दी', 'తెలుగు', 'தமிழ்', 'ଓଡ଼ିଆ', 'ಕನ್ನಡ', 'മലയാളം', 'मराठी'];
+  String _selectedLanguage = 'English';
+
+  void _openSearch() {
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SearchScreen()));
+  }
+
+  void _openLogin() {
+    Navigator.of(context).push(MaterialPageRoute(builder: (_) => const LoginScreen()));
+  }
+
+  Future<void> _openLanguageMenu() async {
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final selected = await showMenu<String>(
+      context: context,
+      color: const Color(0xFF1A1A1A),
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      position: RelativeRect.fromLTRB(overlay.size.width - 196, 82, 16, 0),
+      items: _languages.map((language) {
+        final active = language == _selectedLanguage;
+        return PopupMenuItem<String>(
+          value: language,
+          child: Row(
+            children: [
+              Expanded(child: Text(language, style: const TextStyle(color: AppColors.textWhite))),
+              if (active) const Icon(Icons.check_rounded, color: AppColors.amber, size: 18),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+
+    if (selected != null) {
+      setState(() => _selectedLanguage = selected);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,10 +129,36 @@ class _HomeHeader extends StatelessWidget {
           children: [
             Row(
               children: [
-                Text('TrailerBaaz', style: Theme.of(context).textTheme.headlineSmall?.copyWith(color: AppColors.primaryRed, fontWeight: FontWeight.w800)),
+                Image.asset(
+                  'assets/images/trailerbaaz_logo.png',
+                  width: 34,
+                  height: 34,
+                  fit: BoxFit.contain,
+                ),
                 const Spacer(),
-                IconButton(onPressed: () {}, icon: const Icon(Icons.notifications_none_rounded, color: AppColors.textWhite)),
-                IconButton(onPressed: () {}, icon: const Icon(Icons.person_outline_rounded, color: AppColors.textWhite)),
+                IconButton(
+                  onPressed: _openSearch,
+                  icon: const Icon(Icons.search, color: AppColors.textWhite, size: 22),
+                ),
+                IconButton(
+                  onPressed: _openLanguageMenu,
+                  icon: const Icon(Icons.language, color: AppColors.textWhite, size: 22),
+                ),
+                _SpringPress(
+                  onTap: _openLogin,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.10),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
+                    ),
+                    child: const Text(
+                      'Sign In',
+                      style: TextStyle(color: AppColors.textWhite, fontWeight: FontWeight.w600, fontSize: 13),
+                    ),
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 12),
