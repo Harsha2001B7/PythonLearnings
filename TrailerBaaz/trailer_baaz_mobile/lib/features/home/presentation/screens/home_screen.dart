@@ -98,10 +98,10 @@ class _IndustryFilterState extends State<_IndustryFilter> {
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
                 decoration: BoxDecoration(
-                  color: active ? AppColors.amber : Colors.white.withOpacity(0.08),
+                  color: active ? AppColors.amber : Colors.white.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: active ? Colors.transparent : Colors.white.withOpacity(0.12)),
-                  boxShadow: active ? [BoxShadow(color: AppColors.amber.withOpacity(0.18), blurRadius: 20, spreadRadius: 1, offset: const Offset(0, 8))] : null,
+                  border: Border.all(color: active ? Colors.transparent : Colors.white.withValues(alpha: 0.12)),
+                  boxShadow: active ? [BoxShadow(color: AppColors.amber.withValues(alpha: 0.18), blurRadius: 20, spreadRadius: 1, offset: const Offset(0, 8))] : null,
                 ),
                 child: Text(
                   _items[index],

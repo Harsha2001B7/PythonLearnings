@@ -29,7 +29,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             decoration: BoxDecoration(
               color: AppColors.surface,
               borderRadius: BorderRadius.circular(20),
-              boxShadow: [BoxShadow(color: AppColors.amber.withOpacity(0.06), blurRadius: 40, spreadRadius: 8, offset: const Offset(0, 24))],
+              boxShadow: [BoxShadow(color: AppColors.amber.withValues(alpha: 0.06), blurRadius: 40, spreadRadius: 8, offset: const Offset(0, 24))],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -52,7 +52,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       child: Container(
                         width: 38,
                         height: 38,
-                        decoration: BoxDecoration(color: Colors.white.withOpacity(0.10), shape: BoxShape.circle),
+                        decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.10), shape: BoxShape.circle),
                         child: const Icon(Icons.close_rounded, color: AppColors.textWhite),
                       ),
                     ),
@@ -150,8 +150,8 @@ class _ChipButton extends StatelessWidget {
         decoration: BoxDecoration(
           color: selected ? AppColors.amber : AppColors.chip,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected ? Colors.transparent : Colors.white.withOpacity(0.10)),
-          boxShadow: selected ? [BoxShadow(color: AppColors.amber.withOpacity(0.30), blurRadius: 8)] : null,
+          border: Border.all(color: selected ? Colors.transparent : Colors.white.withValues(alpha: 0.10)),
+          boxShadow: selected ? [BoxShadow(color: AppColors.amber.withValues(alpha: 0.30), blurRadius: 8)] : null,
         ),
         child: Text(label, style: TextStyle(color: selected ? AppColors.textWhite : const Color(0xFFCCCCCC), fontWeight: selected ? FontWeight.w600 : FontWeight.w500)),
       ),
@@ -177,7 +177,7 @@ class _HomeIndustryChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: active ? AppColors.amber : AppColors.chip,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: active ? AppColors.amber : Colors.white.withOpacity(0.10)),
+          border: Border.all(color: active ? AppColors.amber : Colors.white.withValues(alpha: 0.10)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -205,7 +205,7 @@ class _ActionPill extends StatelessWidget {
   Widget build(BuildContext context) {
     final background = switch (style) {
       _ActionStyle.amber => AppColors.amber,
-      _ActionStyle.ghost => Colors.white.withOpacity(0.08),
+      _ActionStyle.ghost => Colors.white.withValues(alpha: 0.08),
       _ActionStyle.white => AppColors.textWhite,
     };
     final foreground = style == _ActionStyle.white ? AppColors.background : AppColors.textWhite;

@@ -19,8 +19,8 @@ class ReleaseCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.white.withOpacity(0.05)),
-          boxShadow: [BoxShadow(color: AppColors.amber.withOpacity(0.06), blurRadius: 28, spreadRadius: 1, offset: const Offset(0, 16))],
+          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+          boxShadow: [BoxShadow(color: AppColors.amber.withValues(alpha: 0.06), blurRadius: 28, spreadRadius: 1, offset: const Offset(0, 16))],
         ),
         child: Row(
           children: [

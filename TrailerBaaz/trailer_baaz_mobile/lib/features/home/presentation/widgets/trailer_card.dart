@@ -33,7 +33,7 @@ class TrailerCard extends StatelessWidget {
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(12),
-                  boxShadow: [BoxShadow(color: AppColors.amber.withOpacity(0.08), blurRadius: 24, spreadRadius: 2, offset: const Offset(0, 12))],
+                  boxShadow: [BoxShadow(color: AppColors.amber.withValues(alpha: 0.08), blurRadius: 24, spreadRadius: 2, offset: const Offset(0, 12))],
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(12),

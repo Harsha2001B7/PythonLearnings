@@ -134,7 +134,7 @@ class _HeroSlide extends StatelessWidget {
         const SizedBox(height: 14),
         Row(children: [_ActionButton(icon: Icons.play_arrow_rounded, label: 'Play', filled: true, onTap: () {}), const SizedBox(width: 12), _ActionButton(icon: Icons.info_outline_rounded, label: 'More Info', onTap: onDetails)]),
         const SizedBox(height: 18),
-        Row(children: List.generate(count, (i) => AnimatedContainer(duration: const Duration(milliseconds: 250), curve: Curves.easeOutCubic, margin: const EdgeInsets.only(right: 6), width: index == i ? 24 : 8, height: 8, decoration: BoxDecoration(color: index == i ? AppColors.amber : Colors.white.withOpacity(0.25), borderRadius: BorderRadius.circular(99))))),
+        Row(children: List.generate(count, (i) => AnimatedContainer(duration: const Duration(milliseconds: 250), curve: Curves.easeOutCubic, margin: const EdgeInsets.only(right: 6), width: index == i ? 24 : 8, height: 8, decoration: BoxDecoration(color: index == i ? AppColors.amber : Colors.white.withValues(alpha: 0.25), borderRadius: BorderRadius.circular(99))))),
       ])),
     ]);
   }
@@ -149,9 +149,9 @@ class _CircleIcon extends StatelessWidget {
     child: Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.10),
+        color: Colors.white.withValues(alpha: 0.10),
         shape: BoxShape.circle,
-        border: Border.all(color: Colors.white.withOpacity(0.15)),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
       ),
       child: Icon(icon, color: AppColors.textWhite),
     ),
@@ -170,9 +170,9 @@ class _ActionButton extends StatelessWidget {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
-          color: filled ? AppColors.textWhite : Colors.white.withOpacity(0.10),
+          color: filled ? AppColors.textWhite : Colors.white.withValues(alpha: 0.10),
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: filled ? Colors.transparent : Colors.white.withOpacity(0.15)),
+          border: Border.all(color: filled ? Colors.transparent : Colors.white.withValues(alpha: 0.15)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
