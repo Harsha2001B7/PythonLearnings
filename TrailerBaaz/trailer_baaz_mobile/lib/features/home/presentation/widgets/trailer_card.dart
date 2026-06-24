@@ -7,20 +7,21 @@ class TrailerCard extends StatelessWidget {
   final TrailerModel trailer;
   final double width;
   final VoidCallback? onTap;
+  final bool showTrendingBadge;
 
   const TrailerCard({
     super.key,
     required this.trailer,
     this.width = 150,
     this.onTap,
+    this.showTrendingBadge = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final titleStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600);
-    return InkWell(
+    return _SpringPress(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
       child: SizedBox(
         width: width,
         child: Column(
@@ -29,24 +30,37 @@ class TrailerCard extends StatelessWidget {
           children: [
             AspectRatio(
               aspectRatio: 0.72,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    _SafeImage(url: trailer.imageUrl),
-                    const DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [Colors.transparent, Colors.black87],
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [BoxShadow(color: AppColors.amber.withOpacity(0.08), blurRadius: 24, spreadRadius: 2, offset: const Offset(0, 12))],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      _SafeImage(url: trailer.imageUrl),
+                      const DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [Colors.transparent, Color(0xDD000000)],
+                          ),
                         ),
                       ),
-                    ),
-                    if (trailer.isUpcoming)
-                      const Positioned(top: 8, right: 8, child: _Badge(label: 'Soon')),
-                  ],
+                      if (showTrendingBadge)
+                        const Positioned(top: 8, left: 8, child: _Badge(label: 'TRENDING WORLDWIDE', rounded: 6)),
+                      if (trailer.isUpcoming)
+                        const Positioned(top: 8, right: 8, child: _Badge(label: 'SOON')),
+                      Positioned(
+                        left: 10,
+                        bottom: 10,
+                        child: Text('${(trailer.title.length * 17) + 120}K views', style: const TextStyle(color: AppColors.textWhite, fontWeight: FontWeight.w600, fontSize: 12)),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -68,15 +82,45 @@ class TrailerCard extends StatelessWidget {
 
 class _Badge extends StatelessWidget {
   final String label;
+  final double rounded;
 
-  const _Badge({required this.label});
+  const _Badge({required this.label, this.rounded = 999});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(color: AppColors.primaryRed, borderRadius: BorderRadius.circular(999)),
-      child: Text(label, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+      decoration: BoxDecoration(color: AppColors.amber, borderRadius: BorderRadius.circular(rounded)),
+      child: Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.textWhite)),
+    );
+  }
+}
+
+class _SpringPress extends StatefulWidget {
+  final Widget child;
+  final VoidCallback? onTap;
+
+  const _SpringPress({required this.child, this.onTap});
+
+  @override
+  State<_SpringPress> createState() => _SpringPressState();
+}
+
+class _SpringPressState extends State<_SpringPress> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: widget.onTap == null ? null : (_) => setState(() => _pressed = true),
+      onTapCancel: widget.onTap == null ? null : () => setState(() => _pressed = false),
+      onTapUp: widget.onTap == null
+          ? null
+          : (_) {
+              setState(() => _pressed = false);
+              widget.onTap!();
+            },
+      child: AnimatedScale(scale: _pressed ? 0.96 : 1, duration: const Duration(milliseconds: 420), curve: Curves.elasticOut, child: widget.child),
     );
   }
 }

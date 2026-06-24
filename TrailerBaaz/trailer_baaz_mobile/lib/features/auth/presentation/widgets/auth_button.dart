@@ -19,19 +19,34 @@ class AuthButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final leading = assetPath != null
         ? SvgPicture.asset(assetPath!, height: 22, width: 22)
-        : Icon(icon, size: 22, color: Colors.black);
-    return SizedBox(
+        : Icon(icon, size: 22, color: Colors.white);
+    return Container(
       width: double.infinity,
-      height: 56,
+      height: 58,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(30),
+        gradient: LinearGradient(
+          colors: [
+            Colors.white.withValues(alpha: 0.22),
+            Colors.white.withValues(alpha: 0.08),
+          ],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFFF2E63).withValues(alpha: 0.18),
+            blurRadius: 28,
+            offset: const Offset(0, 14),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(1),
       child: FilledButton(
         onPressed: onPressed,
         style: FilledButton.styleFrom(
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
+          backgroundColor: const Color(0xDD11131F),
+          foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 18),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
         ),
         child: Stack(
           alignment: Alignment.center,
@@ -40,7 +55,7 @@ class AuthButton extends StatelessWidget {
             Text(
               label,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
             ),
           ],
         ),

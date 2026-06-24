@@ -26,12 +26,12 @@ class _HeroCarouselState extends State<HeroCarousel> {
   @override
   void initState() {
     super.initState();
-    _page = PageController(viewportFraction: 0.94);
+    _page = PageController();
     _loadVideo();
     _timer = Timer.periodic(const Duration(seconds: 6), (_) {
       if (!_page.hasClients || widget.trailers.length < 2) return;
       final next = (_index + 1) % widget.trailers.length;
-      _page.animateToPage(next, duration: const Duration(milliseconds: 450), curve: Curves.easeOut);
+      _page.animateToPage(next, duration: const Duration(milliseconds: 520), curve: Curves.easeOutCubic);
     });
   }
 
@@ -69,10 +69,11 @@ class _HeroCarouselState extends State<HeroCarousel> {
 
   @override
   Widget build(BuildContext context) {
-    final height = (MediaQuery.of(context).size.width * 1.15).clamp(360.0, 520.0).toDouble();
+    final height = (MediaQuery.of(context).size.width * 1.2).clamp(460.0, 620.0).toDouble();
     return SizedBox(
       height: height,
       child: PageView.builder(
+        physics: const BouncingScrollPhysics(),
         controller: _page,
         itemCount: widget.trailers.length,
         onPageChanged: (i) {
@@ -102,27 +103,40 @@ class _HeroSlide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 16, right: 6),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(10),
-        child: Stack(fit: StackFit.expand, children: [
-          _SafeImage(url: trailer.imageUrl),
-          if (video != null && video!.value.isInitialized) Opacity(opacity: active ? 0.92 : 0, child: FittedBox(fit: BoxFit.cover, child: SizedBox(width: video!.value.size.width, height: video!.value.size.height, child: VideoPlayer(video!)))),
-          const DecoratedBox(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0x30000000), Color(0xDD000000)]))),
-          Positioned(top: 16, right: 16, child: Row(children: [_CircleIcon(icon: muted ? Icons.volume_off_rounded : Icons.volume_up_rounded, onTap: onMute), const SizedBox(width: 10), _CircleIcon(icon: paused ? Icons.play_arrow_rounded : Icons.pause_rounded, onTap: onPause)])),
-          Positioned(left: 20, right: 20, bottom: 20, child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-            Text(trailer.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800)),
-            const SizedBox(height: 8),
-            Text('${trailer.language} • ${trailer.genre}', style: const TextStyle(color: AppColors.textGrey)),
-            const SizedBox(height: 14),
-            Row(children: [_ActionButton(icon: Icons.play_arrow_rounded, label: 'Play', filled: true, onTap: () {}), const SizedBox(width: 12), _ActionButton(icon: Icons.info_outline_rounded, label: 'More Info', onTap: onDetails)]),
-            const SizedBox(height: 16),
-            Row(children: List.generate(count, (i) => AnimatedContainer(duration: const Duration(milliseconds: 250), margin: const EdgeInsets.only(right: 6), width: index == i ? 20 : 8, height: 8, decoration: BoxDecoration(color: index == i ? AppColors.primaryRed : Colors.white38, borderRadius: BorderRadius.circular(99))))),
-          ])),
-        ]),
+    final topInset = MediaQuery.of(context).padding.top;
+    return Stack(fit: StackFit.expand, children: [
+      _SafeImage(url: trailer.imageUrl),
+      if (video != null && video!.value.isInitialized) Opacity(opacity: active ? 0.9 : 0, child: FittedBox(fit: BoxFit.cover, child: SizedBox(width: video!.value.size.width, height: video!.value.size.height, child: VideoPlayer(video!)))),
+      const Positioned.fill(
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              stops: [0, 0.15, 0.7, 1],
+              colors: [AppColors.background, Colors.transparent, Colors.transparent, AppColors.background],
+            ),
+          ),
+        ),
       ),
-    );
+      const Positioned.fill(
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(begin: Alignment.bottomCenter, end: Alignment.topCenter, colors: [Color(0xCC0D0D0F), Colors.transparent], stops: [0, 0.34]),
+          ),
+        ),
+      ),
+      Positioned(top: topInset + 112, right: 16, child: Row(children: [_CircleIcon(icon: muted ? Icons.volume_off_rounded : Icons.volume_up_rounded, onTap: onMute), const SizedBox(width: 10), _CircleIcon(icon: paused ? Icons.play_arrow_rounded : Icons.pause_rounded, onTap: onPause)])),
+      Positioned(left: 20, right: 20, bottom: 30, child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+        Text(trailer.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800, shadows: const [Shadow(color: Colors.black87, blurRadius: 14, offset: Offset(0, 2))])),
+        const SizedBox(height: 8),
+        Text('${trailer.language} • ${trailer.genre}', style: const TextStyle(color: AppColors.textGrey, shadows: [Shadow(color: Colors.black87, blurRadius: 10)])),
+        const SizedBox(height: 14),
+        Row(children: [_ActionButton(icon: Icons.play_arrow_rounded, label: 'Play', filled: true, onTap: () {}), const SizedBox(width: 12), _ActionButton(icon: Icons.info_outline_rounded, label: 'More Info', onTap: onDetails)]),
+        const SizedBox(height: 18),
+        Row(children: List.generate(count, (i) => AnimatedContainer(duration: const Duration(milliseconds: 250), curve: Curves.easeOutCubic, margin: const EdgeInsets.only(right: 6), width: index == i ? 24 : 8, height: 8, decoration: BoxDecoration(color: index == i ? AppColors.amber : Colors.white.withOpacity(0.25), borderRadius: BorderRadius.circular(99))))),
+      ])),
+    ]);
   }
 }
 
@@ -130,7 +144,18 @@ class _CircleIcon extends StatelessWidget {
   final IconData icon; final VoidCallback onTap;
   const _CircleIcon({required this.icon, required this.onTap});
   @override
-  Widget build(BuildContext context) => InkWell(onTap: onTap, child: Container(padding: const EdgeInsets.all(10), decoration: const BoxDecoration(color: Color(0x66000000), shape: BoxShape.circle), child: Icon(icon, color: AppColors.textWhite)));
+  Widget build(BuildContext context) => _SpringPress(
+    onTap: onTap,
+    child: Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.10),
+        shape: BoxShape.circle,
+        border: Border.all(color: Colors.white.withOpacity(0.15)),
+      ),
+      child: Icon(icon, color: AppColors.textWhite),
+    ),
+  );
 }
 
 class _ActionButton extends StatelessWidget {
@@ -138,7 +163,55 @@ class _ActionButton extends StatelessWidget {
   final VoidCallback onTap;
   const _ActionButton({required this.icon, required this.label, required this.onTap, this.filled = false});
   @override
-  Widget build(BuildContext context) => Expanded(child: FilledButton.tonalIcon(onPressed: onTap, style: FilledButton.styleFrom(backgroundColor: filled ? AppColors.textWhite : Colors.white12, foregroundColor: filled ? Colors.black : AppColors.textWhite), icon: Icon(icon, size: 20), label: Text(label)));
+  Widget build(BuildContext context) => Expanded(
+    child: _SpringPress(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: filled ? AppColors.textWhite : Colors.white.withOpacity(0.10),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: filled ? Colors.transparent : Colors.white.withOpacity(0.15)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 20, color: filled ? AppColors.background : AppColors.textWhite),
+            const SizedBox(width: 6),
+            Flexible(child: Text(label, overflow: TextOverflow.ellipsis, style: TextStyle(color: filled ? AppColors.background : AppColors.textWhite, fontWeight: FontWeight.w700))),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+class _SpringPress extends StatefulWidget {
+  final Widget child;
+  final VoidCallback onTap;
+
+  const _SpringPress({required this.child, required this.onTap});
+
+  @override
+  State<_SpringPress> createState() => _SpringPressState();
+}
+
+class _SpringPressState extends State<_SpringPress> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapCancel: () => setState(() => _pressed = false),
+      onTapUp: (_) {
+        setState(() => _pressed = false);
+        widget.onTap();
+      },
+      child: AnimatedScale(scale: _pressed ? 0.95 : 1, duration: const Duration(milliseconds: 420), curve: Curves.elasticOut, child: widget.child),
+    );
+  }
 }
 
 class _SafeImage extends StatefulWidget {

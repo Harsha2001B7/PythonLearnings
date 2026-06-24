@@ -8,7 +8,7 @@ class AppTheme {
     return base.copyWith(
       scaffoldBackgroundColor: AppColors.background,
       colorScheme: const ColorScheme.dark(
-        primary: AppColors.primaryRed,
+        primary: AppColors.amber,
         secondary: AppColors.primaryRed,
         surface: AppColors.surface,
         onPrimary: AppColors.textWhite,
@@ -21,7 +21,7 @@ class AppTheme {
       ),
       appBarTheme: const AppBarTheme(
         centerTitle: true,
-        backgroundColor: AppColors.background,
+        backgroundColor: Colors.transparent,
         foregroundColor: AppColors.textWhite,
         elevation: 0,
       ),
