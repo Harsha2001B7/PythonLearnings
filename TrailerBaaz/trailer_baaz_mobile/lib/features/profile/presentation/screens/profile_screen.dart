@@ -189,7 +189,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           }).toList(),
                         ),
                         const SizedBox(height: 20),
-                                  Divider(height: 1, thickness: 1, color: Colors.white.withValues(alpha: 0.10)),
+                        Divider(height: 1, thickness: 1, color: Colors.white.withValues(alpha: 0.10)),
                         const SizedBox(height: 18),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
