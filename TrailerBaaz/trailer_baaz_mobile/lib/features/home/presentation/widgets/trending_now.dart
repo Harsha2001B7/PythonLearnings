@@ -5,11 +5,14 @@ import '../../../../shared/models/trailer_model.dart';
 import 'trailer_section.dart';
 
 class TrendingNow extends StatelessWidget {
-  final ScrollController scrollController;
   final List<TrailerModel> trailers;
   final ValueChanged<TrailerModel>? onTap;
 
-  const TrendingNow({super.key, required this.trailers, this.onTap, required this.scrollController});
+  const TrendingNow({
+    super.key,
+    required this.trailers,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -19,9 +22,8 @@ class TrendingNow extends StatelessWidget {
       titleColor: AppColors.amber,
       letterSpaced: true,
       showTrendingBadge: true,
-      fadeTopEdge: true,
       trailers: trailers,
-      cardWidth: 260,
+      cardWidth: 280,
       onTap: onTap,
     );
   }

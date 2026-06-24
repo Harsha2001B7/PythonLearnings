@@ -12,44 +12,136 @@ class TrailerCard extends StatelessWidget {
   const TrailerCard({
     super.key,
     required this.trailer,
-    this.width = 150,
+    this.width = 260,
     this.onTap,
     this.showTrendingBadge = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final cardWidth = width.clamp(240.0, 280.0).toDouble();
-    final imageHeight = (cardWidth / 1.78).clamp(136.0, 156.0).toDouble();
-    final titleStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: AppColors.textWhite);
-    return _SpringPress(
+    final cardWidth = width.clamp(240.0, 320.0).toDouble();
+    final posterHeight = (cardWidth * 0.60).clamp(150.0, 182.0).toDouble();
+    final infoHeight = (cardWidth * 0.22).clamp(66.0, 82.0).toDouble();
+
+    return _PressableCard(
       onTap: onTap,
       child: SizedBox(
         width: cardWidth,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
           children: [
-            if (trailer.isUpcoming)
-              _TrailerThumb(
-                trailer: trailer,
-                width: cardWidth,
-                height: imageHeight + 42,
-                showTrendingBadge: showTrendingBadge,
-              )
-            else ...[
-              _TrailerThumb(
-                trailer: trailer,
-                width: cardWidth,
-                height: imageHeight,
-                showTrendingBadge: showTrendingBadge,
+            SizedBox(
+              height: posterHeight,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(22),
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    _SafeImage(url: trailer.imageUrl),
+                    const DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Color(0x12000000),
+                            Color(0x0D000000),
+                            Color(0xC9000000),
+                          ],
+                          stops: [0.0, 0.55, 1.0],
+                        ),
+                      ),
+                    ),
+                    if (showTrendingBadge)
+                      Positioned(
+                        left: 12,
+                        top: 12,
+                        child: _Badge(
+                          label: 'TRENDING WORLDWIDE',
+                          icon: Icons.bolt_rounded,
+                        ),
+                      ),
+                    Positioned(
+                      left: 14,
+                      right: 14,
+                      bottom: 12,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            trailer.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: AppColors.textWhite,
+                              fontWeight: FontWeight.w800,
+                              fontSize: 18,
+                              height: 1.0,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black87,
+                                  blurRadius: 12,
+                                  offset: Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              _MetaPill(label: trailer.language.toUpperCase()),
+                              const SizedBox(width: 8),
+                              _MetaPill(label: _viewsLabel(trailer)),
+                              const Spacer(),
+                              Icon(
+                                Icons.play_circle_fill_rounded,
+                                color: Colors.white.withValues(alpha: 0.92),
+                                size: 22,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              _TrailerTextBlock(
-                trailer: trailer,
-                width: cardWidth,
-                titleStyle: titleStyle,
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              height: infoHeight,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 2),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Text(
+                      trailer.subtitle.toUpperCase(),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.amber,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.6,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      trailer.industry,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.textGrey,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ],
+            ),
           ],
         ),
       ),
@@ -59,145 +151,38 @@ class TrailerCard extends StatelessWidget {
 
 class _Badge extends StatelessWidget {
   final String label;
-  final double rounded;
+  final IconData icon;
 
-  const _Badge({required this.label, this.rounded = 999});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(color: AppColors.amber, borderRadius: BorderRadius.circular(rounded)),
-      child: Text(label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.textWhite)),
-    );
-  }
-}
-
-class _TrailerThumb extends StatelessWidget {
-  final TrailerModel trailer;
-  final double width;
-  final double height;
-  final bool showTrendingBadge;
-
-  const _TrailerThumb({
-    required this.trailer,
-    required this.width,
-    required this.height,
-    required this.showTrendingBadge,
-  });
+  const _Badge({required this.label, required this.icon});
 
   @override
   Widget build(BuildContext context) {
-    if (trailer.isUpcoming) {
-      return Container(
-        width: width,
-        height: height,
-        decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(Radius.circular(12)),
-          boxShadow: [BoxShadow(color: AppColors.amber.withValues(alpha: 0.08), blurRadius: 24, spreadRadius: 2, offset: const Offset(0, 12))],
-        ),
-        child: ClipRRect(
-          borderRadius: const BorderRadius.all(Radius.circular(12)),
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              _SafeImage(url: trailer.imageUrl),
-              const DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Colors.transparent, Color(0xE6000000)],
-                    stops: [0.45, 1],
-                  ),
-                ),
-              ),
-              if (showTrendingBadge)
-                const Positioned(
-                  top: 10,
-                  left: 10,
-                  child: _Badge(label: 'TRENDING WORLDWIDE', rounded: 6),
-                ),
-              Positioned(
-                left: 12,
-                right: 12,
-                bottom: 12,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      trailer.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: AppColors.textWhite, fontWeight: FontWeight.w700, fontSize: 18),
-                    ),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        const _MiniBadge(
-                          label: 'LAUNCHES IN X DAYS',
-                          background: AppColors.amber,
-                          foreground: AppColors.textWhite,
-                        ),
-                        const SizedBox(width: 8),
-                        const _MiniBadge(
-                          label: 'HYPE XX',
-                          background: Color(0xFF1A1A1A),
-                          foreground: AppColors.amber,
-                          borderColor: AppColors.amber,
-                        ),
-                        const Spacer(),
-                        Text(
-                          '${(trailer.title.length * 17) + 120}K views',
-                          style: const TextStyle(color: AppColors.textWhite, fontWeight: FontWeight.w600, fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    return Container(
-      width: width,
-      height: height,
+    return DecoratedBox(
       decoration: BoxDecoration(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-        boxShadow: [BoxShadow(color: AppColors.amber.withValues(alpha: 0.08), blurRadius: 24, spreadRadius: 2, offset: const Offset(0, 12))],
+        color: AppColors.amber.withValues(alpha: 0.94),
+        borderRadius: BorderRadius.circular(999),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.amber.withValues(alpha: 0.22),
+            blurRadius: 14,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
-        child: Stack(
-          fit: StackFit.expand,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            _SafeImage(url: trailer.imageUrl),
-            const DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [Colors.transparent, Color(0xE6000000)],
-                  stops: [0.48, 1],
-                ),
-              ),
-            ),
-            if (showTrendingBadge)
-              const Positioned(
-                top: 10,
-                left: 10,
-                child: _Badge(label: 'TRENDING WORLDWIDE', rounded: 6),
-              ),
-            Positioned(
-              left: 12,
-              bottom: 12,
-              child: Text(
-                '${(trailer.title.length * 17) + 120}K views',
-                style: const TextStyle(color: AppColors.textWhite, fontWeight: FontWeight.w600, fontSize: 12),
+            Icon(icon, size: 12, color: AppColors.background),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.background,
+                fontSize: 10,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.4,
               ),
             ),
           ],
@@ -207,110 +192,75 @@ class _TrailerThumb extends StatelessWidget {
   }
 }
 
-class _TrailerTextBlock extends StatelessWidget {
-  final TrailerModel trailer;
-  final double width;
-  final TextStyle? titleStyle;
-
-  const _TrailerTextBlock({
-    required this.trailer,
-    required this.width,
-    required this.titleStyle,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: width,
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(10)),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            trailer.language.toUpperCase(),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: AppColors.amber, fontSize: 12, fontWeight: FontWeight.w600),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            trailer.title,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: titleStyle?.copyWith(height: 1.15),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MiniBadge extends StatelessWidget {
+class _MetaPill extends StatelessWidget {
   final String label;
-  final Color background;
-  final Color foreground;
-  final Color? borderColor;
 
-  const _MiniBadge({
-    required this.label,
-    required this.background,
-    required this.foreground,
-    this.borderColor,
-  });
+  const _MetaPill({required this.label});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+    return DecoratedBox(
       decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(6),
-        border: borderColor == null ? null : Border.all(color: borderColor!),
+        color: Colors.white.withValues(alpha: 0.11),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
       ),
-      child: Text(
-        label,
-        style: TextStyle(color: foreground, fontSize: 10, fontWeight: FontWeight.w700),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: AppColors.textWhite,
+            fontSize: 10,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
       ),
     );
   }
 }
 
-class _SpringPress extends StatefulWidget {
+class _PressableCard extends StatefulWidget {
   final Widget child;
   final VoidCallback? onTap;
 
-  const _SpringPress({required this.child, this.onTap});
+  const _PressableCard({
+    required this.child,
+    this.onTap,
+  });
 
   @override
-  State<_SpringPress> createState() => _SpringPressState();
+  State<_PressableCard> createState() => _PressableCardState();
 }
 
-class _SpringPressState extends State<_SpringPress> {
+class _PressableCardState extends State<_PressableCard> {
   bool _pressed = false;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTapDown: widget.onTap == null ? null : (_) => setState(() => _pressed = true),
       onTapCancel: widget.onTap == null ? null : () => setState(() => _pressed = false),
       onTapUp: widget.onTap == null
           ? null
           : (_) {
               setState(() => _pressed = false);
-              widget.onTap!();
+              widget.onTap?.call();
             },
-      child: AnimatedScale(scale: _pressed ? 0.96 : 1, duration: const Duration(milliseconds: 420), curve: Curves.elasticOut, child: widget.child),
+      child: AnimatedScale(
+        scale: _pressed ? 0.97 : 1,
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
+        child: widget.child,
+      ),
     );
   }
 }
 
 class _SafeImage extends StatefulWidget {
   final String url;
+
   const _SafeImage({required this.url});
 
   @override
@@ -323,14 +273,46 @@ class _SafeImageState extends State<_SafeImage> {
   @override
   Widget build(BuildContext context) {
     final valid = widget.url.startsWith('http') && widget.url.contains('/t/p/');
-    if (_failed || !valid) return const ColoredBox(color: AppColors.card, child: Center(child: Icon(Icons.image_not_supported_outlined, color: AppColors.textGrey)));
+    if (_failed || !valid) {
+      return const ColoredBox(
+        color: AppColors.card,
+        child: Center(
+          child: Icon(
+            Icons.image_not_supported_outlined,
+            color: AppColors.textGrey,
+            size: 40,
+          ),
+        ),
+      );
+    }
+
     return Image.network(
       widget.url,
       fit: BoxFit.cover,
-      errorBuilder: (_, _, _) {
-        if (!_failed) WidgetsBinding.instance.addPostFrameCallback((_) { if (mounted) setState(() => _failed = true); });
-        return const ColoredBox(color: AppColors.card, child: Center(child: Icon(Icons.image_not_supported_outlined, color: AppColors.textGrey)));
+      filterQuality: FilterQuality.low,
+      errorBuilder: (context, error, stackTrace) {
+        if (!_failed) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) setState(() => _failed = true);
+          });
+        }
+        return const ColoredBox(
+          color: AppColors.card,
+          child: Center(
+            child: Icon(
+              Icons.image_not_supported_outlined,
+              color: AppColors.textGrey,
+              size: 40,
+            ),
+          ),
+        );
       },
     );
   }
+}
+
+String _viewsLabel(TrailerModel trailer) {
+  final seed = trailer.title.codeUnits.fold<int>(0, (sum, code) => sum + code);
+  final value = 100 + (seed % 900);
+  return '${value}K views';
 }

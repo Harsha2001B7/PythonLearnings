@@ -54,7 +54,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: Stack(
         children: [
           Positioned.fill(
-            child: ColoredBox(color: Colors.black.withOpacity(0.75)),
+            child: ColoredBox(color: Colors.black.withValues(alpha: 0.75)),
           ),
           SafeArea(
             child: Center(
@@ -66,7 +66,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.45),
+                      color: Colors.black.withValues(alpha: 0.45),
                       blurRadius: 30,
                       offset: const Offset(0, 18),
                     ),
@@ -106,7 +106,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: 16),
-                                  Divider(height: 1, thickness: 1, color: Colors.white.withOpacity(0.10)),
+                                  Divider(height: 1, thickness: 1, color: Colors.white.withValues(alpha: 0.10)),
                                 ],
                               ),
                             ),
@@ -117,7 +117,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 width: 40,
                                 height: 40,
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.12),
+                                  color: Colors.white.withValues(alpha: 0.12),
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(Icons.close_rounded, color: AppColors.textWhite, size: 22),
@@ -189,7 +189,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           }).toList(),
                         ),
                         const SizedBox(height: 20),
-                        Divider(height: 1, thickness: 1, color: Colors.white.withOpacity(0.10)),
+                                  Divider(height: 1, thickness: 1, color: Colors.white.withValues(alpha: 0.10)),
                         const SizedBox(height: 18),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,

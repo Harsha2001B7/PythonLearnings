@@ -1,26 +1,111 @@
+import 'dart:math' as math;
+
+import 'package:dio/dio.dart';
+
 import '../../../../shared/models/trailer_model.dart';
 
 class HomeDummyData {
-  // Temporary: same YouTube embed for all slots. Replace with API embed URLs later.
-  static const _ytEmbed = 'https://www.youtube.com/embed/Pd4Olzi0HEc?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&playsinline=1';
+  static final Dio _dio = Dio(
+    BaseOptions(
+      baseUrl: 'https://www.googleapis.com/youtube/v3',
+      connectTimeout: const Duration(seconds: 12),
+      receiveTimeout: const Duration(seconds: 12),
+      responseType: ResponseType.json,
+    ),
+  );
 
-  static const trailers = <TrailerModel>[
-    TrailerModel(title: 'Salaar', imageUrl: 'https://image.tmdb.org/t/p/w780/9xjZS2rlVxm8SFx8kPC3aIGCOYQ.jpg', youtubeUrl: 'https://www.youtube.com/watch?v=4GPvYMKtrtI', videoUrl: _ytEmbed, category: 'Trending', industry: 'Tollywood', language: 'Telugu', genre: 'Action', releaseYear: '2023', runtime: '2h 55m', rating: 'U/A 16+', overview: 'A high-voltage action saga about fractured friendships, power struggles, and a man who walks into a violent empire carrying both loyalty and fury.', castMembers: ['Prabhas', 'Prithviraj', 'Shruti Haasan', 'Jagapathi Babu']),
-    TrailerModel(title: 'Kalki 2898 AD', imageUrl: 'https://image.tmdb.org/t/p/w780/sci4z7Y6nYzDwHEfsYjeTgLq0MI.jpg', youtubeUrl: 'https://www.youtube.com/watch?v=BfCIPsEGAS8', videoUrl: _ytEmbed, category: 'Trending', industry: 'Pan India', language: 'Hindi', genre: 'Sci-Fi', releaseYear: '2024', runtime: '3h 1m', rating: 'U/A 13+', overview: 'In a mythic dystopian future, rebels, warriors, and chosen protectors converge around a prophecy that could redraw the fate of civilization.', castMembers: ['Prabhas', 'Deepika Padukone', 'Amitabh Bachchan', 'Kamal Haasan']),
-    TrailerModel(title: 'Pushpa 2', imageUrl: 'https://image.tmdb.org/t/p/w780/62xGzeY7rOZw5L6xVnliiM4S8xS.jpg', youtubeUrl: 'https://www.youtube.com/watch?v=g3JUbgOHgdw', videoUrl: _ytEmbed, category: 'Trending', industry: 'Tollywood', language: 'Telugu', genre: 'Mass', releaseYear: '2024', runtime: '2h 48m', rating: 'U/A 16+', overview: 'The red-sandalwood king returns with bigger swagger, rougher enemies, and a ruthless hunger to hold on to everything he built.', castMembers: ['Allu Arjun', 'Rashmika Mandanna', 'Fahadh Faasil', 'Sunil']),
-    TrailerModel(title: 'Game Changer', imageUrl: 'https://image.tmdb.org/t/p/w780/t9XkeE7HzOsdQcDDDapDYh8Rrmt.jpg', youtubeUrl: 'https://www.youtube.com/watch?v=G4qBU9fve0Y', videoUrl: _ytEmbed, category: 'Telugu', industry: 'Tollywood', language: 'Telugu', genre: 'Political', releaseYear: '2025', runtime: '2h 40m', rating: 'U/A 13+', overview: 'An upright officer collides with a corrupt political machine in a glossy action drama built on big speeches, ambition, and system-level stakes.', castMembers: ['Ram Charan', 'Kiara Advani', 'SJ Suryah', 'Anjali']),
-    TrailerModel(title: 'Devara', imageUrl: 'https://image.tmdb.org/t/p/w780/k1vWhw7qJwKlfQk6TB8fV7cJ2uj.jpg', youtubeUrl: 'https://www.youtube.com/watch?v=rc61YHl1PFY', videoUrl: _ytEmbed, category: 'Telugu', industry: 'Tollywood', language: 'Telugu', genre: 'Action', releaseYear: '2024', runtime: '2h 37m', rating: 'U/A 16+', overview: 'A coastal protector becomes a legend as tribal loyalties, smuggling routes, and blood-feuds crash into each other under stormy skies.', castMembers: ['Jr NTR', 'Janhvi Kapoor', 'Saif Ali Khan', 'Shine Tom Chacko']),
-    TrailerModel(title: 'OG', imageUrl: 'https://image.tmdb.org/t/p/w780/xnnYSLJ1Z7K9w3yXcThhDTt8pK3.jpg', youtubeUrl: 'https://www.youtube.com/watch?v=JKAi2xV6g1c', videoUrl: _ytEmbed, category: 'Telugu', industry: 'Tollywood', language: 'Telugu', genre: 'Gangster', releaseYear: '2025', runtime: '2h 22m', rating: 'A', overview: 'A feared gangster re-enters the underworld after years away, bringing unfinished vendettas and icy charisma back into circulation.', castMembers: ['Pawan Kalyan', 'Priyanka Mohan', 'Emraan Hashmi', 'Arjun Das']),
-    TrailerModel(title: 'Jawan', imageUrl: 'https://image.tmdb.org/t/p/w780/jFt1gS4BGHlK8xt76Y81Alp4dbt.jpg', youtubeUrl: 'https://www.youtube.com/watch?v=MWOlnZSnXJo', videoUrl: _ytEmbed, category: 'Hindi', industry: 'Bollywood', language: 'Hindi', genre: 'Action', releaseYear: '2023', runtime: '2h 49m', rating: 'U/A 16+', overview: 'A vigilante with multiple faces takes on corruption through elaborate missions, moral spectacle, and blockbuster-scale emotional payoffs.', castMembers: ['Shah Rukh Khan', 'Nayanthara', 'Vijay Sethupathi', 'Deepika Padukone']),
-    TrailerModel(title: 'Animal', imageUrl: 'https://image.tmdb.org/t/p/w780/xCaMFatXuhxqX9Zp3M0Wq9ELi6f.jpg', youtubeUrl: 'https://www.youtube.com/watch?v=Dydmpfo68DA', videoUrl: _ytEmbed, category: 'Hindi', industry: 'Bollywood', language: 'Hindi', genre: 'Crime', releaseYear: '2023', runtime: '3h 21m', rating: 'A', overview: 'A volatile heir spirals through violence, obsession, and paternal longing in a crime drama that is loud, polarizing, and intensely emotional.', castMembers: ['Ranbir Kapoor', 'Rashmika Mandanna', 'Anil Kapoor', 'Bobby Deol']),
-    TrailerModel(title: 'Stree 2', imageUrl: 'https://image.tmdb.org/t/p/w780/7seqaCaaXDNUHOx4DqwpoOH8pPa.jpg', youtubeUrl: 'https://www.youtube.com/watch?v=KLVq0IAzh1A', videoUrl: _ytEmbed, category: 'Hindi', industry: 'Bollywood', language: 'Hindi', genre: 'Comedy', releaseYear: '2024', runtime: '2h 18m', rating: 'U/A 13+', overview: 'The haunted-town chaos returns with bigger supernatural threats, sharper jokes, and a familiar gang trying to survive the next curse.', castMembers: ['Rajkummar Rao', 'Shraddha Kapoor', 'Aparshakti Khurana', 'Pankaj Tripathi']),
-    TrailerModel(title: 'Mirzapur', imageUrl: 'https://image.tmdb.org/t/p/w780/9q0j0qS0r5yYvJZZzKzbwQ6vurI.jpg', youtubeUrl: 'https://www.youtube.com/watch?v=ZNeGF-PvRHY', videoUrl: _ytEmbed, category: 'Web Series', industry: 'Streaming', language: 'Hindi', genre: 'Crime', releaseYear: '2024', runtime: '8 Episodes', rating: 'A', overview: 'Power, revenge, and family ambition collide again as the battle for Mirzapur becomes even messier, bloodier, and more political.', castMembers: ['Pankaj Tripathi', 'Ali Fazal', 'Shweta Tripathi', 'Rasika Dugal']),
-    TrailerModel(title: 'Farzi', imageUrl: 'https://image.tmdb.org/t/p/w780/aB2x8Gx8hN8R3t6m0n6zkRgZNpm.jpg', youtubeUrl: 'https://www.youtube.com/watch?v=tNfF5xG1JEs', videoUrl: _ytEmbed, category: 'Web Series', industry: 'Streaming', language: 'Hindi', genre: 'Thriller', releaseYear: '2023', runtime: '8 Episodes', rating: 'U/A 16+', overview: 'A gifted artist drifts into the counterfeit money game and finds himself hunted by both power and conscience.', castMembers: ['Shahid Kapoor', 'Vijay Sethupathi', 'Raashii Khanna', 'Kay Kay Menon']),
-    TrailerModel(title: 'The Family Man', imageUrl: 'https://image.tmdb.org/t/p/w780/q53nctT0x8lWb1x1o1t4bmPqhGV.jpg', youtubeUrl: 'https://www.youtube.com/watch?v=XatRGut65VI', videoUrl: _ytEmbed, category: 'Web Series', industry: 'Streaming', language: 'Hindi', genre: 'Spy', releaseYear: '2024', runtime: '8 Episodes', rating: 'U/A 16+', overview: 'An overworked intelligence officer juggles domestic friction and national threats in a grounded spy thriller with wit and heart.', castMembers: ['Manoj Bajpayee', 'Priyamani', 'Sharib Hashmi', 'Samantha Ruth Prabhu']),
-    TrailerModel(title: 'Coolie', imageUrl: 'https://image.tmdb.org/t/p/w780/8cdWjvZQUExUUTzVk3MaqkO1g1k.jpg', youtubeUrl: 'https://www.youtube.com/watch?v=v9M8eo74fD8', videoUrl: _ytEmbed, category: 'Upcoming', industry: 'Kollywood', language: 'Tamil', genre: 'Action', releaseYear: '2025', runtime: '2h 30m', rating: 'TBA', overview: 'A star-driven action event built around style, swagger, and the promise of a mass comeback mounted on a huge canvas.', castMembers: ['Rajinikanth', 'Nagarjuna', 'Shruti Haasan', 'Soubin Shahir'], isUpcoming: true),
-    TrailerModel(title: 'War 2', imageUrl: 'https://image.tmdb.org/t/p/w780/euYIwmwkmz95mnXvufEmbL6ovhZ.jpg', youtubeUrl: 'https://www.youtube.com/watch?v=hbVV58BfGqc', videoUrl: _ytEmbed, category: 'Upcoming', industry: 'Bollywood', language: 'Hindi', genre: 'Spy', releaseYear: '2025', runtime: '2h 38m', rating: 'TBA', overview: 'Elite agents, franchise stakes, and globe-spanning action collide in a sequel built to go bigger in every possible direction.', castMembers: ['Hrithik Roshan', 'Jr NTR', 'Kiara Advani', 'Ashutosh Rana'], isUpcoming: true),
-    TrailerModel(title: 'Kuberaa', imageUrl: 'https://image.tmdb.org/t/p/w780/6uAiest6qj0d5X9wR7mO7m0cC7p.jpg', youtubeUrl: 'https://www.youtube.com/watch?v=Qf1nCzl0Ywk', videoUrl: _ytEmbed, category: 'Upcoming', industry: 'Tollywood', language: 'Telugu', genre: 'Drama', releaseYear: '2025', runtime: '2h 24m', rating: 'TBA', overview: 'A dramatic character-led story that blends performance power with moral conflict, mystery, and an expansive social backdrop.', castMembers: ['Dhanush', 'Nagarjuna', 'Rashmika Mandanna', 'Jim Sarbh'], isUpcoming: true),
+  static List<TrailerModel> trailers = <TrailerModel>[];
+  static bool _loading = false;
+  static DateTime? _loadedAt;
+
+  static const List<_SectionSpec> _sections = [
+    _SectionSpec(
+      category: 'Trending',
+      queries: ['official trailer', 'movie trailer'],
+      industry: 'Pan India',
+      language: 'Mixed',
+      genre: 'Trailer',
+      count: 5,
+      order: 'viewCount',
+      relevanceLanguage: 'en',
+    ),
+    _SectionSpec(
+      category: 'Telugu',
+      queries: [
+        'Telugu official trailer',
+        'Telugu teaser trailer',
+        'తెలుగు ట్రైలర్',
+      ],
+      industry: 'Tollywood',
+      language: 'Telugu',
+      genre: 'Trailer',
+      count: 4,
+      order: 'viewCount',
+      relevanceLanguage: 'te',
+    ),
+    _SectionSpec(
+      category: 'Hindi',
+      queries: ['Hindi official trailer', 'Bollywood trailer'],
+      industry: 'Bollywood',
+      language: 'Hindi',
+      genre: 'Trailer',
+      count: 4,
+      order: 'viewCount',
+      relevanceLanguage: 'hi',
+    ),
+    _SectionSpec(
+      category: 'Web Series',
+      queries: ['web series official trailer', 'OTT trailer'],
+      industry: 'Streaming',
+      language: 'Hindi',
+      genre: 'Series',
+      count: 4,
+      order: 'viewCount',
+      relevanceLanguage: 'en',
+    ),
+    _SectionSpec(
+      category: 'Upcoming',
+      queries: ['upcoming movie trailer', 'new movie trailer'],
+      industry: 'Pan India',
+      language: 'Mixed',
+      genre: 'Trailer',
+      count: 4,
+      upcoming: true,
+      order: 'date',
+      relevanceLanguage: 'en',
+    ),
   ];
+
+  static Future<void> preload({required String apiKey}) async {
+    if (_loading) return;
+    if (trailers.isNotEmpty &&
+        _loadedAt != null &&
+        DateTime.now().difference(_loadedAt!) < const Duration(minutes: 20)) {
+      return;
+    }
+
+    _loading = true;
+    try {
+      final loadedSections = await Future.wait(
+        _sections.map((section) => _loadSection(section, apiKey)),
+      );
+
+      final seen = <String>{};
+      final merged = <TrailerModel>[];
+      for (final sectionItems in loadedSections) {
+        for (final item in sectionItems) {
+          if (seen.add(item.youtubeUrl)) {
+            merged.add(item);
+          }
+        }
+      }
+
+      trailers = merged;
+      _loadedAt = DateTime.now();
+    } finally {
+      _loading = false;
+    }
+  }
 
   static List<TrailerModel> byCategory(String category) =>
       trailers.where((t) => t.category == category).toList();
@@ -28,4 +113,287 @@ class HomeDummyData {
   static List<TrailerModel> get featured => trailers.take(5).toList();
   static List<TrailerModel> get upcoming =>
       trailers.where((t) => t.isUpcoming).toList();
+
+  static Future<List<TrailerModel>> _loadSection(
+    _SectionSpec section,
+    String apiKey,
+  ) async {
+    try {
+      final searchResults = <_SearchHit>[];
+      final seenIds = <String>{};
+      for (final query in section.queries) {
+        final batch = await _searchVideos(
+          query: query,
+          apiKey: apiKey,
+          order: section.order,
+          relevanceLanguage: section.relevanceLanguage,
+        );
+        for (final item in batch) {
+          if (seenIds.add(item.videoId)) {
+            searchResults.add(item);
+          }
+          if (searchResults.length >= section.count * 3) {
+            break;
+          }
+        }
+        if (searchResults.length >= section.count * 3) {
+          break;
+        }
+      }
+      if (searchResults.isEmpty) return const <TrailerModel>[];
+
+      final ids = searchResults.map((item) => item.videoId).toList();
+      final details = await _fetchVideoDetails(ids, apiKey);
+      final byId = {for (final item in details) item.videoId: item};
+
+      final items = <TrailerModel>[];
+      for (final candidate in searchResults) {
+        final detail = byId[candidate.videoId];
+        if (detail == null || !detail.embeddable) continue;
+        items.add(_toTrailer(detail, section));
+        if (items.length >= section.count) break;
+      }
+      return items;
+    } catch (_) {
+      return const <TrailerModel>[];
+    }
+  }
+
+  static Future<List<_SearchHit>> _searchVideos({
+    required String query,
+    required String apiKey,
+    required String order,
+    required String relevanceLanguage,
+  }) async {
+    final response = await _dio.get(
+      '/search',
+      queryParameters: <String, Object?>{
+        'part': 'snippet',
+        'type': 'video',
+        'q': query,
+        'maxResults': 12,
+        'order': order,
+        'regionCode': 'IN',
+        'relevanceLanguage': relevanceLanguage,
+        'safeSearch': 'none',
+        'videoEmbeddable': 'true',
+        'videoSyndicated': 'true',
+        'key': apiKey,
+      },
+    );
+
+    final items =
+        (response.data['items'] as List<dynamic>? ?? const <dynamic>[]);
+    final seenIds = <String>{};
+    final hits = <_SearchHit>[];
+
+    for (final raw in items) {
+      if (raw is! Map<String, dynamic>) {
+        continue;
+      }
+      final id = raw['id'];
+      final snippet = raw['snippet'];
+      if (id is! Map<String, dynamic> || snippet is! Map<String, dynamic>) {
+        continue;
+      }
+      final videoId = id['videoId'];
+      final title = snippet['title'];
+      final description = snippet['description'];
+      if (videoId is! String || title is! String || description is! String) {
+        continue;
+      }
+      if (videoId.isEmpty || !seenIds.add(videoId)) {
+        continue;
+      }
+      hits.add(
+        _SearchHit(videoId: videoId, title: title, description: description),
+      );
+    }
+
+    return hits.where(_looksLikeTrailer).toList(growable: false);
+  }
+
+  static Future<List<_VideoDetail>> _fetchVideoDetails(
+    List<String> ids,
+    String apiKey,
+  ) async {
+    if (ids.isEmpty) return const <_VideoDetail>[];
+
+    final response = await _dio.get(
+      '/videos',
+      queryParameters: <String, Object?>{
+        'part': 'snippet,contentDetails,status',
+        'id': ids.join(','),
+        'key': apiKey,
+      },
+    );
+
+    final items =
+        (response.data['items'] as List<dynamic>? ?? const <dynamic>[]);
+    final details = <_VideoDetail>[];
+    for (final raw in items) {
+      if (raw is! Map<String, dynamic>) continue;
+      final id = raw['id'];
+      final snippet = raw['snippet'];
+      final contentDetails = raw['contentDetails'];
+      final status = raw['status'];
+      if (id is! String ||
+          snippet is! Map<String, dynamic> ||
+          contentDetails is! Map<String, dynamic> ||
+          status is! Map<String, dynamic>) {
+        continue;
+      }
+      final embeddable = status['embeddable'] == true;
+      if (!embeddable) continue;
+      details.add(
+        _VideoDetail(
+          videoId: id,
+          title: snippet['title'] as String? ?? '',
+          description: snippet['description'] as String? ?? '',
+          publishedAt:
+              DateTime.tryParse(snippet['publishedAt'] as String? ?? '') ??
+              DateTime.now(),
+          thumbnailUrl: _bestThumbnail(snippet['thumbnails']),
+          duration: _formatDuration(
+            contentDetails['duration'] as String? ?? 'PT0S',
+          ),
+          embeddable: embeddable,
+        ),
+      );
+    }
+
+    return details;
+  }
+
+  static TrailerModel _toTrailer(_VideoDetail detail, _SectionSpec section) {
+    final youtubeUrl = 'https://www.youtube.com/watch?v=${detail.videoId}';
+    final overview = _truncate(detail.description);
+    final releaseYear = detail.publishedAt.year.toString();
+
+    return TrailerModel(
+      title: detail.title,
+      imageUrl: detail.thumbnailUrl,
+      youtubeUrl: youtubeUrl,
+      videoUrl: youtubeUrl,
+      category: section.category,
+      industry: section.industry,
+      language: section.language,
+      genre: section.genre,
+      releaseYear: releaseYear,
+      runtime: detail.duration,
+      rating: section.upcoming ? 'TBA' : 'NR',
+      overview: overview,
+      castMembers: const <String>[],
+      isUpcoming: section.upcoming,
+    );
+  }
+
+  static bool _looksLikeTrailer(_SearchHit item) {
+    final text = '${item.title} ${item.description}'.toLowerCase();
+    return text.contains('trailer') ||
+        text.contains('teaser') ||
+        text.contains('promo') ||
+        text.contains('official');
+  }
+
+  static String _bestThumbnail(Object? thumbnails) {
+    if (thumbnails is Map<String, dynamic>) {
+      final order = <String>['maxres', 'standard', 'high', 'medium', 'default'];
+      for (final quality in order) {
+        final candidate = thumbnails[quality];
+        if (candidate is Map<String, dynamic>) {
+          final url = candidate['url'];
+          if (url is String && url.isNotEmpty) {
+            return url;
+          }
+        }
+      }
+    }
+    return 'https://img.youtube.com/vi/invalid/maxresdefault.jpg';
+  }
+
+  static String _truncate(String input, {int max = 180}) {
+    final cleaned = input.replaceAll(RegExp(r'\s+'), ' ').trim();
+    if (cleaned.isEmpty) return 'Official trailer from YouTube.';
+    if (cleaned.length <= max) return cleaned;
+    return '${cleaned.substring(0, math.max(0, max - 1)).trimRight()}…';
+  }
+
+  static String _formatDuration(String iso8601) {
+    final hours = _matchIso(iso8601, 'H');
+    final minutes = _matchIso(iso8601, 'M');
+    final seconds = _matchIso(iso8601, 'S');
+    final parts = <String>[];
+    if (hours > 0) {
+      parts.add('${hours}h');
+    }
+    if (minutes > 0 || hours > 0) {
+      parts.add('${minutes}m');
+    }
+    if (hours == 0 && minutes == 0 && seconds > 0) {
+      parts.add('${seconds}s');
+    }
+    return parts.isEmpty ? '0s' : parts.join(' ');
+  }
+
+  static int _matchIso(String value, String unit) {
+    final match = RegExp(r'(\d+)' + unit).firstMatch(value);
+    return int.tryParse(match?.group(1) ?? '0') ?? 0;
+  }
+}
+
+class _SectionSpec {
+  final String category;
+  final List<String> queries;
+  final String industry;
+  final String language;
+  final String genre;
+  final int count;
+  final bool upcoming;
+  final String order;
+  final String relevanceLanguage;
+
+  const _SectionSpec({
+    required this.category,
+    required this.queries,
+    required this.industry,
+    required this.language,
+    required this.genre,
+    required this.count,
+    required this.order,
+    required this.relevanceLanguage,
+    this.upcoming = false,
+  });
+}
+
+class _SearchHit {
+  final String videoId;
+  final String title;
+  final String description;
+
+  const _SearchHit({
+    required this.videoId,
+    required this.title,
+    required this.description,
+  });
+}
+
+class _VideoDetail {
+  final String videoId;
+  final String title;
+  final String description;
+  final DateTime publishedAt;
+  final String thumbnailUrl;
+  final String duration;
+  final bool embeddable;
+
+  const _VideoDetail({
+    required this.videoId,
+    required this.title,
+    required this.description,
+    required this.publishedAt,
+    required this.thumbnailUrl,
+    required this.duration,
+    required this.embeddable,
+  });
 }

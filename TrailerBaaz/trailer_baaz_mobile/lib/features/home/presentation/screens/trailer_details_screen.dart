@@ -7,6 +7,7 @@ import '../widgets/action_buttons.dart';
 import '../widgets/cast_section.dart';
 import '../widgets/info_section.dart';
 import '../widgets/related_trailers_section.dart';
+import 'trailer_player_screen.dart';
 
 class TrailerDetailsScreen extends StatelessWidget {
   final TrailerModel trailer;
@@ -63,18 +64,37 @@ class _Hero extends StatelessWidget {
             gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [Color(0x22000000), Color(0xFF090909)]),
           ),
         ),
-        Positioned(
-          left: 16,
-          right: 16,
-          bottom: 24,
-          child: Row(
-            children: const [
-              Expanded(child: _HeroButton(icon: Icons.play_arrow_rounded, label: 'Play', filled: true)),
-              SizedBox(width: 12),
-              Expanded(child: _HeroButton(icon: Icons.share_outlined, label: 'Share')),
-            ],
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 24,
+            child: Row(
+              children: [
+                Expanded(
+                  child: _HeroButton(
+                    icon: Icons.play_arrow_rounded,
+                    label: 'Play',
+                    filled: true,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => TrailerPlayerScreen(trailer: trailer),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _HeroButton(
+                    icon: Icons.share_outlined,
+                    label: 'Share',
+                    onTap: () {},
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
       ],
     );
   }
@@ -110,13 +130,19 @@ class _HeroButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final bool filled;
+  final VoidCallback? onTap;
 
-  const _HeroButton({required this.icon, required this.label, this.filled = false});
+  const _HeroButton({
+    required this.icon,
+    required this.label,
+    this.filled = false,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     return FilledButton.tonalIcon(
-      onPressed: () {},
+      onPressed: onTap,
       style: FilledButton.styleFrom(
         backgroundColor: filled ? AppColors.textWhite : Colors.white12,
         foregroundColor: filled ? Colors.black : AppColors.textWhite,

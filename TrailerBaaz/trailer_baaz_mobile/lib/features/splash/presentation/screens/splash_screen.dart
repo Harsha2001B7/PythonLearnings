@@ -2,7 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../../core/config/youtube_api_config.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../features/home/data/mock/home_dummy_data.dart';
+import '../../../../features/reels/data/mock/reels_dummy_data.dart';
 import '../../../../navigation/bottom_navigation_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -16,13 +19,20 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 2), _openHome);
+    _bootstrap();
   }
 
-  void _openHome() {
+  Future<void> _bootstrap() async {
+    await Future.wait([
+      HomeDummyData.preload(apiKey: YoutubeApiConfig.apiKey),
+      ReelsDummyData.preload(apiKey: YoutubeApiConfig.apiKey),
+    ]);
+
+    await Future<void>.delayed(const Duration(milliseconds: 900));
+
     if (!mounted) return;
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const BottomNavigationScreen()),
+      MaterialPageRoute(builder: (_) => const BottomNavigation()),
     );
   }
 

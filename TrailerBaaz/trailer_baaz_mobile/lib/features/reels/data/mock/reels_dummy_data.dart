@@ -1,19 +1,110 @@
+import 'package:dio/dio.dart';
+import 'package:youtube_player_iframe/youtube_player_iframe.dart';
+
+import '../../../home/data/mock/home_dummy_data.dart';
 import '../../domain/models/reel_model.dart';
 
 class ReelsDummyData {
-  static const _v1 = 'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4';
-  static const _v2 = 'https://samplelib.com/lib/preview/mp4/sample-5s.mp4';
-  static const _v3 = 'https://samplelib.com/lib/preview/mp4/sample-10s.mp4';
+  static final Dio _dio = Dio(
+    BaseOptions(
+      baseUrl: 'https://www.googleapis.com/youtube/v3',
+      connectTimeout: const Duration(seconds: 12),
+      receiveTimeout: const Duration(seconds: 12),
+      responseType: ResponseType.json,
+    ),
+  );
 
-  // TODO: Replace with FastAPI reels feed and YouTube trailer sources later.
-  static const reels = <ReelModel>[
-    ReelModel(title: 'Salaar', industry: 'Tollywood', language: 'Telugu', views: '12.8M', videoUrl: _v1, thumbnailUrl: 'https://image.tmdb.org/t/p/w780/9xjZS2rlVxm8SFx8kPC3aIGCOYQ.jpg', genre: 'Action', releaseYear: '2023'),
-    ReelModel(title: 'Kalki 2898 AD', industry: 'Bollywood', language: 'Hindi', views: '10.1M', videoUrl: _v2, thumbnailUrl: 'https://image.tmdb.org/t/p/w780/sci4z7Y6nYzDwHEfsYjeTgLq0MI.jpg', genre: 'Sci-Fi', releaseYear: '2024'),
-    ReelModel(title: 'Pushpa 2', industry: 'Tollywood', language: 'Telugu', views: '18.4M', videoUrl: _v3, thumbnailUrl: 'https://image.tmdb.org/t/p/w780/62xGzeY7rOZw5L6xVnliiM4S8xS.jpg', genre: 'Mass', releaseYear: '2024'),
-    ReelModel(title: 'Jawan', industry: 'Bollywood', language: 'Hindi', views: '21.3M', videoUrl: _v1, thumbnailUrl: 'https://image.tmdb.org/t/p/w780/jFt1gS4BGHlK8xt76Y81Alp4dbt.jpg', genre: 'Action', releaseYear: '2023'),
-    ReelModel(title: 'Mirzapur', industry: 'Web Originals', language: 'Hindi', views: '9.7M', videoUrl: _v2, thumbnailUrl: 'https://image.tmdb.org/t/p/w780/9q0j0qS0r5yYvJZZzKzbwQ6vurI.jpg', genre: 'Crime', releaseYear: '2024'),
-    ReelModel(title: 'Devara', industry: 'Tollywood', language: 'Telugu', views: '11.2M', videoUrl: _v3, thumbnailUrl: 'https://image.tmdb.org/t/p/w780/k1vWhw7qJwKlfQk6TB8fV7cJ2uj.jpg', genre: 'Action', releaseYear: '2024'),
-    ReelModel(title: 'Animal', industry: 'Bollywood', language: 'Hindi', views: '14.6M', videoUrl: _v1, thumbnailUrl: 'https://image.tmdb.org/t/p/w780/xCaMFatXuhxqX9Zp3M0Wq9ELi6f.jpg', genre: 'Crime', releaseYear: '2023'),
-    ReelModel(title: 'The Family Man', industry: 'Web Originals', language: 'Hindi', views: '8.4M', videoUrl: _v2, thumbnailUrl: 'https://image.tmdb.org/t/p/w780/q53nctT0x8lWb1x1o1t4bmPqhGV.jpg', genre: 'Spy', releaseYear: '2024'),
-  ];
+  static List<ReelModel> reels = <ReelModel>[];
+
+  static Future<void> preload({required String apiKey}) async {
+    if (HomeDummyData.trailers.isEmpty) {
+      reels = <ReelModel>[];
+      return;
+    }
+
+    final source = HomeDummyData.trailers.take(8).toList();
+    final ids = source
+        .map(
+          (trailer) =>
+              YoutubePlayerController.convertUrlToId(trailer.youtubeUrl),
+        )
+        .whereType<String>()
+        .toList(growable: false);
+
+    if (ids.isEmpty) {
+      reels = <ReelModel>[];
+      return;
+    }
+
+    try {
+      final response = await _dio.get(
+        '/videos',
+        queryParameters: <String, Object?>{
+          'part': 'snippet,statistics',
+          'id': ids.join(','),
+          'key': apiKey,
+        },
+      );
+
+      final items =
+          (response.data['items'] as List<dynamic>? ?? const <dynamic>[]);
+      final statsById = <String, Map<String, dynamic>>{};
+      for (final raw in items) {
+        if (raw is! Map<String, dynamic>) {
+          continue;
+        }
+        final id = raw['id'];
+        final statistics = raw['statistics'];
+        if (id is String && statistics is Map<String, dynamic>) {
+          statsById[id] = statistics;
+        }
+      }
+
+      reels = source
+          .map((trailer) {
+            final videoId = YoutubePlayerController.convertUrlToId(
+              trailer.youtubeUrl,
+            );
+            final stats = videoId == null ? null : statsById[videoId];
+            final views = _formatViews(stats?['viewCount']?.toString());
+            return ReelModel(
+              title: trailer.title,
+              industry: trailer.industry,
+              language: trailer.language,
+              views: views,
+              videoUrl: trailer.youtubeUrl,
+              thumbnailUrl: trailer.imageUrl,
+              genre: trailer.genre,
+              releaseYear: trailer.releaseYear,
+            );
+          })
+          .toList(growable: false);
+    } catch (_) {
+      reels = source
+          .map((trailer) {
+            return ReelModel(
+              title: trailer.title,
+              industry: trailer.industry,
+              language: trailer.language,
+              views: '—',
+              videoUrl: trailer.youtubeUrl,
+              thumbnailUrl: trailer.imageUrl,
+              genre: trailer.genre,
+              releaseYear: trailer.releaseYear,
+            );
+          })
+          .toList(growable: false);
+    }
+  }
+
+  static String _formatViews(String? raw) {
+    final value = int.tryParse(raw ?? '');
+    if (value == null) return '—';
+    if (value >= 1000000000) {
+      return '${(value / 1000000000).toStringAsFixed(1)}B';
+    }
+    if (value >= 1000000) return '${(value / 1000000).toStringAsFixed(1)}M';
+    if (value >= 1000) return '${(value / 1000).toStringAsFixed(1)}K';
+    return value.toString();
+  }
 }

@@ -79,7 +79,7 @@ class _PhoneLoginScreenState extends State<PhoneLoginScreen> {
 
   void _openApp() {
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const BottomNavigationScreen()),
+      MaterialPageRoute(builder: (_) => const BottomNavigation()),
     );
   }
 

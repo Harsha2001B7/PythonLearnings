@@ -71,7 +71,7 @@ class LoginScreen extends StatelessWidget {
 
   void _openApp(BuildContext context) {
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => const BottomNavigationScreen()),
+      MaterialPageRoute(builder: (_) => const BottomNavigation()),
     );
   }
 

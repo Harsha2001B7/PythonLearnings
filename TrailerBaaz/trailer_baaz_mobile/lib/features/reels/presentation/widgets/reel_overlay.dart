@@ -5,61 +5,103 @@ import '../../domain/models/reel_model.dart';
 
 class ReelOverlay extends StatelessWidget {
   final ReelModel reel;
-  final bool muted;
-  final bool paused;
-  final VoidCallback onMute;
-  final VoidCallback onPlayPause;
+  final bool active;
+  final VoidCallback onPlayTrailer;
   final VoidCallback onDetails;
 
   const ReelOverlay({
     super.key,
     required this.reel,
-    required this.muted,
-    required this.paused,
-    required this.onMute,
-    required this.onPlayPause,
+    required this.active,
+    required this.onPlayTrailer,
     required this.onDetails,
   });
 
   @override
   Widget build(BuildContext context) {
-    final text = Theme.of(context).textTheme;
+    final theme = Theme.of(context).textTheme;
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 26),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 22),
         child: Stack(
           children: [
             Align(
               alignment: Alignment.topRight,
-              child: _GlassIcon(icon: muted ? Icons.volume_off_rounded : Icons.volume_up_rounded, onTap: onMute),
-            ),
-            Align(
-              child: AnimatedScale(
-                scale: paused ? 1 : 0.92,
-                duration: const Duration(milliseconds: 180),
-                child: _GlassIcon(icon: paused ? Icons.play_arrow_rounded : Icons.pause_rounded, onTap: onPlayPause, size: 34, padding: 18),
+              child: _GlassIcon(
+                icon: Icons.play_arrow_rounded,
+                label: 'Play trailer',
+                onTap: onPlayTrailer,
               ),
             ),
             Align(
               alignment: Alignment.bottomLeft,
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 260),
+                constraints: const BoxConstraints(maxWidth: 300),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(reel.title, maxLines: 2, overflow: TextOverflow.ellipsis, style: text.headlineSmall?.copyWith(fontWeight: FontWeight.w800)),
+                    _GlassBadge(
+                      label: reel.industry.toUpperCase(),
+                    ),
+                    const SizedBox(height: 14),
+                    Text(
+                      reel.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        shadows: const [
+                          Shadow(
+                            color: Colors.black87,
+                            blurRadius: 14,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                    ),
                     const SizedBox(height: 10),
-                    Text('${reel.genre} • ${reel.language}', style: const TextStyle(color: AppColors.textGrey)),
-                    const SizedBox(height: 4),
-                    Text(reel.industry, style: const TextStyle(color: AppColors.textGrey)),
-                    const SizedBox(height: 4),
-                    Text('${reel.views} views • ${reel.releaseYear}', style: const TextStyle(color: AppColors.textGrey)),
+                    Text(
+                      '${reel.genre} • ${reel.language} • ${reel.releaseYear}',
+                      style: const TextStyle(color: AppColors.textGrey),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      '${reel.views} views',
+                      style: const TextStyle(color: AppColors.textGrey),
+                    ),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _PrimaryButton(
+                            label: 'Play now',
+                            icon: Icons.play_arrow_rounded,
+                            onTap: onPlayTrailer,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _SecondaryButton(
+                            label: 'Details',
+                            icon: Icons.info_outline_rounded,
+                            onTap: onDetails,
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
             ),
-            Align(alignment: Alignment.bottomRight, child: _ActionRail(onDetails: onDetails)),
+            Align(
+              alignment: Alignment.topLeft,
+              child: AnimatedOpacity(
+                opacity: active ? 1 : 0.75,
+                duration: const Duration(milliseconds: 180),
+                child: const _MiniPill(label: 'REELS'),
+              ),
+            ),
           ],
         ),
       ),
@@ -67,44 +109,156 @@ class ReelOverlay extends StatelessWidget {
   }
 }
 
-class _ActionRail extends StatelessWidget {
-  final VoidCallback onDetails;
+class _GlassIcon extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
 
-  const _ActionRail({required this.onDetails});
+  const _GlassIcon({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Connect like/save/share flows to Firebase notifications later if needed.
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const _RailButton(icon: Icons.favorite_border_rounded, label: 'Like'),
-        const SizedBox(height: 14),
-        const _RailButton(icon: Icons.bookmark_border_rounded, label: 'Save'),
-        const SizedBox(height: 14),
-        const _RailButton(icon: Icons.share_outlined, label: 'Share'),
-        const SizedBox(height: 14),
-        _RailButton(icon: Icons.info_outline_rounded, label: 'Details', onTap: onDetails),
-      ],
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(999),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.34),
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: AppColors.textWhite, size: 18),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: const TextStyle(
+                color: AppColors.textWhite,
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
 
-class _RailButton extends StatelessWidget {
+class _PrimaryButton extends StatelessWidget {
   final IconData icon;
   final String label;
-  final VoidCallback? onTap;
-  const _RailButton({required this.icon, required this.label, this.onTap});
+  final VoidCallback onTap;
+
+  const _PrimaryButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
   @override
-  Widget build(BuildContext context) => Column(children: [TweenAnimationBuilder<double>(tween: Tween(begin: 0.95, end: 1), duration: const Duration(milliseconds: 220), builder: (_, v, child) => Transform.scale(scale: v, child: child), child: _GlassIcon(icon: icon, onTap: onTap ?? () {})), const SizedBox(height: 6), Text(label, style: const TextStyle(fontSize: 12))]);
+  Widget build(BuildContext context) {
+    return FilledButton.icon(
+      onPressed: onTap,
+      style: FilledButton.styleFrom(
+        backgroundColor: AppColors.amber,
+        foregroundColor: AppColors.background,
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      ),
+      icon: Icon(icon),
+      label: Text(label),
+    );
+  }
 }
 
-class _GlassIcon extends StatelessWidget {
+class _SecondaryButton extends StatelessWidget {
   final IconData icon;
+  final String label;
   final VoidCallback onTap;
-  final double size;
-  final double padding;
-  const _GlassIcon({required this.icon, required this.onTap, this.size = 24, this.padding = 12});
+
+  const _SecondaryButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
   @override
-  Widget build(BuildContext context) => InkWell(onTap: onTap, borderRadius: BorderRadius.circular(99), child: Container(padding: EdgeInsets.all(padding), decoration: const BoxDecoration(color: Color(0x66000000), shape: BoxShape.circle), child: Icon(icon, size: size, color: AppColors.textWhite)));
+  Widget build(BuildContext context) {
+    return OutlinedButton.icon(
+      onPressed: onTap,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: AppColors.textWhite,
+        side: BorderSide(color: Colors.white.withValues(alpha: 0.10)),
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      ),
+      icon: Icon(icon),
+      label: Text(label),
+    );
+  }
+}
+
+class _GlassBadge extends StatelessWidget {
+  final String label;
+
+  const _GlassBadge({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.black.withValues(alpha: 0.30),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: AppColors.textWhite,
+            fontSize: 10,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1.0,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MiniPill extends StatelessWidget {
+  final String label;
+
+  const _MiniPill({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: AppColors.amber,
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        child: Text(
+          label,
+          style: const TextStyle(
+            color: AppColors.background,
+            fontSize: 10,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1.2,
+          ),
+        ),
+      ),
+    );
+  }
 }
