@@ -11,6 +11,7 @@ import '../../shared/widgets/meta_widgets.dart';
 import '../../shared/widgets/trailer_action_button.dart';
 import '../../shared/widgets/trailer_card.dart';
 import '../details/trailer_details_screen.dart';
+import '../shell/app_shell.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -153,13 +154,16 @@ class _TopBar extends StatelessWidget {
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
         ),
         const Spacer(),
-        ClipOval(
-          child: SizedBox(
-            width: 38,
-            height: 38,
-            child: CinematicImage(
-              url:
-                  'https://images.unsplash.com/photo-1527980965255-d3b416303d12?auto=format&fit=crop&w=200&q=80',
+        GestureDetector(
+          onTap: () => AppShell.setIndex(context, 4),
+          child: ClipOval(
+            child: SizedBox(
+              width: 38,
+              height: 38,
+              child: CinematicImage(
+                url:
+                    'https://images.unsplash.com/photo-1527980965255-d3b416303d12?auto=format&fit=crop&w=200&q=80',
+              ),
             ),
           ),
         ),

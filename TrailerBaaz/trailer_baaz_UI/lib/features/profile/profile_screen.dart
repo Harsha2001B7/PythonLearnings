@@ -5,6 +5,7 @@ import '../../core/data/dummy_trailers.dart';
 import '../../shared/widgets/cinematic_image.dart';
 import '../../shared/widgets/trailer_card.dart';
 import '../details/trailer_details_screen.dart';
+import '../splash/splash_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -283,7 +284,21 @@ class _SettingsPanel extends StatelessWidget {
                 Icons.chevron_right_rounded,
                 color: AppTheme.muted,
               ),
-              onTap: () {},
+              onTap: () {
+                if (item.$2 == 'Logout') {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    PageRouteBuilder(
+                      transitionDuration: const Duration(milliseconds: 500),
+                      pageBuilder: (context, animation, secondaryAnimation) =>
+                          FadeTransition(
+                        opacity: animation,
+                        child: const SplashScreen(),
+                      ),
+                    ),
+                    (route) => false,
+                  );
+                }
+              },
             ),
         ],
       ),

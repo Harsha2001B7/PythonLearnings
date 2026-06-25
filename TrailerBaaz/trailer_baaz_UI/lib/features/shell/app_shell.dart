@@ -4,10 +4,14 @@ import '../../app/app_theme.dart';
 import '../discover/discover_screen.dart';
 import '../home/home_screen.dart';
 import '../profile/profile_screen.dart';
+import '../preferences/preferences_screen.dart';
 import '../search/search_screen.dart';
 
 class AppShell extends StatefulWidget {
   const AppShell({super.key});
+  static void setIndex(BuildContext context, int index) {
+    context.findAncestorStateOfType<_AppShellState>()?.setIndex(index);
+  }
 
   @override
   State<AppShell> createState() => _AppShellState();
@@ -20,9 +24,14 @@ class _AppShellState extends State<AppShell> {
     HomeScreen(),
     DiscoverScreen(),
     SearchScreen(),
+    PreferencesScreen(),
     ProfileScreen(),
   ];
-
+  void setIndex(int index) {
+    setState(() {
+      _index = index;
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,8 +80,8 @@ class _AppShellState extends State<AppShell> {
                 onTap: () => setState(() => _index = 2),
               ),
               _NavIcon(
-                icon: Icons.person_outline_rounded,
-                label: 'Profile',
+                icon: Icons.tune_rounded,
+                label: 'Preferences',
                 selected: _index == 3,
                 onTap: () => setState(() => _index = 3),
               ),
