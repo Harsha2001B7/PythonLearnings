@@ -29,11 +29,10 @@ class TrailerSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = cardWidth.clamp(240.0, 320.0).toDouble();
-    final cardHeight = (width * 0.82).clamp(210.0, 270.0).toDouble();
+    final cardHeight = (width * 0.62).clamp(154.0, 198.0).toDouble();
 
     return Padding(
-      padding: const EdgeInsets.only(top: 24),
-      // Section spacing stays generous, but the visual density is lighter.
+      padding: const EdgeInsets.only(top: 22),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

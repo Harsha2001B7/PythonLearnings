@@ -151,13 +151,18 @@ class GlassPillButton extends StatelessWidget {
                     Icon(icon, size: 16, color: AppColors.textWhite),
                     const SizedBox(width: 6),
                   ],
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      color: AppColors.textWhite,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.1,
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 160),
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.textWhite,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0.1,
+                      ),
                     ),
                   ),
                 ],
@@ -406,27 +411,34 @@ class _PreferencesSheetState extends State<_PreferencesSheet> {
                   color: Colors.white.withValues(alpha: 0.10),
                 ),
                 const SizedBox(height: 16),
-                Row(
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Expanded(
-                      child: GlassPillButton(
-                        label: 'Yes, notify me',
-                        icon: Icons.notifications_active_outlined,
-                        filled: _notifications,
-                        onTap: () => setState(() => _notifications = true),
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: GlassPillButton(
+                            label: 'Yes, notify me',
+                            icon: Icons.notifications_active_outlined,
+                            filled: _notifications,
+                            onTap: () => setState(() => _notifications = true),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: GlassPillButton(
+                            label: 'Just browsing',
+                            icon: Icons.visibility_outlined,
+                            filled: !_notifications,
+                            onTap: () => setState(() => _notifications = false),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: GlassPillButton(
-                        label: 'Just browsing',
-                        icon: Icons.visibility_outlined,
-                        onTap: () => setState(() => _notifications = false),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
+                    const SizedBox(height: 12),
                     GlassPillButton(
                       label: 'Save preferences',
+                      icon: Icons.check_rounded,
                       filled: true,
                       onTap: () => Navigator.of(context).maybePop(),
                     ),
@@ -466,7 +478,11 @@ class _ReactionSheet extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Text('🍿', style: TextStyle(fontSize: 22)),
+                  const Icon(
+                    Icons.local_movies_rounded,
+                    color: AppColors.amber,
+                    size: 22,
+                  ),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Text(
@@ -529,7 +545,7 @@ class _ReactionSheet extends StatelessWidget {
                 runSpacing: 8,
                 children: const [
                   _ReactionChip(label: 'Hard pass'),
-                  _ReactionChip(label: 'One kerne?'),
+                  _ReactionChip(label: 'One kernel'),
                   _ReactionChip(label: 'Pop me'),
                   _ReactionChip(label: 'Gift popcorn'),
                   _ReactionChip(label: 'Feed the bucket'),
@@ -567,7 +583,11 @@ class _ReactionChip extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('🍿', style: TextStyle(fontSize: 20)),
+            const Icon(
+              Icons.local_movies_rounded,
+              color: AppColors.amber,
+              size: 20,
+            ),
             const SizedBox(height: 6),
             Text(
               label,

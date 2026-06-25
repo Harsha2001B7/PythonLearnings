@@ -30,7 +30,7 @@ class _BottomNavigationState extends State<BottomNavigation> {
     const SearchScreen(),
     const CalendarScreen(),
     const SavedScreen(),
-    const SettingsScreen()
+    const SettingsScreen(),
   ];
 
   static const _items = <BottomNavigationBarItem>[
@@ -63,7 +63,7 @@ class _BottomNavigationState extends State<BottomNavigation> {
       icon: Icon(Icons.settings_outlined),
       activeIcon: Icon(Icons.settings_rounded),
       label: 'Settings',
-    ),    
+    ),
   ];
 
   @override
@@ -96,19 +96,19 @@ class _BottomNavigationState extends State<BottomNavigation> {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(28),
             child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+              filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.08),
+                  color: Colors.white.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(28),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.12),
+                    color: Colors.white.withValues(alpha: 0.18),
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.32),
-                      blurRadius: 24,
-                      offset: const Offset(0, 14),
+                      color: Colors.black.withValues(alpha: 0.40),
+                      blurRadius: 28,
+                      offset: const Offset(0, 16),
                     ),
                   ],
                 ),
@@ -123,11 +123,11 @@ class _BottomNavigationState extends State<BottomNavigation> {
                   elevation: 0,
                   iconSize: 22,
                   selectedItemColor: AppColors.amber,
-                  unselectedItemColor: AppColors.textGrey.withValues(
-                    alpha: 0.82,
+                  unselectedItemColor: AppColors.textWhite.withValues(
+                    alpha: 0.60,
                   ),
                   selectedFontSize: 11,
-                  unselectedFontSize: 11,
+                  unselectedFontSize: 10,
                   showUnselectedLabels: true,
                   selectedLabelStyle: const TextStyle(
                     fontWeight: FontWeight.w700,

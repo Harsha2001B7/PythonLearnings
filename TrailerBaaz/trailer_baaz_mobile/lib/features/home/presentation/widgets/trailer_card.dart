@@ -22,139 +22,101 @@ class TrailerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cardWidth = width.clamp(240.0, 320.0).toDouble();
-    final posterHeight = (cardWidth * 0.62).clamp(156.0, 188.0).toDouble();
-    final infoHeight = (cardWidth * 0.18).clamp(56.0, 72.0).toDouble();
+    final posterHeight = (cardWidth * 0.62).clamp(154.0, 198.0).toDouble();
 
     return _PressableCard(
       onTap: onTap,
       child: SizedBox(
         width: cardWidth,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SizedBox(
-              height: posterHeight,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: Stack(
-                  fit: StackFit.expand,
+        height: posterHeight,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              PremiumNetworkImage(url: trailer.imageUrl),
+              const DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Color(0x18000000),
+                      Color(0x04000000),
+                      Color(0xD8000000),
+                    ],
+                    stops: [0.0, 0.52, 1.0],
+                  ),
+                ),
+              ),
+              if (showTrendingBadge)
+                Positioned(
+                  left: 10,
+                  top: 10,
+                  child: _Badge(
+                    label: 'TRENDING WORLDWIDE',
+                    icon: Icons.bolt_rounded,
+                  ),
+                ),
+              Positioned(
+                right: 10,
+                top: 10,
+                child: GlassIconButton(
+                  size: 34,
+                  padding: const EdgeInsets.all(7),
+                  icon: const Icon(
+                    Icons.local_movies_rounded,
+                    color: AppColors.amber,
+                    size: 18,
+                  ),
+                  onTap: () => showReactionBottomSheet(context, trailer),
+                ),
+              ),
+              Positioned(
+                left: 12,
+                right: 12,
+                bottom: 10,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    PremiumNetworkImage(url: trailer.imageUrl),
-                    const DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Color(0x14000000),
-                            Color(0x06000000),
-                            Color(0xC9000000),
-                          ],
-                          stops: [0.0, 0.58, 1.0],
-                        ),
-                      ),
-                    ),
-                    if (showTrendingBadge)
-                      Positioned(
-                        left: 12,
-                        top: 12,
-                        child: _Badge(
-                          label: 'TRENDING',
-                          icon: Icons.bolt_rounded,
-                        ),
-                      ),
-                    Positioned(
-                      right: 10,
-                      top: 10,
-                      child: GlassIconButton(
-                        size: 36,
-                        padding: const EdgeInsets.all(7),
-                        icon: const Text('🍿', style: TextStyle(fontSize: 16)),
-                        onTap: () => showReactionBottomSheet(context, trailer),
-                      ),
-                    ),
-                    Positioned(
-                      left: 14,
-                      right: 14,
-                      bottom: 12,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            trailer.title,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: AppColors.textWhite,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 16,
-                              height: 1.05,
-                              shadows: [
-                                Shadow(
-                                  color: Colors.black87,
-                                  blurRadius: 12,
-                                  offset: Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              _MetaPill(label: trailer.language.toUpperCase()),
-                              const SizedBox(width: 8),
-                              _MetaPill(label: _viewsLabel(trailer)),
-                              const Spacer(),
-                              Icon(
-                                Icons.play_circle_fill_rounded,
-                                color: Colors.white.withValues(alpha: 0.92),
-                                size: 22,
-                              ),
-                            ],
+                    Text(
+                      trailer.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: AppColors.textWhite,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 15,
+                        height: 1.05,
+                        shadows: [
+                          Shadow(
+                            color: Colors.black87,
+                            blurRadius: 12,
+                            offset: Offset(0, 2),
                           ),
                         ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
-            SizedBox(
-              height: infoHeight,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 2),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    Text(
-                      trailer.subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: AppColors.amber,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.9,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      trailer.industry,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: AppColors.textGrey.withValues(alpha: 0.72),
-                        fontSize: 11,
-                      ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        _MetaPill(label: trailer.language.toUpperCase()),
+                        const SizedBox(width: 7),
+                        _MetaPill(label: _viewsLabel(trailer)),
+                        const Spacer(),
+                        Icon(
+                          Icons.play_circle_fill_rounded,
+                          color: Colors.white.withValues(alpha: 0.92),
+                          size: 22,
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -188,13 +150,18 @@ class _Badge extends StatelessWidget {
           children: [
             Icon(icon, size: 12, color: AppColors.background),
             const SizedBox(width: 5),
-            Text(
-              label,
-              style: const TextStyle(
-                color: AppColors.background,
-                fontSize: 10,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 0.4,
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 136),
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: AppColors.background,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.4,
+                ),
               ),
             ),
           ],

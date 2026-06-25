@@ -158,45 +158,23 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: _openTrailerDetails,
                 ),
               ),
-              _SectionHeaderSliver(
-                title: 'MOST AWAITED',
-                subtitle: 'Big releases, high buzz, and countdown energy.',
-                titleColor: AppColors.amber,
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                sliver: SliverList.separated(
-                  itemCount: _mostAwaited.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: 14),
-                  itemBuilder: (context, index) {
-                    final trailer = _mostAwaited[index];
-                    return _MostAwaitedCard(
-                      trailer: trailer,
-                      onTap: () => _openTrailerDetails(trailer),
-                    );
-                  },
+              SliverToBoxAdapter(
+                child: _ReleaseRail(
+                  title: 'MOST AWAITED',
+                  subtitle: 'Big releases, high buzz, and countdown energy.',
+                  trailers: _mostAwaited,
+                  mode: _ReleaseRailMode.awaited,
+                  onTap: _openTrailerDetails,
                 ),
               ),
-              _SectionHeaderSliver(
-                title: 'COMING SOON',
-                subtitle:
-                    'Compact drops, quick scans, and release dates at a glance.',
-                titleColor: AppColors.textWhite,
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                sliver: SliverList.separated(
-                  itemCount: _comingSoon.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final trailer = _comingSoon[index];
-                    return _ComingSoonCard(
-                      trailer: trailer,
-                      onTap: () => _openTrailerDetails(trailer),
-                    );
-                  },
+              SliverToBoxAdapter(
+                child: _ReleaseRail(
+                  title: 'COMING SOON',
+                  subtitle:
+                      'Compact drops, quick scans, and release dates at a glance.',
+                  trailers: _comingSoon,
+                  mode: _ReleaseRailMode.soon,
+                  onTap: _openTrailerDetails,
                 ),
               ),
               SliverToBoxAdapter(
@@ -281,7 +259,8 @@ class _FloatingHomeChrome extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Color(0x990D0D0F), Color(0x000D0D0F)],
+              colors: [Color(0xCC0D0D0F), Color(0x330D0D0F), Color(0x000D0D0F)],
+              stops: [0.0, 0.70, 1.0],
             ),
           ),
           child: SafeArea(
@@ -297,16 +276,16 @@ class _FloatingHomeChrome extends StatelessWidget {
                     onPreferences: onPreferences,
                     onLogin: onLogin,
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 12),
                   SizedBox(
-                    height: 42,
+                    height: 34,
                     child: _IndustryPills(
                       selectedIndex: selectedIndustry,
                       industries: industries,
                       onSelected: onIndustrySelected,
                     ),
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
@@ -334,13 +313,18 @@ class _HeaderRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Image.asset(
-          'assets/images/trailerbaaz_logo.png',
-          width: 102,
-          height: 34,
-          fit: BoxFit.contain,
+        Flexible(
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Image.asset(
+              'assets/images/trailerbaaz_logo.png',
+              width: 88,
+              height: 30,
+              fit: BoxFit.contain,
+            ),
+          ),
         ),
-        const Spacer(),
+        const SizedBox(width: 8),
         _HeaderIconButton(icon: Icons.search_rounded, onTap: onSearch),
         _HeaderIconButton(icon: Icons.language_rounded, onTap: onLanguage),
         _HeaderIconButton(icon: Icons.tune_rounded, onTap: onPreferences),
@@ -383,7 +367,7 @@ class _IndustryPills extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.zero,
       scrollDirection: Axis.horizontal,
       physics: const BouncingScrollPhysics(),
       itemCount: industries.length,
@@ -394,7 +378,7 @@ class _IndustryPills extends StatelessWidget {
           onTap: () => onSelected(index),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 180),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
             decoration: BoxDecoration(
               color: active
                   ? AppColors.amber
@@ -419,7 +403,7 @@ class _IndustryPills extends StatelessWidget {
               industries[index],
               style: TextStyle(
                 color: active ? AppColors.background : AppColors.textGrey,
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: active ? FontWeight.w800 : FontWeight.w600,
               ),
             ),
@@ -441,9 +425,9 @@ class _HeaderIconButton extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(right: 6),
       child: GlassIconButton(
-        size: 40,
+        size: 36,
         padding: const EdgeInsets.all(8),
-        icon: Icon(icon, size: 20, color: AppColors.textWhite),
+        icon: Icon(icon, size: 18, color: AppColors.textWhite),
         onTap: onTap,
       ),
     );
@@ -483,55 +467,129 @@ class _PressablePillState extends State<_PressablePill> {
   }
 }
 
-class _SectionHeaderSliver extends StatelessWidget {
+enum _ReleaseRailMode { awaited, soon }
+
+class _ReleaseRail extends StatelessWidget {
   final String title;
   final String subtitle;
-  final Color titleColor;
+  final List<TrailerModel> trailers;
+  final _ReleaseRailMode mode;
+  final ValueChanged<TrailerModel> onTap;
 
-  const _SectionHeaderSliver({
+  const _ReleaseRail({
     required this.title,
     required this.subtitle,
-    required this.titleColor,
+    required this.trailers,
+    required this.mode,
+    required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
-      sliver: SliverToBoxAdapter(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: titleColor,
-                fontWeight: FontWeight.w700,
-                fontSize: 15,
-                letterSpacing: 3,
-              ),
+    if (trailers.isEmpty) return const SizedBox.shrink();
+
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final isAwaited = mode == _ReleaseRailMode.awaited;
+    final cardHeight = isAwaited ? 224.0 : 118.0;
+    final cardWidth = isAwaited
+        ? (screenWidth * 0.42).clamp(148.0, 176.0).toDouble()
+        : (screenWidth * 0.78).clamp(286.0, 346.0).toDouble();
+
+    return Padding(
+      padding: EdgeInsets.only(top: isAwaited ? 22 : 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _HomeSectionHeading(
+            title: title,
+            subtitle: subtitle,
+            color: isAwaited ? AppColors.amber : AppColors.textWhite,
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: cardHeight,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: trailers.length,
+              separatorBuilder: (context, index) => const SizedBox(width: 12),
+              itemBuilder: (context, index) {
+                final trailer = trailers[index];
+                if (isAwaited) {
+                  return _AwaitedPosterCard(
+                    trailer: trailer,
+                    width: cardWidth,
+                    onTap: () => onTap(trailer),
+                  );
+                }
+
+                return _ComingSoonWideCard(
+                  trailer: trailer,
+                  width: cardWidth,
+                  onTap: () => onTap(trailer),
+                );
+              },
             ),
-            const SizedBox(height: 6),
-            Text(
-              subtitle,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.textGrey.withValues(alpha: 0.72),
-                fontSize: 11,
-                height: 1.35,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _MostAwaitedCard extends StatelessWidget {
+class _HomeSectionHeading extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final Color color;
+
+  const _HomeSectionHeading({
+    required this.title,
+    required this.subtitle,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w800,
+              fontSize: 14,
+              letterSpacing: 2.4,
+            ),
+          ),
+          const SizedBox(height: 5),
+          Text(
+            subtitle,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: AppColors.textGrey.withValues(alpha: 0.68),
+              fontSize: 11,
+              height: 1.35,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AwaitedPosterCard extends StatelessWidget {
   final TrailerModel trailer;
+  final double width;
   final VoidCallback onTap;
 
-  const _MostAwaitedCard({required this.trailer, required this.onTap});
+  const _AwaitedPosterCard({
+    required this.trailer,
+    required this.width,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -542,92 +600,83 @@ class _MostAwaitedCard extends StatelessWidget {
 
     return _TapCard(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.22),
-              blurRadius: 22,
-              offset: const Offset(0, 12),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
+      child: SizedBox(
+        width: width,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: Stack(
+            fit: StackFit.expand,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(18),
-                child: SizedBox(
-                  width: 104,
-                  height: 138,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      PremiumNetworkImage(url: trailer.imageUrl),
-                      const DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [Colors.transparent, Color(0xEE000000)],
-                            stops: [0.55, 1],
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: 10,
-                        top: 10,
-                        child: _SmallBadge(
-                          label: '$countdown DAYS',
-                          filled: true,
-                        ),
-                      ),
+              PremiumNetworkImage(url: trailer.imageUrl),
+              const DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    stops: [0.0, 0.40, 0.72, 1.0],
+                    colors: [
+                      Color(0x30000000),
+                      Colors.transparent,
+                      Color(0x99000000),
+                      Color(0xF0000000),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(width: 14),
-              Expanded(
+              Positioned(
+                left: 8,
+                top: 8,
+                child: _SmallBadge(label: '$countdown DAYS', filled: true),
+              ),
+              Positioned(
+                left: 10,
+                right: 10,
+                bottom: 10,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       trailer.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      style: const TextStyle(
+                        color: AppColors.textWhite,
+                        fontSize: 13,
+                        height: 1.06,
                         fontWeight: FontWeight.w800,
-                        height: 1.08,
+                        shadows: [Shadow(color: Colors.black, blurRadius: 12)],
                       ),
                     ),
                     const SizedBox(height: 8),
                     Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
+                      spacing: 6,
+                      runSpacing: 6,
                       children: [
                         _SmallBadge(label: trailer.language.toUpperCase()),
                         _SmallBadge(label: 'HYPE $hype'),
                       ],
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 7),
                     Row(
                       children: [
-                        Text(
-                          '${views}K views',
-                          style: const TextStyle(
-                            color: AppColors.textGrey,
-                            fontWeight: FontWeight.w600,
+                        Expanded(
+                          child: Text(
+                            '${views}K views',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: AppColors.textGrey.withValues(alpha: 0.86),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
-                        const Spacer(),
+                        const SizedBox(width: 6),
                         const Icon(
                           Icons.card_giftcard_rounded,
                           color: AppColors.amber,
+                          size: 18,
                         ),
                       ],
                     ),
@@ -642,11 +691,16 @@ class _MostAwaitedCard extends StatelessWidget {
   }
 }
 
-class _ComingSoonCard extends StatelessWidget {
+class _ComingSoonWideCard extends StatelessWidget {
   final TrailerModel trailer;
+  final double width;
   final VoidCallback onTap;
 
-  const _ComingSoonCard({required this.trailer, required this.onTap});
+  const _ComingSoonWideCard({
+    required this.trailer,
+    required this.width,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -656,29 +710,49 @@ class _ComingSoonCard extends StatelessWidget {
 
     return _TapCard(
       onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.card,
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(10),
-          child: Row(
+      child: SizedBox(
+        width: width,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: Stack(
+            fit: StackFit.expand,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(14),
-                child: SizedBox(
-                  width: 72,
-                  height: 72,
+              PremiumNetworkImage(url: trailer.imageUrl),
+              BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 1.2, sigmaY: 1.2),
+                child: const SizedBox.expand(),
+              ),
+              const DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                    colors: [
+                      Color(0xEE0D0D0F),
+                      Color(0xB80D0D0F),
+                      Color(0x210D0D0F),
+                    ],
+                  ),
+                ),
+              ),
+              Positioned(
+                left: 12,
+                top: 12,
+                bottom: 12,
+                width: 74,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
                   child: PremiumNetworkImage(url: trailer.imageUrl),
                 ),
               ),
-              const SizedBox(width: 12),
-              Expanded(
+              Positioned(
+                left: 98,
+                right: 48,
+                top: 14,
+                bottom: 12,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       trailer.title,
@@ -686,32 +760,50 @@ class _ComingSoonCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: AppColors.textWhite,
-                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                        height: 1.08,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        _SmallBadge(label: trailer.language.toUpperCase()),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            '$daysLeft days left',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: AppColors.textGrey.withValues(alpha: 0.82),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                     Text(
-                      '${trailer.language} • $daysLeft days left',
-                      style: const TextStyle(
-                        color: AppColors.textGrey,
-                        fontSize: 12,
+                      '${views}K views',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: AppColors.textGrey.withValues(alpha: 0.78),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  _SmallBadge(label: '${views}K', filled: false),
-                  const SizedBox(height: 10),
-                  const Icon(
-                    Icons.card_giftcard_rounded,
-                    color: AppColors.amber,
-                  ),
-                ],
+              const Positioned(
+                right: 12,
+                bottom: 12,
+                child: Icon(
+                  Icons.card_giftcard_rounded,
+                  color: AppColors.amber,
+                  size: 22,
+                ),
               ),
             ],
           ),
