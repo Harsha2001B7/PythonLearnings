@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/models/trailer_model.dart';
 import '../../../../shared/widgets/glass_surfaces.dart';
+import '../../../../shared/widgets/premium_network_image.dart';
 
 class TrailerCard extends StatelessWidget {
   final TrailerModel trailer;
@@ -38,7 +39,7 @@ class TrailerCard extends StatelessWidget {
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    _SafeImage(url: trailer.imageUrl),
+                    PremiumNetworkImage(url: trailer.imageUrl),
                     const DecoratedBox(
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
@@ -266,59 +267,6 @@ class _PressableCardState extends State<_PressableCard> {
         curve: Curves.easeOutCubic,
         child: widget.child,
       ),
-    );
-  }
-}
-
-class _SafeImage extends StatefulWidget {
-  final String url;
-
-  const _SafeImage({required this.url});
-
-  @override
-  State<_SafeImage> createState() => _SafeImageState();
-}
-
-class _SafeImageState extends State<_SafeImage> {
-  bool _failed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final valid = widget.url.startsWith('http') && widget.url.contains('/t/p/');
-    if (_failed || !valid) {
-      return const ColoredBox(
-        color: AppColors.card,
-        child: Center(
-          child: Icon(
-            Icons.image_not_supported_outlined,
-            color: AppColors.textGrey,
-            size: 40,
-          ),
-        ),
-      );
-    }
-
-    return Image.network(
-      widget.url,
-      fit: BoxFit.cover,
-      filterQuality: FilterQuality.low,
-      errorBuilder: (context, error, stackTrace) {
-        if (!_failed) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) setState(() => _failed = true);
-          });
-        }
-        return const ColoredBox(
-          color: AppColors.card,
-          child: Center(
-            child: Icon(
-              Icons.image_not_supported_outlined,
-              color: AppColors.textGrey,
-              size: 40,
-            ),
-          ),
-        );
-      },
     );
   }
 }

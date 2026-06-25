@@ -3,17 +3,20 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/models/trailer_model.dart';
 import '../../../../shared/widgets/glass_surfaces.dart';
+import '../../../../shared/widgets/premium_network_image.dart';
 
 class HeroCarousel extends StatefulWidget {
   final List<TrailerModel> trailers;
   final ValueChanged<TrailerModel> onPlay;
   final ValueChanged<TrailerModel> onDetails;
+  final bool fullBleed;
 
   const HeroCarousel({
     super.key,
     required this.trailers,
     required this.onPlay,
     required this.onDetails,
+    this.fullBleed = false,
   });
 
   @override
@@ -27,7 +30,9 @@ class _HeroCarouselState extends State<HeroCarousel> {
   @override
   void initState() {
     super.initState();
-    _pageController = PageController(viewportFraction: 0.92);
+    _pageController = PageController(
+      viewportFraction: widget.fullBleed ? 1 : 0.92,
+    );
   }
 
   @override
@@ -37,8 +42,8 @@ class _HeroCarouselState extends State<HeroCarousel> {
   }
 
   double get _heroHeight {
-    final height = MediaQuery.of(context).size.height * 0.40;
-    return height.clamp(280.0, 360.0).toDouble();
+    final height = MediaQuery.of(context).size.height * (widget.fullBleed ? 0.56 : 0.40);
+    return height.clamp(widget.fullBleed ? 410.0 : 280.0, widget.fullBleed ? 500.0 : 360.0).toDouble();
   }
 
   @override
@@ -71,13 +76,14 @@ class _HeroCarouselState extends State<HeroCarousel> {
             curve: Curves.easeOutCubic,
             scale: active ? 1.0 : 0.975,
             child: Padding(
-              padding: const EdgeInsets.only(right: 10),
+              padding: EdgeInsets.only(right: widget.fullBleed ? 0 : 10),
               child: _HeroSlide(
                 trailer: trailer,
                 onPlay: () => widget.onPlay(trailer),
                 onDetails: () => widget.onDetails(trailer),
                 indicatorCount: widget.trailers.length,
                 indicatorIndex: index,
+                fullBleed: widget.fullBleed,
               ),
             ),
           );
@@ -93,6 +99,7 @@ class _HeroSlide extends StatelessWidget {
   final VoidCallback onDetails;
   final int indicatorIndex;
   final int indicatorCount;
+  final bool fullBleed;
 
   const _HeroSlide({
     required this.trailer,
@@ -100,16 +107,22 @@ class _HeroSlide extends StatelessWidget {
     required this.onDetails,
     required this.indicatorIndex,
     required this.indicatorCount,
+    required this.fullBleed,
   });
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(32),
-      child: DecoratedBox(
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onPlay,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(fullBleed ? 0 : 32),
+        child: DecoratedBox(
         decoration: BoxDecoration(
           color: AppColors.card,
-          boxShadow: [
+          boxShadow: fullBleed
+              ? const []
+              : [
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.36),
               blurRadius: 32,
@@ -120,18 +133,19 @@ class _HeroSlide extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Positioned.fill(child: _SafeImage(url: trailer.imageUrl)),
+            Positioned.fill(child: PremiumNetworkImage(url: trailer.imageUrl)),
             const Positioned.fill(
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    stops: [0.0, 0.40, 0.78, 1.0],
+                    stops: [0.0, 0.20, 0.58, 0.86, 1.0],
                     colors: [
-                      Color(0x66000000),
+                      Color(0x220D0D0F),
+                      Color(0x26000000),
                       Colors.transparent,
-                      Color(0x24000000),
+                      Color(0x7A000000),
                       Color(0xEE0D0D0F),
                     ],
                   ),
@@ -140,7 +154,7 @@ class _HeroSlide extends StatelessWidget {
             ),
             Positioned(
               left: 18,
-              top: 18,
+              top: fullBleed ? 156 : 18,
               child: _GlassBadge(
                 label: trailer.isUpcoming
                     ? 'COMING SOON'
@@ -149,7 +163,7 @@ class _HeroSlide extends StatelessWidget {
             ),
             Positioned(
               right: 14,
-              top: 14,
+              top: fullBleed ? 152 : 14,
               child: GlassIconButton(
                 size: 42,
                 padding: const EdgeInsets.all(8),
@@ -158,9 +172,9 @@ class _HeroSlide extends StatelessWidget {
               ),
             ),
             Positioned(
-              left: 18,
-              right: 18,
-              bottom: 18,
+              left: fullBleed ? 26 : 18,
+              right: fullBleed ? 26 : 18,
+              bottom: fullBleed ? 42 : 18,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -238,6 +252,7 @@ class _HeroSlide extends StatelessWidget {
             ),
           ],
         ),
+      ),
       ),
     );
   }
@@ -321,59 +336,6 @@ class _EmptyHeroState extends StatelessWidget {
           ],
         ),
       ),
-    );
-  }
-}
-
-class _SafeImage extends StatefulWidget {
-  final String url;
-
-  const _SafeImage({required this.url});
-
-  @override
-  State<_SafeImage> createState() => _SafeImageState();
-}
-
-class _SafeImageState extends State<_SafeImage> {
-  bool _failed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final valid = widget.url.startsWith('http') && widget.url.contains('/t/p/');
-    if (_failed || !valid) {
-      return const ColoredBox(
-        color: AppColors.card,
-        child: Center(
-          child: Icon(
-            Icons.image_not_supported_outlined,
-            color: AppColors.textGrey,
-            size: 42,
-          ),
-        ),
-      );
-    }
-
-    return Image.network(
-      widget.url,
-      fit: BoxFit.cover,
-      filterQuality: FilterQuality.low,
-      errorBuilder: (context, error, stackTrace) {
-        if (!_failed) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) setState(() => _failed = true);
-          });
-        }
-        return const ColoredBox(
-          color: AppColors.card,
-          child: Center(
-            child: Icon(
-              Icons.image_not_supported_outlined,
-              color: AppColors.textGrey,
-              size: 42,
-            ),
-          ),
-        );
-      },
     );
   }
 }

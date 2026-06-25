@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/models/trailer_model.dart';
 import '../../../../shared/widgets/glass_surfaces.dart';
+import '../../../../shared/widgets/premium_network_image.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
 import '../../../search/presentation/screens/search_screen.dart';
 import '../../data/mock/home_dummy_data.dart';
@@ -135,138 +136,182 @@ class _HomeScreenState extends State<HomeScreen> {
     final bottomPadding = MediaQuery.of(context).padding.bottom;
 
     return Scaffold(
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
-        slivers: [
-          SliverAppBar(
-            pinned: true,
-            floating: true,
-            toolbarHeight: 90,
-            elevation: 0,
-            scrolledUnderElevation: 0,
-            backgroundColor: Colors.transparent,
-            surfaceTintColor: Colors.transparent,
-            automaticallyImplyLeading: false,
-            titleSpacing: 16,
-            flexibleSpace: ClipRect(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: AppColors.background.withValues(alpha: 0.82),
-                    border: Border(
-                      bottom: BorderSide(
-                        color: Colors.white.withValues(alpha: 0.06),
-                      ),
-                    ),
-                  ),
+      extendBodyBehindAppBar: true,
+      body: Stack(
+        children: [
+          CustomScrollView(
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
+            slivers: [
+              SliverToBoxAdapter(
+                child: HeroCarousel(
+                  trailers: _featured,
+                  onPlay: _openTrailerPlayer,
+                  onDetails: _openTrailerDetails,
+                  fullBleed: true,
                 ),
               ),
-            ),
-            title: _HeaderRow(
+              SliverToBoxAdapter(
+                child: TrendingNow(
+                  trailers: _trending,
+                  onTap: _openTrailerDetails,
+                ),
+              ),
+              _SectionHeaderSliver(
+                title: 'MOST AWAITED',
+                subtitle: 'Big releases, high buzz, and countdown energy.',
+                titleColor: AppColors.amber,
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                sliver: SliverList.separated(
+                  itemCount: _mostAwaited.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 14),
+                  itemBuilder: (context, index) {
+                    final trailer = _mostAwaited[index];
+                    return _MostAwaitedCard(
+                      trailer: trailer,
+                      onTap: () => _openTrailerDetails(trailer),
+                    );
+                  },
+                ),
+              ),
+              _SectionHeaderSliver(
+                title: 'COMING SOON',
+                subtitle:
+                    'Compact drops, quick scans, and release dates at a glance.',
+                titleColor: AppColors.textWhite,
+              ),
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                sliver: SliverList.separated(
+                  itemCount: _comingSoon.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final trailer = _comingSoon[index];
+                    return _ComingSoonCard(
+                      trailer: trailer,
+                      onTap: () => _openTrailerDetails(trailer),
+                    );
+                  },
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: TrailerSection(
+                  title: 'TELUGU',
+                  subtitle: 'The latest Telugu trailers and launches.',
+                  trailers: _telugu,
+                  cardWidth: 276,
+                  onTap: _openTrailerDetails,
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: TrailerSection(
+                  title: 'HINDI',
+                  subtitle: 'Curated Bollywood and Hindi trailer buzz.',
+                  trailers: _hindi,
+                  cardWidth: 276,
+                  onTap: _openTrailerDetails,
+                ),
+              ),
+              SliverToBoxAdapter(
+                child: TrailerSection(
+                  title: 'WEB SERIES',
+                  subtitle: 'OTT trailers, sneak peeks, and series drops.',
+                  trailers: _webSeries,
+                  cardWidth: 276,
+                  onTap: _openTrailerDetails,
+                ),
+              ),
+              SliverToBoxAdapter(child: SizedBox(height: 24 + bottomPadding)),
+            ],
+          ),
+          Positioned(
+            left: 0,
+            top: 0,
+            right: 0,
+            child: _FloatingHomeChrome(
+              selectedIndustry: _selectedIndustry,
+              industries: _industries,
               onSearch: _openSearch,
               onLanguage: _openLanguageMenu,
               onPreferences: _openPreferences,
               onLogin: _openLogin,
-            ),
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(52),
-              child: SizedBox(
-                height: 52,
-                child: _IndustryPills(
-                  selectedIndex: _selectedIndustry,
-                  industries: _industries,
-                  onSelected: (index) {
-                    if (_selectedIndustry == index) return;
-                    setState(() => _selectedIndustry = index);
-                  },
-                ),
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              child: HeroCarousel(
-                trailers: _featured,
-                onPlay: _openTrailerPlayer,
-                onDetails: _openTrailerDetails,
-              ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: TrendingNow(trailers: _trending, onTap: _openTrailerDetails),
-          ),
-          _SectionHeaderSliver(
-            title: 'MOST AWAITED',
-            subtitle: 'Big releases, high buzz, and countdown energy.',
-            titleColor: AppColors.amber,
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            sliver: SliverList.separated(
-              itemCount: _mostAwaited.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 14),
-              itemBuilder: (context, index) {
-                final trailer = _mostAwaited[index];
-                return _MostAwaitedCard(
-                  trailer: trailer,
-                  onTap: () => _openTrailerDetails(trailer),
-                );
+              onIndustrySelected: (index) {
+                if (_selectedIndustry == index) return;
+                setState(() => _selectedIndustry = index);
               },
             ),
           ),
-          _SectionHeaderSliver(
-            title: 'COMING SOON',
-            subtitle:
-                'Compact drops, quick scans, and release dates at a glance.',
-            titleColor: AppColors.textWhite,
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            sliver: SliverList.separated(
-              itemCount: _comingSoon.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 12),
-              itemBuilder: (context, index) {
-                final trailer = _comingSoon[index];
-                return _ComingSoonCard(
-                  trailer: trailer,
-                  onTap: () => _openTrailerDetails(trailer),
-                );
-              },
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: TrailerSection(
-              title: 'TELUGU',
-              subtitle: 'The latest Telugu trailers and launches.',
-              trailers: _telugu,
-              cardWidth: 276,
-              onTap: _openTrailerDetails,
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: TrailerSection(
-              title: 'HINDI',
-              subtitle: 'Curated Bollywood and Hindi trailer buzz.',
-              trailers: _hindi,
-              cardWidth: 276,
-              onTap: _openTrailerDetails,
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: TrailerSection(
-              title: 'WEB SERIES',
-              subtitle: 'OTT trailers, sneak peeks, and series drops.',
-              trailers: _webSeries,
-              cardWidth: 276,
-              onTap: _openTrailerDetails,
-            ),
-          ),
-          SliverToBoxAdapter(child: SizedBox(height: 24 + bottomPadding)),
         ],
+      ),
+    );
+  }
+}
+
+class _FloatingHomeChrome extends StatelessWidget {
+  final List<String> industries;
+  final int selectedIndustry;
+  final VoidCallback onSearch;
+  final VoidCallback onLanguage;
+  final VoidCallback onPreferences;
+  final VoidCallback onLogin;
+  final ValueChanged<int> onIndustrySelected;
+
+  const _FloatingHomeChrome({
+    required this.industries,
+    required this.selectedIndustry,
+    required this.onSearch,
+    required this.onLanguage,
+    required this.onPreferences,
+    required this.onLogin,
+    required this.onIndustrySelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: DecoratedBox(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0x990D0D0F), Color(0x000D0D0F)],
+            ),
+          ),
+          child: SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _HeaderRow(
+                    onSearch: onSearch,
+                    onLanguage: onLanguage,
+                    onPreferences: onPreferences,
+                    onLogin: onLogin,
+                  ),
+                  const SizedBox(height: 14),
+                  SizedBox(
+                    height: 42,
+                    child: _IndustryPills(
+                      selectedIndex: selectedIndustry,
+                      industries: industries,
+                      onSelected: onIndustrySelected,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -522,7 +567,7 @@ class _MostAwaitedCard extends StatelessWidget {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      _CompactSafeImage(url: trailer.imageUrl),
+                      PremiumNetworkImage(url: trailer.imageUrl),
                       const DecoratedBox(
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
@@ -626,7 +671,7 @@ class _ComingSoonCard extends StatelessWidget {
                 child: SizedBox(
                   width: 72,
                   height: 72,
-                  child: _CompactSafeImage(url: trailer.imageUrl),
+                  child: PremiumNetworkImage(url: trailer.imageUrl),
                 ),
               ),
               const SizedBox(width: 12),
@@ -739,59 +784,6 @@ class _TapCardState extends State<_TapCard> {
         curve: Curves.easeOutCubic,
         child: widget.child,
       ),
-    );
-  }
-}
-
-class _CompactSafeImage extends StatefulWidget {
-  final String url;
-
-  const _CompactSafeImage({required this.url});
-
-  @override
-  State<_CompactSafeImage> createState() => _CompactSafeImageState();
-}
-
-class _CompactSafeImageState extends State<_CompactSafeImage> {
-  bool _failed = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final valid = widget.url.startsWith('http') && widget.url.contains('/t/p/');
-    if (_failed || !valid) {
-      return const ColoredBox(
-        color: Color(0xFF1B1B1D),
-        child: Center(
-          child: Icon(
-            Icons.image_not_supported_outlined,
-            color: AppColors.textGrey,
-            size: 22,
-          ),
-        ),
-      );
-    }
-
-    return Image.network(
-      widget.url,
-      fit: BoxFit.cover,
-      filterQuality: FilterQuality.low,
-      errorBuilder: (context, error, stackTrace) {
-        if (!_failed) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) setState(() => _failed = true);
-          });
-        }
-        return const ColoredBox(
-          color: Color(0xFF1B1B1D),
-          child: Center(
-            child: Icon(
-              Icons.image_not_supported_outlined,
-              color: AppColors.textGrey,
-              size: 22,
-            ),
-          ),
-        );
-      },
     );
   }
 }
