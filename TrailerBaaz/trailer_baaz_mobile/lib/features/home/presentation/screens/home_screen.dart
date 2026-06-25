@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/models/trailer_model.dart';
+import '../../../../shared/widgets/glass_surfaces.dart';
 import '../../../auth/presentation/screens/login_screen.dart';
 import '../../../search/presentation/screens/search_screen.dart';
-import '../../../settings/presentation/screens/settings_screen.dart';
 import '../../data/mock/home_dummy_data.dart';
 import '../widgets/hero_carousel.dart';
 import '../widgets/trailer_section.dart';
@@ -38,21 +38,19 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndustry = 0;
 
   void _openSearch() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const SearchScreen()),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const SearchScreen()));
   }
 
   void _openLogin() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const LoginScreen()));
   }
 
-  void _openSettings() {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const SettingsScreen()),
-    );
+  void _openPreferences() {
+    showPreferencesModal(context);
   }
 
   Future<void> _openLanguageMenu() async {
@@ -62,12 +60,7 @@ class _HomeScreenState extends State<HomeScreen> {
       color: const Color(0xFF17171A),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 0,
-      position: RelativeRect.fromLTRB(
-        overlay.size.width - 210,
-        88,
-        16,
-        0,
-      ),
+      position: RelativeRect.fromLTRB(overlay.size.width - 210, 88, 16, 0),
       items: _languages.map((language) {
         final active = language == _selectedLanguage;
         return PopupMenuItem<String>(
@@ -175,7 +168,7 @@ class _HomeScreenState extends State<HomeScreen> {
             title: _HeaderRow(
               onSearch: _openSearch,
               onLanguage: _openLanguageMenu,
-              onSettings: _openSettings,
+              onPreferences: _openPreferences,
               onLogin: _openLogin,
             ),
             bottom: PreferredSize(
@@ -204,10 +197,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           SliverToBoxAdapter(
-            child: TrendingNow(
-              trailers: _trending,
-              onTap: _openTrailerDetails,
-            ),
+            child: TrendingNow(trailers: _trending, onTap: _openTrailerDetails),
           ),
           _SectionHeaderSliver(
             title: 'MOST AWAITED',
@@ -230,7 +220,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           _SectionHeaderSliver(
             title: 'COMING SOON',
-            subtitle: 'Compact drops, quick scans, and release dates at a glance.',
+            subtitle:
+                'Compact drops, quick scans, and release dates at a glance.',
             titleColor: AppColors.textWhite,
           ),
           SliverPadding(
@@ -274,9 +265,7 @@ class _HomeScreenState extends State<HomeScreen> {
               onTap: _openTrailerDetails,
             ),
           ),
-          SliverToBoxAdapter(
-            child: SizedBox(height: 24 + bottomPadding),
-          ),
+          SliverToBoxAdapter(child: SizedBox(height: 24 + bottomPadding)),
         ],
       ),
     );
@@ -286,13 +275,13 @@ class _HomeScreenState extends State<HomeScreen> {
 class _HeaderRow extends StatelessWidget {
   final VoidCallback onSearch;
   final VoidCallback onLanguage;
-  final VoidCallback onSettings;
+  final VoidCallback onPreferences;
   final VoidCallback onLogin;
 
   const _HeaderRow({
     required this.onSearch,
     required this.onLanguage,
-    required this.onSettings,
+    required this.onPreferences,
     required this.onLogin,
   });
 
@@ -309,7 +298,7 @@ class _HeaderRow extends StatelessWidget {
         const Spacer(),
         _HeaderIconButton(icon: Icons.search_rounded, onTap: onSearch),
         _HeaderIconButton(icon: Icons.language_rounded, onTap: onLanguage),
-        _HeaderIconButton(icon: Icons.settings_rounded, onTap: onSettings),
+        _HeaderIconButton(icon: Icons.tune_rounded, onTap: onPreferences),
         const SizedBox(width: 8),
         _PressablePill(
           onTap: onLogin,
@@ -318,9 +307,7 @@ class _HeaderRow extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(18),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.14),
-              ),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
             ),
             child: const Text(
               'Sign In',
@@ -364,7 +351,9 @@ class _IndustryPills extends StatelessWidget {
             duration: const Duration(milliseconds: 180),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
-              color: active ? AppColors.amber : Colors.white.withValues(alpha: 0.06),
+              color: active
+                  ? AppColors.amber
+                  : Colors.white.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(999),
               border: Border.all(
                 color: active
@@ -400,18 +389,17 @@ class _HeaderIconButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
 
-  const _HeaderIconButton({
-    required this.icon,
-    required this.onTap,
-  });
+  const _HeaderIconButton({required this.icon, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return _PressablePill(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        child: Icon(icon, size: 22, color: AppColors.textWhite),
+    return Padding(
+      padding: const EdgeInsets.only(right: 6),
+      child: GlassIconButton(
+        size: 40,
+        padding: const EdgeInsets.all(8),
+        icon: Icon(icon, size: 20, color: AppColors.textWhite),
+        onTap: onTap,
       ),
     );
   }
@@ -421,10 +409,7 @@ class _PressablePill extends StatefulWidget {
   final Widget child;
   final VoidCallback onTap;
 
-  const _PressablePill({
-    required this.child,
-    required this.onTap,
-  });
+  const _PressablePill({required this.child, required this.onTap});
 
   @override
   State<_PressablePill> createState() => _PressablePillState();
@@ -467,7 +452,7 @@ class _SectionHeaderSliver extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SliverPadding(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+      padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
       sliver: SliverToBoxAdapter(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -476,15 +461,17 @@ class _SectionHeaderSliver extends StatelessWidget {
               title,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                 color: titleColor,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1.5,
+                fontWeight: FontWeight.w700,
+                fontSize: 15,
+                letterSpacing: 3,
               ),
             ),
             const SizedBox(height: 6),
             Text(
               subtitle,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.textGrey,
+                color: AppColors.textGrey.withValues(alpha: 0.72),
+                fontSize: 11,
                 height: 1.35,
               ),
             ),
@@ -499,10 +486,7 @@ class _MostAwaitedCard extends StatelessWidget {
   final TrailerModel trailer;
   final VoidCallback onTap;
 
-  const _MostAwaitedCard({
-    required this.trailer,
-    required this.onTap,
-  });
+  const _MostAwaitedCard({required this.trailer, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -617,10 +601,7 @@ class _ComingSoonCard extends StatelessWidget {
   final TrailerModel trailer;
   final VoidCallback onTap;
 
-  const _ComingSoonCard({
-    required this.trailer,
-    required this.onTap,
-  });
+  const _ComingSoonCard({required this.trailer, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -699,18 +680,13 @@ class _SmallBadge extends StatelessWidget {
   final String label;
   final bool filled;
 
-  const _SmallBadge({
-    required this.label,
-    this.filled = false,
-  });
+  const _SmallBadge({required this.label, this.filled = false});
 
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: filled
-            ? AppColors.amber
-            : Colors.white.withValues(alpha: 0.08),
+        color: filled ? AppColors.amber : Colors.white.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(
           color: filled
@@ -738,10 +714,7 @@ class _TapCard extends StatefulWidget {
   final Widget child;
   final VoidCallback onTap;
 
-  const _TapCard({
-    required this.child,
-    required this.onTap,
-  });
+  const _TapCard({required this.child, required this.onTap});
 
   @override
   State<_TapCard> createState() => _TapCardState();

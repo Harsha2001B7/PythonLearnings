@@ -8,17 +8,13 @@ class TrendingNow extends StatelessWidget {
   final List<TrailerModel> trailers;
   final ValueChanged<TrailerModel>? onTap;
 
-  const TrendingNow({
-    super.key,
-    required this.trailers,
-    this.onTap,
-  });
+  const TrendingNow({super.key, required this.trailers, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return TrailerSection(
       title: 'TRENDING NOW',
-      subtitle: 'Fresh trailers catching fire across languages',
+      subtitle: 'Fresh trailers catching fire across languages.',
       titleColor: AppColors.amber,
       letterSpaced: true,
       showTrendingBadge: true,

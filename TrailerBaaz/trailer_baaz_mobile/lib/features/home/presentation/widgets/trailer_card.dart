@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/models/trailer_model.dart';
+import '../../../../shared/widgets/glass_surfaces.dart';
 
 class TrailerCard extends StatelessWidget {
   final TrailerModel trailer;
@@ -20,8 +21,8 @@ class TrailerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cardWidth = width.clamp(240.0, 320.0).toDouble();
-    final posterHeight = (cardWidth * 0.60).clamp(150.0, 182.0).toDouble();
-    final infoHeight = (cardWidth * 0.22).clamp(66.0, 82.0).toDouble();
+    final posterHeight = (cardWidth * 0.62).clamp(156.0, 188.0).toDouble();
+    final infoHeight = (cardWidth * 0.18).clamp(56.0, 72.0).toDouble();
 
     return _PressableCard(
       onTap: onTap,
@@ -33,7 +34,7 @@ class TrailerCard extends StatelessWidget {
             SizedBox(
               height: posterHeight,
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(22),
+                borderRadius: BorderRadius.circular(20),
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
@@ -44,11 +45,11 @@ class TrailerCard extends StatelessWidget {
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                           colors: [
-                            Color(0x12000000),
-                            Color(0x0D000000),
+                            Color(0x14000000),
+                            Color(0x06000000),
                             Color(0xC9000000),
                           ],
-                          stops: [0.0, 0.55, 1.0],
+                          stops: [0.0, 0.58, 1.0],
                         ),
                       ),
                     ),
@@ -57,10 +58,20 @@ class TrailerCard extends StatelessWidget {
                         left: 12,
                         top: 12,
                         child: _Badge(
-                          label: 'TRENDING WORLDWIDE',
+                          label: 'TRENDING',
                           icon: Icons.bolt_rounded,
                         ),
                       ),
+                    Positioned(
+                      right: 10,
+                      top: 10,
+                      child: GlassIconButton(
+                        size: 36,
+                        padding: const EdgeInsets.all(7),
+                        icon: const Text('🍿', style: TextStyle(fontSize: 16)),
+                        onTap: () => showReactionBottomSheet(context, trailer),
+                      ),
+                    ),
                     Positioned(
                       left: 14,
                       right: 14,
@@ -75,9 +86,9 @@ class TrailerCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               color: AppColors.textWhite,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 18,
-                              height: 1.0,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16,
+                              height: 1.05,
                               shadows: [
                                 Shadow(
                                   color: Colors.black87,
@@ -118,24 +129,24 @@ class TrailerCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
                     Text(
-                      trailer.subtitle.toUpperCase(),
+                      trailer.subtitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.amber,
-                        fontSize: 11,
+                        fontSize: 10,
                         fontWeight: FontWeight.w700,
-                        letterSpacing: 0.6,
+                        letterSpacing: 0.9,
                       ),
                     ),
-                    const SizedBox(height: 5),
+                    const SizedBox(height: 4),
                     Text(
                       trailer.industry,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: AppColors.textGrey,
-                        fontSize: 12,
+                      style: TextStyle(
+                        color: AppColors.textGrey.withValues(alpha: 0.72),
+                        fontSize: 11,
                       ),
                     ),
                   ],
@@ -159,7 +170,7 @@ class _Badge extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: AppColors.amber.withValues(alpha: 0.94),
+        color: AppColors.amber.withValues(alpha: 0.92),
         borderRadius: BorderRadius.circular(999),
         boxShadow: [
           BoxShadow(
@@ -224,10 +235,7 @@ class _PressableCard extends StatefulWidget {
   final Widget child;
   final VoidCallback? onTap;
 
-  const _PressableCard({
-    required this.child,
-    this.onTap,
-  });
+  const _PressableCard({required this.child, this.onTap});
 
   @override
   State<_PressableCard> createState() => _PressableCardState();
@@ -240,8 +248,12 @@ class _PressableCardState extends State<_PressableCard> {
   Widget build(BuildContext context) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTapDown: widget.onTap == null ? null : (_) => setState(() => _pressed = true),
-      onTapCancel: widget.onTap == null ? null : () => setState(() => _pressed = false),
+      onTapDown: widget.onTap == null
+          ? null
+          : (_) => setState(() => _pressed = true),
+      onTapCancel: widget.onTap == null
+          ? null
+          : () => setState(() => _pressed = false),
       onTapUp: widget.onTap == null
           ? null
           : (_) {

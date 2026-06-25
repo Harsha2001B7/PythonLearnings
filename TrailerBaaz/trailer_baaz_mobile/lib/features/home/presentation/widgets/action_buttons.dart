@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../shared/widgets/glass_surfaces.dart';
 
 class ActionButtons extends StatelessWidget {
   const ActionButtons({super.key});
@@ -9,8 +9,8 @@ class ActionButtons extends StatelessWidget {
   Widget build(BuildContext context) {
     // TODO: Connect notify-me flows to Firebase notifications later.
     return Wrap(
-      spacing: 12,
-      runSpacing: 12,
+      spacing: 10,
+      runSpacing: 10,
       children: const [
         _ActionChip(icon: Icons.favorite_border_rounded, label: 'Like'),
         _ActionChip(icon: Icons.bookmark_border_rounded, label: 'Save'),
@@ -29,16 +29,6 @@ class _ActionChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FilledButton.tonalIcon(
-      onPressed: () {},
-      style: FilledButton.styleFrom(
-        backgroundColor: AppColors.card,
-        foregroundColor: AppColors.textWhite,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      ),
-      icon: Icon(icon, size: 18),
-      label: Text(label),
-    );
+    return GlassPillButton(label: label, icon: icon, onTap: () {});
   }
 }

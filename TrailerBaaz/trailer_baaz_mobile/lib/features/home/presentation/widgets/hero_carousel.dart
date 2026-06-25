@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/models/trailer_model.dart';
+import '../../../../shared/widgets/glass_surfaces.dart';
 
 class HeroCarousel extends StatefulWidget {
   final List<TrailerModel> trailers;
@@ -36,8 +37,8 @@ class _HeroCarouselState extends State<HeroCarousel> {
   }
 
   double get _heroHeight {
-    final height = MediaQuery.of(context).size.height * 0.37;
-    return height.clamp(260.0, 340.0).toDouble();
+    final height = MediaQuery.of(context).size.height * 0.40;
+    return height.clamp(280.0, 360.0).toDouble();
   }
 
   @override
@@ -104,35 +105,33 @@ class _HeroSlide extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(28),
+      borderRadius: BorderRadius.circular(32),
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: AppColors.card,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.42),
-              blurRadius: 28,
-              offset: const Offset(0, 16),
+              color: Colors.black.withValues(alpha: 0.36),
+              blurRadius: 32,
+              offset: const Offset(0, 18),
             ),
           ],
         ),
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Positioned.fill(
-              child: _SafeImage(url: trailer.imageUrl),
-            ),
+            Positioned.fill(child: _SafeImage(url: trailer.imageUrl)),
             const Positioned.fill(
               child: DecoratedBox(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
-                    stops: [0.0, 0.45, 0.82, 1.0],
+                    stops: [0.0, 0.40, 0.78, 1.0],
                     colors: [
                       Color(0x66000000),
                       Colors.transparent,
-                      Color(0x10000000),
+                      Color(0x24000000),
                       Color(0xEE0D0D0F),
                     ],
                   ),
@@ -143,7 +142,19 @@ class _HeroSlide extends StatelessWidget {
               left: 18,
               top: 18,
               child: _GlassBadge(
-                label: trailer.isUpcoming ? 'COMING SOON' : 'OFFICIAL TRAILER',
+                label: trailer.isUpcoming
+                    ? 'COMING SOON'
+                    : trailer.language.toUpperCase(),
+              ),
+            ),
+            Positioned(
+              right: 14,
+              top: 14,
+              child: GlassIconButton(
+                size: 42,
+                padding: const EdgeInsets.all(8),
+                icon: const Text('🍿', style: TextStyle(fontSize: 18)),
+                onTap: () => showReactionBottomSheet(context, trailer),
               ),
             ),
             Positioned(
@@ -159,8 +170,9 @@ class _HeroSlide extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      height: 1.02,
+                      fontWeight: FontWeight.w700,
+                      height: 1.04,
+                      fontSize: 28,
                       shadows: const [
                         Shadow(
                           color: Colors.black87,
@@ -175,12 +187,10 @@ class _HeroSlide extends StatelessWidget {
                     '${trailer.language} • ${trailer.genre} • ${trailer.industry}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: AppColors.textGrey,
-                      fontSize: 12,
-                      shadows: [
-                        Shadow(color: Colors.black87, blurRadius: 10),
-                      ],
+                    style: TextStyle(
+                      color: AppColors.textGrey.withValues(alpha: 0.72),
+                      fontSize: 11,
+                      shadows: [Shadow(color: Colors.black87, blurRadius: 10)],
                     ),
                   ),
                   const SizedBox(height: 14),
@@ -248,50 +258,11 @@ class _HeroActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(999),
-        onTap: onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            color: filled
-                ? AppColors.textWhite
-                : Colors.white.withValues(alpha: 0.12),
-            borderRadius: BorderRadius.circular(999),
-            border: Border.all(
-              color: filled
-                  ? Colors.transparent
-                  : Colors.white.withValues(alpha: 0.14),
-            ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                color: filled ? AppColors.background : AppColors.textWhite,
-                size: 18,
-              ),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: filled ? AppColors.background : AppColors.textWhite,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+    return GlassPillButton(
+      label: label,
+      icon: icon,
+      filled: filled,
+      onTap: onTap,
     );
   }
 }
@@ -303,12 +274,11 @@ class _GlassBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.34),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-      ),
+    return GlassSurface(
+      borderRadius: BorderRadius.circular(999),
+      backgroundOpacity: 0.09,
+      borderOpacity: 0.10,
+      boxShadow: const [],
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         child: Text(
@@ -317,7 +287,7 @@ class _GlassBadge extends StatelessWidget {
             color: AppColors.textWhite,
             fontSize: 11,
             fontWeight: FontWeight.w700,
-            letterSpacing: 0.5,
+            letterSpacing: 0.7,
           ),
         ),
       ),
@@ -338,7 +308,11 @@ class _EmptyHeroState extends StatelessWidget {
         child: const Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.movie_creation_outlined, color: AppColors.textGrey, size: 42),
+            Icon(
+              Icons.movie_creation_outlined,
+              color: AppColors.textGrey,
+              size: 42,
+            ),
             SizedBox(height: 12),
             Text(
               'Loading premium trailers',

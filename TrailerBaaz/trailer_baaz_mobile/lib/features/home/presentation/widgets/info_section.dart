@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/models/trailer_model.dart';
+import '../../../../shared/widgets/glass_surfaces.dart';
 
 class InfoSection extends StatefulWidget {
   final TrailerModel trailer;
@@ -21,11 +22,19 @@ class _InfoSectionState extends State<InfoSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(trailer.title, style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800)),
-        const SizedBox(height: 12),
+        Text(
+          trailer.title,
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+            color: AppColors.textWhite,
+            fontWeight: FontWeight.w700,
+            fontSize: 26,
+            height: 1.05,
+          ),
+        ),
+        const SizedBox(height: 10),
         Wrap(
-          spacing: 10,
-          runSpacing: 10,
+          spacing: 8,
+          runSpacing: 8,
           children: [
             _MetaPill(label: trailer.industry),
             _MetaPill(label: trailer.language),
@@ -35,18 +44,34 @@ class _InfoSectionState extends State<InfoSection> {
             _MetaPill(label: trailer.rating),
           ],
         ),
-        const SizedBox(height: 20),
-        Text('Overview', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+        const SizedBox(height: 18),
+        Text(
+          'Overview',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            color: AppColors.textWhite,
+            fontWeight: FontWeight.w700,
+            fontSize: 16,
+            letterSpacing: 2,
+          ),
+        ),
         const SizedBox(height: 10),
         Text(
           trailer.overview,
           maxLines: _expanded ? null : 4,
           overflow: _expanded ? TextOverflow.visible : TextOverflow.ellipsis,
-          style: const TextStyle(color: AppColors.textGrey, height: 1.5),
+          style: const TextStyle(
+            color: AppColors.textGrey,
+            height: 1.5,
+            fontSize: 13,
+          ),
         ),
         TextButton(
           onPressed: () => setState(() => _expanded = !_expanded),
-          child: Text(_expanded ? 'Show Less' : 'Read More'),
+          style: TextButton.styleFrom(foregroundColor: AppColors.amber),
+          child: Text(
+            _expanded ? 'Show Less' : 'Read More',
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
         ),
       ],
     );
@@ -60,10 +85,20 @@ class _MetaPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GlassSurface(
+      borderRadius: BorderRadius.circular(999),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(color: AppColors.card, borderRadius: BorderRadius.circular(999)),
-      child: Text(label, style: const TextStyle(fontSize: 12)),
+      backgroundOpacity: 0.08,
+      borderOpacity: 0.10,
+      boxShadow: const [],
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontSize: 11,
+          color: AppColors.textWhite,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
     );
   }
 }

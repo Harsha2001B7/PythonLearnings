@@ -5,6 +5,7 @@ import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/models/trailer_model.dart';
+import '../../../../shared/widgets/glass_surfaces.dart';
 
 class TrailerPlayerScreen extends StatefulWidget {
   final TrailerModel trailer;
@@ -121,7 +122,9 @@ class _TrailerPlayerScreenState extends State<TrailerPlayerScreen> {
                           builder: (context, value) {
                             if (value.hasError) {
                               if (!_failed) {
-                                WidgetsBinding.instance.addPostFrameCallback((_) {
+                                WidgetsBinding.instance.addPostFrameCallback((
+                                  _,
+                                ) {
                                   if (mounted) {
                                     setState(() => _failed = true);
                                   }
@@ -147,10 +150,11 @@ class _TrailerPlayerScreenState extends State<TrailerPlayerScreen> {
                     children: [
                       Text(
                         widget.trailer.title,
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          height: 1.1,
-                        ),
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              height: 1.1,
+                            ),
                       ),
                       const SizedBox(height: 10),
                       Wrap(
@@ -227,35 +231,7 @@ class _ActionChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(999),
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(999),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.08),
-          ),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: AppColors.textWhite, size: 18),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: const TextStyle(
-                color: AppColors.textWhite,
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+    return GlassPillButton(label: label, icon: icon, onTap: onTap);
   }
 }
 
@@ -271,6 +247,7 @@ class _MetaBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.10)),
       ),
       child: Text(
         label,
@@ -300,7 +277,7 @@ class _PrimaryAction extends StatelessWidget {
     return FilledButton.icon(
       onPressed: onTap,
       style: FilledButton.styleFrom(
-        backgroundColor: AppColors.amber,
+        backgroundColor: AppColors.amber.withValues(alpha: 0.9),
         foregroundColor: AppColors.background,
         padding: const EdgeInsets.symmetric(vertical: 14),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),

@@ -19,7 +19,15 @@ class RelatedTrailersSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Related Trailers', style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+        Text(
+          'Related Trailers',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+            fontSize: 16,
+            letterSpacing: 2,
+          ),
+        ),
         const SizedBox(height: 12),
         SizedBox(
           height: cardHeight,
@@ -27,7 +35,11 @@ class RelatedTrailersSection extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             itemCount: trailers.length,
             separatorBuilder: (_, _) => const SizedBox(width: 12),
-            itemBuilder: (_, index) => TrailerCard(trailer: trailers[index], width: 260, onTap: () => onTap(trailers[index])),
+            itemBuilder: (_, index) => TrailerCard(
+              trailer: trailers[index],
+              width: 260,
+              onTap: () => onTap(trailers[index]),
+            ),
           ),
         ),
       ],

@@ -29,10 +29,11 @@ class TrailerSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final width = cardWidth.clamp(240.0, 320.0).toDouble();
-    final cardHeight = (width * 0.88).clamp(220.0, 286.0).toDouble();
+    final cardHeight = (width * 0.82).clamp(210.0, 270.0).toDouble();
 
     return Padding(
       padding: const EdgeInsets.only(top: 24),
+      // Section spacing stays generous, but the visual density is lighter.
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -42,7 +43,7 @@ class TrailerSection extends StatelessWidget {
             color: titleColor ?? AppColors.textWhite,
             letterSpaced: letterSpaced,
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           SizedBox(
             height: cardHeight,
             child: ListView.builder(
@@ -53,7 +54,9 @@ class TrailerSection extends StatelessWidget {
               itemBuilder: (context, index) {
                 final trailer = trailers[index];
                 return Padding(
-                  padding: EdgeInsets.only(right: index == trailers.length - 1 ? 0 : 12),
+                  padding: EdgeInsets.only(
+                    right: index == trailers.length - 1 ? 0 : 12,
+                  ),
                   child: TrailerCard(
                     trailer: trailer,
                     width: width,
@@ -95,8 +98,9 @@ class _SectionHeader extends StatelessWidget {
             title,
             style: theme.titleMedium?.copyWith(
               color: color,
-              fontWeight: FontWeight.w800,
-              letterSpacing: letterSpaced ? 1.7 : 0.2,
+              fontWeight: FontWeight.w700,
+              fontSize: 15,
+              letterSpacing: letterSpaced ? 3 : 0.8,
             ),
           ),
           if (subtitle != null) ...[
@@ -104,7 +108,8 @@ class _SectionHeader extends StatelessWidget {
             Text(
               subtitle!,
               style: theme.bodySmall?.copyWith(
-                color: AppColors.textGrey,
+                color: AppColors.textGrey.withValues(alpha: 0.72),
+                fontSize: 11,
                 height: 1.35,
               ),
             ),
