@@ -3,13 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../app/app_theme.dart';
-import '../../core/data/dummy_trailers.dart';
+import '../../core/data/youtube_trailers_provider.dart';
 import '../../core/models/trailer.dart';
 import '../../shared/widgets/cinematic_image.dart';
 import '../../shared/widgets/glass_icon_button.dart';
 import '../../shared/widgets/meta_widgets.dart';
 import '../../shared/widgets/trailer_action_button.dart';
 import '../../shared/widgets/trailer_card.dart';
+import '../../shared/widgets/trailer_player.dart';
 import '../details/trailer_details_screen.dart';
 import '../shell/app_shell.dart';
 
@@ -25,23 +26,31 @@ class _HomeScreenState extends State<HomeScreen> {
   late final Timer _timer;
   int _page = 1000;
 
+  final _provider = YoutubeTrailersProvider.instance;
+
   @override
   void initState() {
     super.initState();
     _heroController = PageController(initialPage: _page);
-    _timer = Timer.periodic(const Duration(seconds: 5), (_) {
+    _timer = Timer.periodic(const Duration(seconds: 6), (_) {
       if (!mounted || !_heroController.hasClients) return;
       _heroController.nextPage(
         duration: const Duration(milliseconds: 640),
         curve: Curves.easeOutCubic,
       );
     });
+    _provider.addListener(_onDataChanged);
+  }
+
+  void _onDataChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
     _timer.cancel();
     _heroController.dispose();
+    _provider.removeListener(_onDataChanged);
     super.dispose();
   }
 
@@ -58,8 +67,39 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  void _playTrailer(Trailer trailer) {
+    showTrailerPlayer(context, trailer);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final provider = _provider;
+
+    if (provider.isLoading) return const _LoadingShimmer();
+
+    if (provider.error != null && provider.sections.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.wifi_off_rounded, size: 48, color: Colors.white38),
+            const SizedBox(height: 12),
+            const Text('Could not load trailers',
+                style: TextStyle(color: Colors.white54)),
+            const SizedBox(height: 16),
+            FilledButton(
+              onPressed: () => provider.init(),
+              style: FilledButton.styleFrom(backgroundColor: AppTheme.accent),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final heroTrailers = provider.heroTrailers;
+    final sections = provider.sections;
+
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
       slivers: [
@@ -71,44 +111,50 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                PageView.builder(
-                  controller: _heroController,
-                  onPageChanged: (value) => setState(() => _page = value),
-                  itemBuilder: (context, index) {
-                    final trailer = trailers[index % trailers.length];
-                    return _HeroSlide(
-                      trailer: trailer,
-                      onOpen: () => _openDetails(trailer),
-                    );
-                  },
-                ),
+                if (heroTrailers.isNotEmpty)
+                  PageView.builder(
+                    controller: _heroController,
+                    onPageChanged: (v) => setState(() => _page = v),
+                    itemBuilder: (context, index) {
+                      final trailer =
+                          heroTrailers[index % heroTrailers.length];
+                      return _HeroSlide(
+                        trailer: trailer,
+                        onOpen: () => _openDetails(trailer),
+                        onPlay: () => _playTrailer(trailer),
+                      );
+                    },
+                  ),
                 Positioned(
                   left: 22,
                   right: 22,
                   top: MediaQuery.paddingOf(context).top + 10,
                   child: const _TopBar(),
                 ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 18,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(trailers.length, (index) {
-                      final selected = _page % trailers.length == index;
-                      return AnimatedContainer(
-                        duration: const Duration(milliseconds: 220),
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        width: selected ? 24 : 7,
-                        height: 7,
-                        decoration: BoxDecoration(
-                          color: selected ? Colors.white : Colors.white24,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                      );
-                    }),
+                if (heroTrailers.isNotEmpty)
+                  Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 18,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(heroTrailers.length, (index) {
+                        final selected =
+                            _page % heroTrailers.length == index;
+                        return AnimatedContainer(
+                          duration: const Duration(milliseconds: 220),
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          width: selected ? 24 : 7,
+                          height: 7,
+                          decoration: BoxDecoration(
+                            color:
+                                selected ? Colors.white : Colors.white24,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                        );
+                      }),
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -116,13 +162,14 @@ class _HomeScreenState extends State<HomeScreen> {
         SliverPadding(
           padding: const EdgeInsets.only(bottom: 96),
           sliver: SliverList.builder(
-            itemCount: homeSections.length,
+            itemCount: sections.length,
             itemBuilder: (context, index) {
-              final entry = homeSections.entries.elementAt(index);
+              final entry = sections.entries.elementAt(index);
               return _TrailerRail(
                 title: entry.key,
                 trailers: entry.value,
                 onTap: _openDetails,
+                onPlay: _playTrailer,
               );
             },
           ),
@@ -131,6 +178,104 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 }
+
+// ─── Loading shimmer ────────────────────────────────────────────────────────
+
+class _LoadingShimmer extends StatefulWidget {
+  const _LoadingShimmer();
+
+  @override
+  State<_LoadingShimmer> createState() => _LoadingShimmerState();
+}
+
+class _LoadingShimmerState extends State<_LoadingShimmer>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 1200))
+      ..repeat(reverse: true);
+    _anim = CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut);
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _anim,
+      builder: (context, _) {
+        final shimmerColor = Color.lerp(
+          const Color(0xFF1A1A1A),
+          const Color(0xFF2A2A2A),
+          _anim.value,
+        )!;
+        return CustomScrollView(
+          physics: const NeverScrollableScrollPhysics(),
+          slivers: [
+            SliverToBoxAdapter(
+              child: Container(
+                height: MediaQuery.sizeOf(context).height * .54,
+                color: shimmerColor,
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 96),
+              sliver: SliverList.builder(
+                itemCount: 4,
+                itemBuilder: (_, _) => Padding(
+                  padding: const EdgeInsets.only(bottom: 28),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 140,
+                        height: 16,
+                        decoration: BoxDecoration(
+                          color: shimmerColor,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: 166,
+                        child: ListView.separated(
+                          scrollDirection: Axis.horizontal,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: 3,
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(width: 14),
+                          itemBuilder: (_, _) => Container(
+                            width: 260,
+                            height: 166,
+                            decoration: BoxDecoration(
+                              color: shimmerColor,
+                              borderRadius: BorderRadius.circular(18),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+// ─── Top Bar ────────────────────────────────────────────────────────────────
 
 class _TopBar extends StatelessWidget {
   const _TopBar();
@@ -144,7 +289,6 @@ class _TopBar extends StatelessWidget {
     );
     return Row(
       children: [
-        // Same glowing TrailerBaaz logo as splash screen
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -152,7 +296,6 @@ class _TopBar extends StatelessWidget {
             Stack(
               alignment: Alignment.center,
               children: [
-                // glow layer
                 Text(
                   'Baaz',
                   style: logoStyle.copyWith(
@@ -169,7 +312,6 @@ class _TopBar extends StatelessWidget {
                     ],
                   ),
                 ),
-                // sharp top layer
                 Text(
                   'Baaz',
                   style: logoStyle.copyWith(
@@ -205,11 +347,18 @@ class _TopBar extends StatelessWidget {
   }
 }
 
+// ─── Hero Slide ─────────────────────────────────────────────────────────────
+
 class _HeroSlide extends StatelessWidget {
-  const _HeroSlide({required this.trailer, required this.onOpen});
+  const _HeroSlide({
+    required this.trailer,
+    required this.onOpen,
+    required this.onPlay,
+  });
 
   final Trailer trailer;
   final VoidCallback onOpen;
+  final VoidCallback onPlay;
 
   @override
   Widget build(BuildContext context) {
@@ -219,10 +368,11 @@ class _HeroSlide extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
+          // YouTube maxres thumbnail as backdrop
           Hero(
             tag: 'backdrop-${trailer.id}',
             child: CinematicImage(
-              url: trailer.backdropUrl,
+              url: trailer.youtubeThumbnailUrl,
               alignment: Alignment.topCenter,
             ),
           ),
@@ -319,7 +469,7 @@ class _HeroSlide extends StatelessWidget {
                     TrailerActionButton(
                       label: 'Watch Trailer',
                       icon: Icons.play_arrow_rounded,
-                      onPressed: onOpen,
+                      onPressed: onPlay, // ← opens video player
                       expanded: true,
                     ),
                     const SizedBox(width: 14),
@@ -345,16 +495,20 @@ class _HeroSlide extends StatelessWidget {
   }
 }
 
+// ─── Trailer Rail ───────────────────────────────────────────────────────────
+
 class _TrailerRail extends StatelessWidget {
   const _TrailerRail({
     required this.title,
     required this.trailers,
     required this.onTap,
+    required this.onPlay,
   });
 
   final String title;
   final List<Trailer> trailers;
   final ValueChanged<Trailer> onTap;
+  final ValueChanged<Trailer> onPlay;
 
   @override
   Widget build(BuildContext context) {
@@ -370,7 +524,6 @@ class _TrailerRail extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // accent left-bar indicator
                       Container(
                         width: 3,
                         height: 18,
@@ -417,6 +570,7 @@ class _TrailerRail extends StatelessWidget {
               itemBuilder: (context, index) => TrailerCard(
                 trailer: trailers[index],
                 onTap: () => onTap(trailers[index]),
+                onPlay: () => onPlay(trailers[index]),
                 width: MediaQuery.sizeOf(context).width * .72,
                 height: 166,
               ),

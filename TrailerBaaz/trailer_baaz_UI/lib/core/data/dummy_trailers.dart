@@ -30,14 +30,15 @@ const _cast = [
 final trailers = [
   Trailer(
     id: 'neon-shadows',
+    youtubeVideoId: 'eTrEcLBsCBM', // Dune: Part Two trailer
     title: 'Neon Shadows',
     tagline: 'The future is not what it used to be.',
     synopsis:
-        'In a sprawling metropolis where memories can be bought and sold, a rogue detective uncovers a conspiracy that threatens the fabric of human consciousness itself. The official final trailer reveals a retro-cinematic visual style and an unforgettable original soundtrack.',
+        'In a sprawling metropolis where memories can be bought and sold, a rogue detective uncovers a conspiracy that threatens the fabric of human consciousness itself.',
     backdropUrl:
-        'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1400&q=85',
+        'https://img.youtube.com/vi/eTrEcLBsCBM/maxresdefault.jpg',
     posterUrl:
-        'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?auto=format&fit=crop&w=900&q=85',
+        'https://img.youtube.com/vi/eTrEcLBsCBM/hqdefault.jpg',
     genres: ['Sci-Fi', 'Action', 'Cyberpunk'],
     language: 'English',
     certificate: 'A',
@@ -52,14 +53,15 @@ final trailers = [
   ),
   Trailer(
     id: 'echoes',
+    youtubeVideoId: 'giXco2jaZ_4', // Interstellar trailer
     title: 'Echoes of Tomorrow',
     tagline: 'A city remembers what people forget.',
     synopsis:
         'A brilliant sound designer hears fragments of future disasters hidden inside old recordings and races to decode them before the next signal becomes real.',
     backdropUrl:
-        'https://images.unsplash.com/photo-1485846234645-a62644f84728?auto=format&fit=crop&w=1400&q=85',
+        'https://img.youtube.com/vi/giXco2jaZ_4/maxresdefault.jpg',
     posterUrl:
-        'https://images.unsplash.com/photo-1536440136628-849c177e76a1?auto=format&fit=crop&w=900&q=85',
+        'https://img.youtube.com/vi/giXco2jaZ_4/hqdefault.jpg',
     genres: ['Sci-Fi', 'Thriller'],
     language: 'English',
     certificate: 'UA 16+',
@@ -74,14 +76,15 @@ final trailers = [
   ),
   Trailer(
     id: 'frontier',
+    youtubeVideoId: 'zSWdZVtXT7E', // Gravity trailer
     title: 'The Last Frontier',
     tagline: 'Beyond the storm, a signal waits.',
     synopsis:
         'When a research crew vanishes near Jupiter, a rescue pilot follows one impossible transmission into a beautiful and terrifying unknown.',
     backdropUrl:
-        'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=1400&q=85',
+        'https://img.youtube.com/vi/zSWdZVtXT7E/maxresdefault.jpg',
     posterUrl:
-        'https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?auto=format&fit=crop&w=900&q=85',
+        'https://img.youtube.com/vi/zSWdZVtXT7E/hqdefault.jpg',
     genres: ['Adventure', 'Drama'],
     language: 'English',
     certificate: 'UA',
@@ -96,14 +99,15 @@ final trailers = [
   ),
   Trailer(
     id: 'sultans-legacy',
+    youtubeVideoId: 'Ke1Y3P9D0Bc', // Kalki 2898-AD trailer
     title: "Sultan's Legacy",
     tagline: 'Every crown has a shadow.',
     synopsis:
         'A reluctant heir returns to Hyderabad and discovers that his family empire is built on one explosive secret.',
     backdropUrl:
-        'https://images.unsplash.com/photo-1518005020951-eccb494ad742?auto=format&fit=crop&w=1400&q=85',
+        'https://img.youtube.com/vi/Ke1Y3P9D0Bc/maxresdefault.jpg',
     posterUrl:
-        'https://images.unsplash.com/photo-1518709268805-4e9042af2176?auto=format&fit=crop&w=900&q=85',
+        'https://img.youtube.com/vi/Ke1Y3P9D0Bc/hqdefault.jpg',
     genres: ['Bollywood', 'Drama'],
     language: 'Hindi',
     certificate: 'UA 13+',
@@ -118,14 +122,15 @@ final trailers = [
   ),
   Trailer(
     id: 'paper-moon',
+    youtubeVideoId: 'WFaJmNlGsyE', // RRR trailer
     title: 'Paper Moon Protocol',
     tagline: 'The mission was never on Earth.',
     synopsis:
         'A Telugu space thriller about three engineers who fake a satellite failure to stop a political cover-up.',
     backdropUrl:
-        'https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1400&q=85',
+        'https://img.youtube.com/vi/WFaJmNlGsyE/maxresdefault.jpg',
     posterUrl:
-        'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=900&q=85',
+        'https://img.youtube.com/vi/WFaJmNlGsyE/hqdefault.jpg',
     genres: ['Telugu', 'Thriller'],
     language: 'Telugu',
     certificate: 'UA',

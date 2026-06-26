@@ -10,6 +10,7 @@ class TrailerCard extends StatefulWidget {
     super.key,
     required this.trailer,
     required this.onTap,
+    this.onPlay,
     this.width = 250,
     this.height = 150,
     this.showPlay = false,
@@ -17,6 +18,7 @@ class TrailerCard extends StatefulWidget {
 
   final Trailer trailer;
   final VoidCallback onTap;
+  final VoidCallback? onPlay;
   final double width;
   final double height;
   final bool showPlay;
@@ -30,6 +32,11 @@ class _TrailerCardState extends State<TrailerCard> {
 
   @override
   Widget build(BuildContext context) {
+    // Prefer YouTube thumbnail, fall back to posterUrl
+    final imageUrl = widget.trailer.youtubeVideoId.isNotEmpty
+        ? widget.trailer.youtubeHqThumbnailUrl
+        : widget.trailer.posterUrl;
+
     return GestureDetector(
       onTapDown: (_) => setState(() => _pressed = true),
       onTapCancel: () => setState(() => _pressed = false),
@@ -47,7 +54,7 @@ class _TrailerCardState extends State<TrailerCard> {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                CinematicImage(url: widget.trailer.posterUrl),
+                CinematicImage(url: imageUrl),
                 const DecoratedBox(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -61,17 +68,25 @@ class _TrailerCardState extends State<TrailerCard> {
                     ),
                   ),
                 ),
-                if (widget.showPlay)
+                // Play button overlay (tappable)
+                if (widget.onPlay != null || widget.showPlay)
                   Center(
-                    child: Container(
-                      width: 46,
-                      height: 46,
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: .48),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white24),
+                    child: GestureDetector(
+                      onTap: widget.onPlay,
+                      child: Container(
+                        width: 46,
+                        height: 46,
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: .55),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white38),
+                        ),
+                        child: const Icon(
+                          Icons.play_arrow_rounded,
+                          color: Colors.white,
+                          size: 28,
+                        ),
                       ),
-                      child: const Icon(Icons.play_arrow_rounded),
                     ),
                   ),
                 Positioned(

@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_theme.dart';
-import '../../core/data/dummy_trailers.dart';
+import '../../core/data/youtube_trailers_provider.dart';
 import '../../core/models/trailer.dart';
 import '../../shared/widgets/cinematic_image.dart';
 import '../../shared/widgets/glass_icon_button.dart';
 import '../../shared/widgets/meta_widgets.dart';
 import '../../shared/widgets/trailer_card.dart';
+import '../../shared/widgets/trailer_player.dart';
 
 class TrailerDetailsScreen extends StatefulWidget {
   const TrailerDetailsScreen({super.key, required this.trailer});
@@ -19,6 +20,10 @@ class TrailerDetailsScreen extends StatefulWidget {
 
 class _TrailerDetailsScreenState extends State<TrailerDetailsScreen> {
   bool _hyped = false;
+
+  void _playTrailer() {
+    showTrailerPlayer(context, widget.trailer);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +43,7 @@ class _TrailerDetailsScreenState extends State<TrailerDetailsScreen> {
                   Hero(
                     tag: 'backdrop-${trailer.id}',
                     child: CinematicImage(
-                      url: trailer.backdropUrl,
+                      url: trailer.youtubeThumbnailUrl,
                       alignment: Alignment.topCenter,
                     ),
                   ),
@@ -57,22 +62,26 @@ class _TrailerDetailsScreenState extends State<TrailerDetailsScreen> {
                       ),
                     ),
                   ),
+                  // Tappable play button
                   Center(
-                    child: Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: .54),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: .55),
-                            blurRadius: 28,
-                          ),
-                        ],
+                    child: GestureDetector(
+                      onTap: _playTrailer,
+                      child: Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: .54),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white38),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: .55),
+                              blurRadius: 28,
+                            ),
+                          ],
+                        ),
+                        child: const Icon(Icons.play_arrow_rounded, size: 38),
                       ),
-                      child: const Icon(Icons.play_arrow_rounded, size: 38),
                     ),
                   ),
                   Positioned(
@@ -121,7 +130,7 @@ class _TrailerDetailsScreenState extends State<TrailerDetailsScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Directed by ${trailer.director} • ${trailer.runtime} • ${trailer.language} • ${trailer.certificate}',
+                  'by ${trailer.director} • ${trailer.runtime} • ${trailer.language} • ${trailer.certificate}',
                   style: const TextStyle(
                     color: AppTheme.muted,
                     fontSize: 14,
@@ -138,7 +147,7 @@ class _TrailerDetailsScreenState extends State<TrailerDetailsScreen> {
                       valueColor: AppTheme.accent,
                     ),
                     StatItem(value: trailer.views, label: 'Trailer views'),
-                    StatItem(value: trailer.releaseDate, label: 'In cinemas'),
+                    StatItem(value: trailer.releaseDate, label: 'Released'),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -245,7 +254,8 @@ class _HypePanel extends StatelessWidget {
                   hyped
                       ? 'You hyped this trailer.'
                       : 'Make your hype count for TrailerBaaz.',
-                  style: const TextStyle(color: AppTheme.muted, fontSize: 13),
+                  style:
+                      const TextStyle(color: AppTheme.muted, fontSize: 13),
                 ),
               ],
             ),
@@ -301,8 +311,10 @@ class _TicketPanel extends StatelessWidget {
               Expanded(
                 child: FilledButton.icon(
                   onPressed: () {},
-                  icon: const Icon(Icons.confirmation_number_rounded, size: 17),
-                  label: const FittedBox(child: Text('BookMyShow')),
+                  icon: const Icon(Icons.confirmation_number_rounded,
+                      size: 17),
+                  label:
+                      const FittedBox(child: Text('BookMyShow')),
                   style: FilledButton.styleFrom(
                     backgroundColor: const Color(0xFFFF416D),
                     foregroundColor: Colors.white,
@@ -397,7 +409,8 @@ class _CastList extends StatelessWidget {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 10, color: AppTheme.muted),
+                  style:
+                      const TextStyle(fontSize: 10, color: AppTheme.muted),
                 ),
               ],
             ),
@@ -416,8 +429,24 @@ class _RelatedRail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final items = trailers.where((item) => item.id != current.id).toList();
-    if (reversed) items.sort((a, b) => b.title.compareTo(a.title));
+    final provider = YoutubeTrailersProvider.instance;
+    final allTrailers = provider.sections.values
+        .expand((list) => list)
+        .where((t) => t.id != current.id)
+        .toList();
+    if (reversed) allTrailers.sort((a, b) => b.title.compareTo(a.title));
+    final items = allTrailers.take(8).toList();
+
+    if (items.isEmpty) {
+      return const SizedBox(
+        height: 145,
+        child: Center(
+          child: Text('No related trailers',
+              style: TextStyle(color: Colors.white38)),
+        ),
+      );
+    }
+
     return SizedBox(
       height: 145,
       child: ListView.separated(
@@ -437,6 +466,7 @@ class _RelatedRail extends StatelessWidget {
               ),
             );
           },
+          onPlay: () => showTrailerPlayer(context, items[index]),
           width: 220,
           height: 145,
         ),
