@@ -141,13 +141,13 @@ final trailers = [
 ];
 
 final homeSections = <String, List<Trailer>>{
-  '🔥 Trending Now': [trailers[1], trailers[0], trailers[2]],
-  '⭐ Most Awaited': [trailers[3], trailers[4], trailers[0]],
-  '📅 Coming Soon': [trailers[2], trailers[3], trailers[4]],
-  '🎬 Hollywood': [trailers[0], trailers[1], trailers[2]],
-  '🎥 Bollywood': [trailers[3], trailers[1], trailers[4]],
-  '🍿 Telugu': [trailers[4], trailers[0], trailers[2]],
-  '🎭 Tamil': [trailers[2], trailers[3], trailers[1]],
-  '🇰🇷 Korean': [trailers[1], trailers[2], trailers[0]],
-  '🎞 OTT Originals': [trailers[0], trailers[2], trailers[3]],
+  'Trending Now': [trailers[1], trailers[0], trailers[2]],
+  'Most Awaited': [trailers[3], trailers[4], trailers[0]],
+  'Coming Soon': [trailers[2], trailers[3], trailers[4]],
+  'Hollywood': [trailers[0], trailers[1], trailers[2]],
+  'Bollywood': [trailers[3], trailers[1], trailers[4]],
+  'Telugu': [trailers[4], trailers[0], trailers[2]],
+  'Tamil': [trailers[2], trailers[3], trailers[1]],
+  'Korean': [trailers[1], trailers[2], trailers[0]],
+  'OTT Originals': [trailers[0], trailers[2], trailers[3]],
 };

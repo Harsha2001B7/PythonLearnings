@@ -137,21 +137,54 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const logoStyle = TextStyle(
+      fontSize: 24,
+      fontWeight: FontWeight.w900,
+      letterSpacing: -0.5,
+    );
     return Row(
       children: [
-        Container(
-          width: 36,
-          height: 36,
-          decoration: BoxDecoration(
-            color: AppTheme.accent,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Icon(Icons.play_arrow_rounded, color: Colors.white),
-        ),
-        const SizedBox(width: 10),
-        const Text(
-          'TrailerBaaz',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
+        // Same glowing TrailerBaaz logo as splash screen
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Trailer', style: logoStyle.copyWith(color: Colors.white)),
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                // glow layer
+                Text(
+                  'Baaz',
+                  style: logoStyle.copyWith(
+                    color: AppTheme.accent.withValues(alpha: 0.35),
+                    shadows: [
+                      Shadow(
+                        color: AppTheme.accent.withValues(alpha: 0.65),
+                        blurRadius: 12,
+                      ),
+                      Shadow(
+                        color: AppTheme.accent.withValues(alpha: 0.3),
+                        blurRadius: 28,
+                      ),
+                    ],
+                  ),
+                ),
+                // sharp top layer
+                Text(
+                  'Baaz',
+                  style: logoStyle.copyWith(
+                    color: AppTheme.accent,
+                    shadows: [
+                      Shadow(
+                        color: AppTheme.accent.withValues(alpha: 0.4),
+                        blurRadius: 5,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
         const Spacer(),
         GestureDetector(
@@ -334,14 +367,32 @@ class _TrailerRail extends StatelessWidget {
             child: Row(
               children: [
                 Expanded(
-                  child: Text(
-                    title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w900,
-                    ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // accent left-bar indicator
+                      Container(
+                        width: 3,
+                        height: 18,
+                        decoration: BoxDecoration(
+                          color: AppTheme.accent,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.3,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
                 TextButton(

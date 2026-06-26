@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../features/shell/app_shell.dart';
+import '../features/splash/splash_screen.dart';
 import 'app_theme.dart';
 
 class TrailerBaazApp extends StatelessWidget {
@@ -13,7 +13,7 @@ class TrailerBaazApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       themeMode: ThemeMode.dark,
       darkTheme: AppTheme.dark(),
-      home: const AppShell(),
+      home: const SplashScreen(),
     );
   }
 }

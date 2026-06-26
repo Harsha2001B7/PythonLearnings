@@ -147,29 +147,52 @@ class _Logo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RichText(
-      text: const TextSpan(
-        children: [
-          TextSpan(
-            text: 'Trailer',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 44,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -1,
+    const logoStyle = TextStyle(
+      fontSize: 44,
+      fontWeight: FontWeight.w900,
+      letterSpacing: -1,
+    );
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('Trailer', style: logoStyle.copyWith(color: Colors.white)),
+        // "Baaz" with a subtle glow
+        Stack(
+          alignment: Alignment.center,
+          children: [
+            // glow layer
+            Text(
+              'Baaz',
+              style: logoStyle.copyWith(
+                color: AppTheme.accent.withValues(alpha: 0.35),
+                shadows: [
+                  Shadow(
+                    color: AppTheme.accent.withValues(alpha: 0.65),
+                    blurRadius: 12,
+                  ),
+                  Shadow(
+                    color: AppTheme.accent.withValues(alpha: 0.3),
+                    blurRadius: 28,
+                  ),
+                ],
+              ),
             ),
-          ),
-          TextSpan(
-            text: 'Baaz',
-            style: TextStyle(
-              color: AppTheme.accent,
-              fontSize: 44,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -1,
+            // sharp top layer
+            Text(
+              'Baaz',
+              style: logoStyle.copyWith(
+                color: AppTheme.accent,
+                shadows: [
+                  Shadow(
+                    color: AppTheme.accent.withValues(alpha: 0.4),
+                    blurRadius: 5,
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
+      ],
     );
   }
 }
