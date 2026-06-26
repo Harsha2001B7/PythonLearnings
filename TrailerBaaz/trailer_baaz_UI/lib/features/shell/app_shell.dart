@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../app/app_theme.dart';
+
 import '../discover/discover_screen.dart';
 import '../home/home_screen.dart';
 import '../profile/profile_screen.dart';
