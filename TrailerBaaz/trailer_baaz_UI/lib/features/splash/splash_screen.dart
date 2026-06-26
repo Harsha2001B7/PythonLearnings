@@ -11,94 +11,122 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
-  late AnimationController _logoController;
-  late AnimationController _cardController;
+  late final AnimationController _logoController;
+  late final AnimationController _contentController;
 
-  late Animation<double> _logoOpacity;
-  late Animation<Offset> _logoSlide;
-  late Animation<double> _cardOpacity;
-  late Animation<Offset> _cardSlide;
+  late final Animation<double> _logoScale;
+  late final Animation<double> _logoFade;
+  
+  late final Animation<double> _contentFade;
+  late final Animation<Offset> _contentSlide;
 
   @override
   void initState() {
     super.initState();
-    _initAnimations();
-  }
 
-  void _initAnimations() {
-    _logoController = AnimationController(vsync: this, duration: const Duration(milliseconds: 900));
-    _logoOpacity = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _logoController, curve: const Interval(0, 0.7, curve: Curves.easeOut)),
+    _logoController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
     );
-    _logoSlide = Tween<Offset>(begin: const Offset(0, -0.15), end: Offset.zero).animate(
+
+    _contentController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+
+    _logoScale = Tween<double>(begin: 0.85, end: 1.0).animate(
       CurvedAnimation(parent: _logoController, curve: Curves.easeOutCubic),
     );
 
-    _cardController = AnimationController(vsync: this, duration: const Duration(milliseconds: 700));
-    _cardOpacity = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _cardController, curve: Curves.easeOut),
+    _logoFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _logoController, curve: Curves.easeIn),
     );
-    _cardSlide = Tween<Offset>(begin: const Offset(0, 0.08), end: Offset.zero).animate(
-      CurvedAnimation(parent: _cardController, curve: Curves.easeOutCubic),
+
+    _contentFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _contentController, curve: Curves.easeOut),
+    );
+
+    _contentSlide = Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
+      CurvedAnimation(parent: _contentController, curve: Curves.easeOutCubic),
     );
 
     _runSequence();
   }
 
   void _runSequence() async {
-    await Future.delayed(const Duration(milliseconds: 200));
+    // 1. Initial pause for cinematic breathing room
+    await Future.delayed(const Duration(milliseconds: 400));
     if (!mounted) return;
+
+    // 2. Logo entrance
     await _logoController.forward();
-    await Future.delayed(const Duration(milliseconds: 150));
+    
+    // 3. Staggered entrance for the rest
     if (!mounted) return;
-    _cardController.forward();
+    _contentController.forward();
   }
 
   @override
   void dispose() {
     _logoController.dispose();
-    _cardController.dispose();
+    _contentController.dispose();
     super.dispose();
   }
 
-  Future<void> _login(bool guest) async {
-    if (!mounted) return;
+  void _navigateHome() {
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 600),
-        pageBuilder: (context, animation, secondaryAnimation) => FadeTransition(
-          opacity: animation,
-          child: const AppShell(),
-        ),
+        transitionDuration: const Duration(milliseconds: 800),
+        reverseTransitionDuration: const Duration(milliseconds: 800),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return const AppShell();
+        },
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          // Premium shared-axis / scale fade transition
+          final fade = Tween<double>(begin: 0, end: 1).animate(
+            CurvedAnimation(parent: animation, curve: Curves.easeOut),
+          );
+          
+          final scaleIn = Tween<double>(begin: 0.96, end: 1.0).animate(
+            CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+          );
+
+          // The outgoing page fades out and scales up slightly
+          return FadeTransition(
+            opacity: fade,
+            child: ScaleTransition(
+              scale: scaleIn,
+              child: child,
+            ),
+          );
+        },
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
+      backgroundColor: Colors.black,
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // Static background image
-          Image.network(
-            'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=1400&q=80',
-            fit: BoxFit.cover,
-          ),
-          // Dark gradient overlay
-          DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withValues(alpha: 0.45),
-                  Colors.black.withValues(alpha: 0.25),
-                  Colors.black.withValues(alpha: 0.75),
-                  Colors.black.withValues(alpha: 0.92),
+          // Gentle ambient red glow
+          Positioned(
+            top: MediaQuery.sizeOf(context).height * 0.2,
+            left: MediaQuery.sizeOf(context).width * 0.2,
+            right: MediaQuery.sizeOf(context).width * 0.2,
+            child: Container(
+              height: 200,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.accent.withValues(alpha: 0.15),
+                    blurRadius: 120,
+                    spreadRadius: 80,
+                  ),
                 ],
-                stops: const [0, 0.3, 0.65, 1],
               ),
             ),
           ),
@@ -107,31 +135,109 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 56),
-
-                  // Logo
+                  const Spacer(flex: 3),
+                  
+                  // Animated Logo
                   FadeTransition(
-                    opacity: _logoOpacity,
-                    child: SlideTransition(
-                      position: _logoSlide,
+                    opacity: _logoFade,
+                    child: ScaleTransition(
+                      scale: _logoScale,
                       child: const _Logo(),
                     ),
                   ),
 
-                  const Spacer(),
+                  const SizedBox(height: 16),
 
-                  // Login card
+                  // Tagline & Wordmark
                   FadeTransition(
-                    opacity: _cardOpacity,
+                    opacity: _contentFade,
                     child: SlideTransition(
-                      position: _cardSlide,
-                      child: _LoginCard(onLogin: _login),
+                      position: _contentSlide,
+                      child: Column(
+                        children: [
+                          const _Wordmark(),
+                          const SizedBox(height: 12),
+                          Text(
+                            'Discover the Next Blockbuster.',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.7),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
 
-                  const SizedBox(height: 32),
+                  const Spacer(flex: 4),
+
+                  // Buttons
+                  FadeTransition(
+                    opacity: _contentFade,
+                    child: SlideTransition(
+                      position: _contentSlide,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _ScaleButton(
+                            onTap: _navigateHome,
+                            child: Container(
+                              width: double.infinity,
+                              height: 56,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(999),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SvgPicture.asset('assets/icons/google.svg', height: 22, width: 22),
+                                  const SizedBox(width: 12),
+                                  const Text(
+                                    'Continue with Google',
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          
+                          const SizedBox(height: 16),
+                          
+                          _ScaleButton(
+                            onTap: _navigateHome,
+                            child: Container(
+                              width: double.infinity,
+                              height: 56,
+                              decoration: BoxDecoration(
+                                color: Colors.transparent,
+                                borderRadius: BorderRadius.circular(999),
+                                border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1),
+                              ),
+                              child: const Center(
+                                child: Text(
+                                  'Browse as Guest',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -147,47 +253,91 @@ class _Logo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const logoStyle = TextStyle(
-      fontSize: 44,
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        // Subtle red glow behind logo
+        Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: AppTheme.accent.withValues(alpha: 0.5),
+                blurRadius: 40,
+                spreadRadius: 10,
+              ),
+            ],
+          ),
+        ),
+        // Logo letters
+        Container(
+          width: 90,
+          height: 90,
+          decoration: BoxDecoration(
+            color: Colors.black,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withValues(alpha: 0.1),
+                Colors.black,
+              ],
+            ),
+          ),
+          alignment: Alignment.center,
+          child: const Text(
+            'TB',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 36,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -2,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _Wordmark extends StatelessWidget {
+  const _Wordmark();
+
+  @override
+  Widget build(BuildContext context) {
+    const style = TextStyle(
+      fontSize: 32,
       fontWeight: FontWeight.w900,
       letterSpacing: -1,
     );
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('Trailer', style: logoStyle.copyWith(color: Colors.white)),
-        // "Baaz" with a subtle glow
+        const Text('Trailer', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, letterSpacing: -1, color: Colors.white)),
         Stack(
           alignment: Alignment.center,
           children: [
-            // glow layer
+            // Outer glow
             Text(
               'Baaz',
-              style: logoStyle.copyWith(
-                color: AppTheme.accent.withValues(alpha: 0.35),
+              style: style.copyWith(
+                color: AppTheme.accent.withValues(alpha: 0.4),
                 shadows: [
-                  Shadow(
-                    color: AppTheme.accent.withValues(alpha: 0.65),
-                    blurRadius: 12,
-                  ),
-                  Shadow(
-                    color: AppTheme.accent.withValues(alpha: 0.3),
-                    blurRadius: 28,
-                  ),
+                  Shadow(color: AppTheme.accent.withValues(alpha: 0.8), blurRadius: 12),
+                  Shadow(color: AppTheme.accent.withValues(alpha: 0.3), blurRadius: 24),
                 ],
               ),
             ),
-            // sharp top layer
+            // Sharp text
             Text(
               'Baaz',
-              style: logoStyle.copyWith(
+              style: style.copyWith(
                 color: AppTheme.accent,
-                shadows: [
-                  Shadow(
-                    color: AppTheme.accent.withValues(alpha: 0.4),
-                    blurRadius: 5,
-                  ),
-                ],
+                shadows: [Shadow(color: AppTheme.accent.withValues(alpha: 0.5), blurRadius: 4)],
               ),
             ),
           ],
@@ -197,124 +347,62 @@ class _Logo extends StatelessWidget {
   }
 }
 
-class _LoginCard extends StatelessWidget {
-  final Future<void> Function(bool guest) onLogin;
-  const _LoginCard({required this.onLogin});
+class _ScaleButton extends StatefulWidget {
+  final Widget child;
+  final VoidCallback onTap;
+
+  const _ScaleButton({required this.child, required this.onTap});
 
   @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-          decoration: BoxDecoration(
-            color: Colors.black.withValues(alpha: 0.45),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'Welcome Back',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 28,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(height: 6),
-              const Text(
-                'Continue your cinematic journey',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white70, fontSize: 15),
-              ),
-              const SizedBox(height: 28),
-              const _BenefitRow(text: 'Personalize recommendations'),
-              const _BenefitRow(text: 'Save Watchlist'),
-              const _BenefitRow(text: 'Like trailers'),
-              const _BenefitRow(text: 'Sync preferences'),
-              const _BenefitRow(text: 'Get release notifications'),
-              const SizedBox(height: 28),
-
-              // Google button
-              ElevatedButton(
-                onPressed: () => onLogin(false),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.black,
-                  minimumSize: const Size(double.infinity, 54),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-                  elevation: 0,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    SvgPicture.asset('assets/icons/google.svg', height: 22, width: 22),
-                    const SizedBox(width: 10),
-                    const Text(
-                      'Continue with Google',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // Guest button
-              OutlinedButton(
-                onPressed: () => onLogin(true),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(double.infinity, 54),
-                  side: const BorderSide(color: Colors.white30),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-                ),
-                child: const Text(
-                  'Continue as Guest',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'By continuing you agree to our\nTerms of Service & Privacy Policy',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white38, fontSize: 12, height: 1.5),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  State<_ScaleButton> createState() => _ScaleButtonState();
 }
 
-class _BenefitRow extends StatelessWidget {
-  final String text;
-  const _BenefitRow({required this.text});
+class _ScaleButtonState extends State<_ScaleButton> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 150),
+      reverseDuration: const Duration(milliseconds: 200),
+    );
+    _scale = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutQuad),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _onTapDown(TapDownDetails details) {
+    _controller.forward();
+  }
+
+  void _onTapUp(TapUpDetails details) {
+    _controller.reverse();
+    widget.onTap();
+  }
+
+  void _onTapCancel() {
+    _controller.reverse();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: const BoxDecoration(color: AppTheme.accent, shape: BoxShape.circle),
-          ),
-          const SizedBox(width: 12),
-          Text(
-            text,
-            style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
-          ),
-        ],
+    return GestureDetector(
+      onTapDown: _onTapDown,
+      onTapUp: _onTapUp,
+      onTapCancel: _onTapCancel,
+      behavior: HitTestBehavior.opaque,
+      child: ScaleTransition(
+        scale: _scale,
+        child: widget.child,
       ),
     );
   }
