@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
@@ -14,6 +15,93 @@ import '../../shared/widgets/trailer_player.dart';
 import '../details/trailer_details_screen.dart';
 import '../shell/app_shell.dart';
 
+// ─── Section Categories Configuration ────────────────────────────────────────
+
+const _browseCategories = [
+  _BrowseCategory(
+    label: 'Trending Now',
+    icon: Icons.local_fire_department_rounded,
+    color: Color(0xFFFF6B35),
+    sectionKey: 'Trending Now',
+  ),
+  _BrowseCategory(
+    label: 'Most Awaited',
+    icon: Icons.star_rounded,
+    color: Color(0xFFFFD700),
+    sectionKey: 'Most Awaited',
+  ),
+  _BrowseCategory(
+    label: 'Coming Soon',
+    icon: Icons.schedule_rounded,
+    color: Color(0xFF7C3AED),
+    sectionKey: 'Coming Soon',
+  ),
+];
+
+const _languageCategories = [
+  _BrowseCategory(
+    label: 'Hollywood',
+    icon: Icons.movie_rounded,
+    color: Color(0xFF3B82F6),
+    sectionKey: 'Hollywood',
+    flag: '🎬',
+  ),
+  _BrowseCategory(
+    label: 'Bollywood',
+    icon: Icons.music_note_rounded,
+    color: Color(0xFFEC4899),
+    sectionKey: 'Bollywood',
+    flag: '🇮🇳',
+  ),
+  _BrowseCategory(
+    label: 'Telugu',
+    icon: Icons.videocam_rounded,
+    color: Color(0xFF10B981),
+    sectionKey: 'Telugu',
+    flag: '🎭',
+  ),
+  _BrowseCategory(
+    label: 'Tamil',
+    icon: Icons.theater_comedy_rounded,
+    color: Color(0xFFF59E0B),
+    sectionKey: 'Tamil',
+    flag: '🎥',
+  ),
+  _BrowseCategory(
+    label: 'Korean',
+    icon: Icons.subtitles_rounded,
+    color: Color(0xFF06B6D4),
+    sectionKey: 'Korean',
+    flag: '🇰🇷',
+  ),
+  _BrowseCategory(
+    label: 'OTT Originals',
+    icon: Icons.play_circle_rounded,
+    color: Color(0xFF8B5CF6),
+    sectionKey: 'OTT Originals',
+    flag: '🌐',
+  ),
+];
+
+@immutable
+class _BrowseCategory {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final String sectionKey;
+  final String? flag;
+
+  const _BrowseCategory({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.sectionKey,
+    this.flag,
+  });
+}
+
+// ─── Home Screen ─────────────────────────────────────────────────────────────
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -21,10 +109,12 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late final PageController _heroController;
   late final Timer _timer;
   int _page = 1000;
+
+  String? _selectedSection;
 
   final _provider = YoutubeTrailersProvider.instance;
 
@@ -71,6 +161,27 @@ class _HomeScreenState extends State<HomeScreen> {
     showTrailerPlayer(context, trailer);
   }
 
+  void _selectSection(String? sectionKey) {
+    setState(() => _selectedSection = sectionKey);
+  }
+
+  void _showBrowseSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      barrierColor: Colors.black.withValues(alpha: 0.6),
+      builder: (ctx) => _BrowseSheet(
+        onSelect: (sectionKey) {
+          Navigator.pop(ctx);
+          _selectSection(sectionKey);
+        },
+        selectedSection: _selectedSection,
+        loadedSections: _provider.sections.keys.toSet(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = _provider;
@@ -99,6 +210,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
     final heroTrailers = provider.heroTrailers;
     final sections = provider.sections;
+
+    if (_selectedSection != null) {
+      final sectionTrailers = sections[_selectedSection] ?? [];
+      return _SectionDetailView(
+        sectionKey: _selectedSection!,
+        trailers: sectionTrailers,
+        onBack: () => _selectSection(null),
+        onOpenDetails: _openDetails,
+        onPlay: _playTrailer,
+        onShowBrowse: _showBrowseSheet,
+      );
+    }
 
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
@@ -143,7 +266,8 @@ class _HomeScreenState extends State<HomeScreen> {
                             _page % heroTrailers.length == index;
                         return AnimatedContainer(
                           duration: const Duration(milliseconds: 220),
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
+                          margin:
+                              const EdgeInsets.symmetric(horizontal: 4),
                           width: selected ? 24 : 7,
                           height: 7,
                           decoration: BoxDecoration(
@@ -157,6 +281,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
               ],
             ),
+          ),
+        ),
+        SliverToBoxAdapter(
+          child: _QuickCategoryBar(
+            onShowBrowse: _showBrowseSheet,
+            onSelect: _selectSection,
           ),
         ),
         SliverPadding(
@@ -175,6 +305,840 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ─── Quick Category Bar ──────────────────────────────────────────────────────
+
+class _QuickCategoryBar extends StatelessWidget {
+  const _QuickCategoryBar({
+    required this.onShowBrowse,
+    required this.onSelect,
+  });
+
+  final VoidCallback onShowBrowse;
+  final ValueChanged<String> onSelect;
+
+  @override
+  Widget build(BuildContext context) {
+    final allCats = [..._browseCategories, ..._languageCategories];
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(0, 16, 0, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                const Text(
+                  'Browse',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: onShowBrowse,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.15),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'All Categories',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.85),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Icon(
+                          Icons.keyboard_arrow_up_rounded,
+                          color: AppTheme.accent,
+                          size: 18,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 38,
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              itemCount: allCats.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              itemBuilder: (context, i) {
+                final cat = allCats[i];
+                return GestureDetector(
+                  onTap: () => onSelect(cat.sectionKey),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          cat.color.withValues(alpha: 0.25),
+                          cat.color.withValues(alpha: 0.12),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: cat.color.withValues(alpha: 0.4),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (cat.flag != null) ...[
+                          Text(cat.flag!,
+                              style: const TextStyle(fontSize: 13)),
+                          const SizedBox(width: 5),
+                        ] else ...[
+                          Icon(cat.icon, color: cat.color, size: 13),
+                          const SizedBox(width: 5),
+                        ],
+                        Text(
+                          cat.label,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.9),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Browse Bottom Sheet ──────────────────────────────────────────────────────
+
+class _BrowseSheet extends StatelessWidget {
+  const _BrowseSheet({
+    required this.onSelect,
+    required this.selectedSection,
+    required this.loadedSections,
+  });
+
+  final ValueChanged<String> onSelect;
+  final String? selectedSection;
+  final Set<String> loadedSections;
+
+  @override
+  Widget build(BuildContext context) {
+    return DraggableScrollableSheet(
+      initialChildSize: 0.72,
+      minChildSize: 0.45,
+      maxChildSize: 0.92,
+      snap: true,
+      snapSizes: const [0.45, 0.72, 0.92],
+      builder: (context, scrollController) {
+        return ClipRRect(
+          borderRadius:
+              const BorderRadius.vertical(top: Radius.circular(28)),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    const Color(0xFF0D1117).withValues(alpha: 0.96),
+                    const Color(0xFF070A11).withValues(alpha: 0.98),
+                  ],
+                ),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(28)),
+                border: Border(
+                  top: BorderSide(
+                    color: AppTheme.accent.withValues(alpha: 0.3),
+                    width: 1.2,
+                  ),
+                ),
+              ),
+              child: ListView(
+                controller: scrollController,
+                physics: const BouncingScrollPhysics(),
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.paddingOf(context).bottom + 20,
+                ),
+                children: [
+                  Center(
+                    child: Container(
+                      margin: const EdgeInsets.only(top: 12, bottom: 20),
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.white24,
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 3,
+                          height: 20,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                AppTheme.accent,
+                                AppTheme.accent.withValues(alpha: 0.3),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        const Text(
+                          'Browse',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const _SheetSectionHeader(label: 'DISCOVER'),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+                    child: Column(
+                      children: _browseCategories.map((cat) {
+                        final isSelected = selectedSection == cat.sectionKey;
+                        final isLoaded = loadedSections.contains(cat.sectionKey);
+                        return _SheetCategoryTile(
+                          category: cat,
+                          isSelected: isSelected,
+                          isLoaded: isLoaded,
+                          onTap: () => onSelect(cat.sectionKey),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                  const _SheetSectionHeader(label: 'POPULAR LANGUAGES'),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
+                    child: GridView.count(
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 2.4,
+                      children: _languageCategories.map((cat) {
+                        final isSelected = selectedSection == cat.sectionKey;
+                        final isLoaded = loadedSections.contains(cat.sectionKey);
+                        return _SheetLanguageTile(
+                          category: cat,
+                          isSelected: isSelected,
+                          isLoaded: isLoaded,
+                          onTap: () => onSelect(cat.sectionKey),
+                        );
+                      }).toList(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _SheetSectionHeader extends StatelessWidget {
+  const _SheetSectionHeader({required this.label});
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 4, 24, 0),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: Colors.white.withValues(alpha: 0.5),
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 1.4,
+        ),
+      ),
+    );
+  }
+}
+
+class _SheetCategoryTile extends StatelessWidget {
+  const _SheetCategoryTile({
+    required this.category,
+    required this.isSelected,
+    required this.isLoaded,
+    required this.onTap,
+  });
+
+  final _BrowseCategory category;
+  final bool isSelected;
+  final bool isLoaded;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: isSelected
+                ? [
+                    category.color.withValues(alpha: 0.35),
+                    category.color.withValues(alpha: 0.18),
+                  ]
+                : [
+                    Colors.white.withValues(alpha: 0.05),
+                    Colors.white.withValues(alpha: 0.02),
+                  ],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected
+                ? category.color.withValues(alpha: 0.6)
+                : Colors.white.withValues(alpha: 0.08),
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: category.color.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(category.icon, color: category.color, size: 20),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                category.label,
+                style: TextStyle(
+                  color: isSelected
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: 0.85),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+            if (isLoaded)
+              Icon(
+                isSelected
+                    ? Icons.check_circle_rounded
+                    : Icons.arrow_forward_ios_rounded,
+                color: isSelected
+                    ? category.color
+                    : Colors.white.withValues(alpha: 0.3),
+                size: isSelected ? 20 : 14,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SheetLanguageTile extends StatelessWidget {
+  const _SheetLanguageTile({
+    required this.category,
+    required this.isSelected,
+    required this.isLoaded,
+    required this.onTap,
+  });
+
+  final _BrowseCategory category;
+  final bool isSelected;
+  final bool isLoaded;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isSelected
+                ? [
+                    category.color.withValues(alpha: 0.45),
+                    category.color.withValues(alpha: 0.2),
+                  ]
+                : [
+                    category.color.withValues(alpha: 0.15),
+                    category.color.withValues(alpha: 0.05),
+                  ],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected
+                ? category.color.withValues(alpha: 0.7)
+                : category.color.withValues(alpha: 0.25),
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              right: -4,
+              bottom: -4,
+              child: Text(
+                category.flag ?? '',
+                style: TextStyle(
+                  fontSize: 40,
+                  color: Colors.white.withValues(alpha: 0.08),
+                ),
+              ),
+            ),
+            Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              child: Row(
+                children: [
+                  Text(
+                    category.flag ?? '',
+                    style: const TextStyle(fontSize: 22),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      category.label,
+                      style: TextStyle(
+                        color: isSelected
+                            ? Colors.white
+                            : Colors.white.withValues(alpha: 0.85),
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Positioned(
+                top: 8,
+                right: 10,
+                child: Icon(Icons.check_circle_rounded,
+                    color: category.color, size: 16),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Section Detail View ──────────────────────────────────────────────────────
+
+class _SectionDetailView extends StatelessWidget {
+  const _SectionDetailView({
+    required this.sectionKey,
+    required this.trailers,
+    required this.onBack,
+    required this.onOpenDetails,
+    required this.onPlay,
+    required this.onShowBrowse,
+  });
+
+  final String sectionKey;
+  final List<Trailer> trailers;
+  final VoidCallback onBack;
+  final ValueChanged<Trailer> onOpenDetails;
+  final ValueChanged<Trailer> onPlay;
+  final VoidCallback onShowBrowse;
+
+  @override
+  Widget build(BuildContext context) {
+    final cat = [
+      ..._browseCategories,
+      ..._languageCategories,
+    ].firstWhere(
+      (c) => c.sectionKey == sectionKey,
+      orElse: () => const _BrowseCategory(
+        label: 'Trailers',
+        icon: Icons.movie_rounded,
+        color: AppTheme.accent,
+        sectionKey: '',
+      ),
+    );
+
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        SliverToBoxAdapter(
+          child: Container(
+            padding: EdgeInsets.only(
+              top: MediaQuery.paddingOf(context).top + 12,
+              left: 20,
+              right: 20,
+              bottom: 20,
+            ),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  cat.color.withValues(alpha: 0.25),
+                  AppTheme.background.withValues(alpha: 0.0),
+                ],
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: onBack,
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.12),
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.arrow_back_ios_rounded,
+                          color: Colors.white,
+                          size: 16,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: onShowBrowse,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.15),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Browse',
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.8),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Icon(Icons.keyboard_arrow_up_rounded,
+                                color: AppTheme.accent, size: 18),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: cat.color.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: cat.flag != null
+                          ? Center(
+                              child: Text(cat.flag!,
+                                  style: const TextStyle(fontSize: 26)),
+                            )
+                          : Icon(cat.icon, color: cat.color, size: 26),
+                    ),
+                    const SizedBox(width: 14),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          cat.label,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 26,
+                            fontWeight: FontWeight.w900,
+                            height: 1.1,
+                          ),
+                        ),
+                        Text(
+                          '${trailers.length} trailers',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.5),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+        if (trailers.isEmpty)
+          SliverFillRemaining(
+            child: Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.movie_filter_rounded,
+                      size: 64, color: Colors.white24),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'No trailers available',
+                    style: TextStyle(color: Colors.white54, fontSize: 16),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
+            sliver: SliverList.separated(
+              itemCount: trailers.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 16),
+              itemBuilder: (context, index) {
+                final trailer = trailers[index];
+                return _LandscapeTrailerTile(
+                  trailer: trailer,
+                  onTap: () => onOpenDetails(trailer),
+                  onPlay: () => onPlay(trailer),
+                );
+              },
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+// ─── Landscape Trailer Tile ───────────────────────────────────────────────────
+
+class _LandscapeTrailerTile extends StatelessWidget {
+  const _LandscapeTrailerTile({
+    required this.trailer,
+    required this.onTap,
+    required this.onPlay,
+  });
+
+  final Trailer trailer;
+  final VoidCallback onTap;
+  final VoidCallback onPlay;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 200,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: const Color(0xFF111520),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            CinematicImage(
+              url: trailer.youtubeThumbnailUrl,
+              alignment: Alignment.center,
+            ),
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [
+                    Color(0xE6000000),
+                    Color(0x44000000),
+                    Color(0x11000000),
+                  ],
+                  stops: [0, 0.5, 1.0],
+                ),
+              ),
+            ),
+            const Align(
+              alignment: Alignment.bottomCenter,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.bottomCenter,
+                    end: Alignment.topCenter,
+                    colors: [Color(0xCC000000), Colors.transparent],
+                  ),
+                ),
+                child: SizedBox(height: 80, width: double.infinity),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (trailer.studio.isNotEmpty)
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 6),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 3),
+                            decoration: BoxDecoration(
+                              color: AppTheme.accent.withValues(alpha: 0.25),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(
+                                  color: AppTheme.accent
+                                      .withValues(alpha: 0.4)),
+                            ),
+                            child: Text(
+                              trailer.studio.toUpperCase(),
+                              style: const TextStyle(
+                                color: AppTheme.accent,
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 0.8,
+                              ),
+                            ),
+                          ),
+                        Text(
+                          trailer.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            height: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            Text(
+                              trailer.genres.take(2).join(' · '),
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.55),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            if (trailer.runtime.isNotEmpty) ...[
+                              Text(
+                                ' • ',
+                                style: TextStyle(
+                                    color:
+                                        Colors.white.withValues(alpha: 0.3)),
+                              ),
+                              Text(
+                                trailer.runtime,
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.55),
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  GestureDetector(
+                    onTap: onPlay,
+                    child: Container(
+                      width: 52,
+                      height: 52,
+                      decoration: BoxDecoration(
+                        color: AppTheme.accent,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.accent.withValues(alpha: 0.45),
+                            blurRadius: 18,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.play_arrow_rounded,
+                        color: Colors.black,
+                        size: 28,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -368,7 +1332,6 @@ class _HeroSlide extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          // YouTube maxres thumbnail as backdrop
           Hero(
             tag: 'backdrop-${trailer.id}',
             child: CinematicImage(
@@ -469,7 +1432,7 @@ class _HeroSlide extends StatelessWidget {
                     TrailerActionButton(
                       label: 'Watch Trailer',
                       icon: Icons.play_arrow_rounded,
-                      onPressed: onPlay, // ← opens video player
+                      onPressed: onPlay,
                       expanded: true,
                     ),
                     const SizedBox(width: 14),
