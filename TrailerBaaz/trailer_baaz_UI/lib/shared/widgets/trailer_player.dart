@@ -23,7 +23,7 @@ class _TrailerPlayerScreen extends StatefulWidget {
 }
 
 class _TrailerPlayerScreenState extends State<_TrailerPlayerScreen> {
-  late final YoutubePlayerController _controller;
+  YoutubePlayerController? _controller;
 
   @override
   void initState() {
@@ -49,7 +49,9 @@ class _TrailerPlayerScreenState extends State<_TrailerPlayerScreen> {
   @override
   void dispose() {
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-    _controller.close();
+    try {
+      _controller?.close();
+    } catch (_) {}
     super.dispose();
   }
 
@@ -79,7 +81,9 @@ class _TrailerPlayerScreenState extends State<_TrailerPlayerScreen> {
                         maxScale: 4.0,
                         child: AspectRatio(
                           aspectRatio: 16 / 9,
-                          child: YoutubePlayer(controller: _controller),
+                          child: _controller != null 
+                              ? YoutubePlayer(controller: _controller!) 
+                              : const SizedBox.shrink(),
                         ),
                       ),
                     ),
@@ -133,7 +137,7 @@ class _TrailerPlayerScreenState extends State<_TrailerPlayerScreen> {
                                 _GlassButton(
                                   icon: Icons.fullscreen_rounded,
                                   tooltip: 'Wide screen',
-                                  onPressed: () => _controller.toggleFullScreen(),
+                                  onPressed: () => _controller?.toggleFullScreen(),
                                 ),
                               ],
                             ),

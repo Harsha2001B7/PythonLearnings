@@ -6,7 +6,7 @@ class YouTubeService {
   YouTubeService._();
   static final YouTubeService instance = YouTubeService._();
 
-  static const _apiKey = 'AIzaSyCdEO48zEmJRLz_g_ONfho2tcGCtjKuSDk';
+  static const _apiKey = 'AIzaSyDyfWBjInykjeJcuyXMHka1rHtex1gqUpg'; //AIzaSyCdEO48zEmJRLz_g_ONfho2tcGCtjKuSDk
   static const _baseUrl = 'https://www.googleapis.com/youtube/v3';
 
   final _client = http.Client();

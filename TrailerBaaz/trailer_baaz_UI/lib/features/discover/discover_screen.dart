@@ -16,8 +16,9 @@ class DiscoverScreen extends StatefulWidget {
   State<DiscoverScreen> createState() => _DiscoverScreenState();
 }
 
-class _DiscoverScreenState extends State<DiscoverScreen> {
-  late final PageController _pageController;
+class _DiscoverScreenState extends State<DiscoverScreen>
+    with AutomaticKeepAliveClientMixin {
+  PageController? _pageController;
   int _currentPage = 0;
   final _provider = YoutubeTrailersProvider.instance;
 
@@ -35,12 +36,18 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
   @override
   void dispose() {
     _provider.removeListener(_onDataChanged);
-    _pageController.dispose();
+    try {
+      _pageController?.dispose();
+    } catch (_) {}
     super.dispose();
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     final provider = YoutubeTrailersProvider.instance;
     // Combine all available trailers or fallback to heroTrailers
     final allTrailers = provider.heroTrailers;
@@ -137,7 +144,9 @@ class _ReelPageState extends State<_ReelPage> {
   }
 
   void _disposePlayer() {
-    _controller?.close();
+    try {
+      _controller?.close();
+    } catch (_) {}
     _controller = null;
     _playerReady = false;
     if (mounted) setState(() {});
@@ -145,7 +154,9 @@ class _ReelPageState extends State<_ReelPage> {
 
   @override
   void dispose() {
-    _controller?.close();
+    try {
+      _controller?.close();
+    } catch (_) {}
     super.dispose();
   }
 

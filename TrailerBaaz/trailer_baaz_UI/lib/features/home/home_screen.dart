@@ -109,9 +109,10 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
-  late final PageController _heroController;
-  late final Timer _timer;
+class _HomeScreenState extends State<HomeScreen>
+    with AutomaticKeepAliveClientMixin, TickerProviderStateMixin {
+  PageController? _heroController;
+  Timer? _timer;
   int _page = 1000;
 
   String? _selectedSection;
@@ -123,8 +124,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     super.initState();
     _heroController = PageController(initialPage: _page);
     _timer = Timer.periodic(const Duration(seconds: 6), (_) {
-      if (!mounted || !_heroController.hasClients) return;
-      _heroController.nextPage(
+      if (!mounted || _heroController?.hasClients != true) return;
+      _heroController?.nextPage(
         duration: const Duration(milliseconds: 640),
         curve: Curves.easeOutCubic,
       );
@@ -138,11 +139,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    _timer.cancel();
-    _heroController.dispose();
+    try {
+      _timer?.cancel();
+      _heroController?.dispose();
+    } catch (_) {}
     _provider.removeListener(_onDataChanged);
     super.dispose();
   }
+
+  @override
+  bool get wantKeepAlive => true;
 
   void _openDetails(Trailer trailer) {
     Navigator.of(context).push(
@@ -184,6 +190,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     final provider = _provider;
 
     if (provider.isLoading) return const _LoadingShimmer();
@@ -1162,7 +1169,7 @@ class _LoadingShimmer extends StatefulWidget {
 
 class _LoadingShimmerState extends State<_LoadingShimmer>
     with SingleTickerProviderStateMixin {
-  late AnimationController _ctrl;
+  AnimationController? _ctrl;
   late Animation<double> _anim;
 
   @override
@@ -1171,12 +1178,14 @@ class _LoadingShimmerState extends State<_LoadingShimmer>
     _ctrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 1200))
       ..repeat(reverse: true);
-    _anim = CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut);
+    _anim = CurvedAnimation(parent: _ctrl!, curve: Curves.easeInOut);
   }
 
   @override
   void dispose() {
-    _ctrl.dispose();
+    try {
+      _ctrl?.dispose();
+    } catch (_) {}
     super.dispose();
   }
 
@@ -1491,8 +1500,8 @@ class _TrendingStackedRailState extends State<_TrendingStackedRail>
   double _page = 0.0;
 
   // Used only for the snap animation after drag ends
-  late AnimationController _snapCtrl;
-  late Animation<double> _snapAnim;
+  AnimationController? _snapCtrl;
+  Animation<double>? _snapAnim;
 
   @override
   void initState() {
@@ -1501,22 +1510,26 @@ class _TrendingStackedRailState extends State<_TrendingStackedRail>
       vsync: this,
       duration: const Duration(milliseconds: 340),
     )..addListener(() {
-        setState(() {
-          _page = _snapAnim.value;
-        });
+        if (_snapAnim != null) {
+          setState(() {
+            _page = _snapAnim!.value;
+          });
+        }
       });
   }
 
   @override
   void dispose() {
-    _snapCtrl.dispose();
+    try {
+      _snapCtrl?.dispose();
+    } catch (_) {}
     super.dispose();
   }
 
   // ─── Gesture handlers (no PageController involved) ──────────────────────────
 
   void _onDragUpdate(DragUpdateDetails details) {
-    if (_snapCtrl.isAnimating) _snapCtrl.stop();
+    if (_snapCtrl?.isAnimating == true) _snapCtrl?.stop();
     final double delta = -(details.primaryDelta ?? 0);
     setState(() {
       _page += delta / _cardWidth(context);
@@ -1534,10 +1547,12 @@ class _TrendingStackedRailState extends State<_TrendingStackedRail>
       target = _page.ceil() - 1.0;
     }
 
-    _snapAnim = Tween<double>(begin: _page, end: target).animate(
-      CurvedAnimation(parent: _snapCtrl, curve: Curves.easeOutCubic),
-    );
-    _snapCtrl.forward(from: 0.0);
+    if (_snapCtrl != null) {
+      _snapAnim = Tween<double>(begin: _page, end: target).animate(
+        CurvedAnimation(parent: _snapCtrl!, curve: Curves.easeOutCubic),
+      );
+      _snapCtrl!.forward(from: 0.0);
+    }
   }
 
   double _cardWidth(BuildContext context) =>

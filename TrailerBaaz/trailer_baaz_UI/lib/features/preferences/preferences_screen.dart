@@ -10,7 +10,8 @@ class PreferencesScreen extends StatefulWidget {
   State<PreferencesScreen> createState() => _PreferencesScreenState();
 }
 
-class _PreferencesScreenState extends State<PreferencesScreen> {
+class _PreferencesScreenState extends State<PreferencesScreen>
+    with AutomaticKeepAliveClientMixin {
   final Set<String> _selectedIndustries = {'Hollywood', 'Bollywood', 'Tollywood (Telugu)'};
   final Set<String> _selectedGenres = {'Action', 'Sci-Fi', 'Thriller'};
 
@@ -62,7 +63,11 @@ class _PreferencesScreenState extends State<PreferencesScreen> {
   }
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       backgroundColor: AppTheme.background,
       body: SafeArea(

@@ -67,8 +67,10 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
   @override
   void dispose() {
-    _logoController.dispose();
-    _contentController.dispose();
+    try {
+      _logoController.dispose();
+      _contentController.dispose();
+    } catch (_) {}
     super.dispose();
   }
 
@@ -375,7 +377,9 @@ class _ScaleButtonState extends State<_ScaleButton> with SingleTickerProviderSta
 
   @override
   void dispose() {
-    _controller.dispose();
+    try {
+      _controller.dispose();
+    } catch (_) {}
     super.dispose();
   }
 

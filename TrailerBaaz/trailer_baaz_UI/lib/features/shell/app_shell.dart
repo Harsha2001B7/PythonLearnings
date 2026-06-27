@@ -19,6 +19,7 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   int _index = 0;
+  late final PageController _pageController;
 
   final _screens = const [
     HomeScreen(),
@@ -28,10 +29,29 @@ class _AppShellState extends State<AppShell> {
     ProfileScreen(),
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: _index);
+  }
+
+  @override
+  void dispose() {
+    try {
+      _pageController.dispose();
+    } catch (_) {}
+    super.dispose();
+  }
+
   void setIndex(int index) {
     setState(() {
       _index = index;
     });
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   @override
@@ -39,11 +59,10 @@ class _AppShellState extends State<AppShell> {
     return Scaffold(
       extendBody: true,
       backgroundColor: Colors.black,
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 280),
-        switchInCurve: Curves.easeOut,
-        switchOutCurve: Curves.easeIn,
-        child: KeyedSubtree(key: ValueKey(_index), child: _screens[_index]),
+      body: PageView(
+        controller: _pageController,
+        physics: const NeverScrollableScrollPhysics(),
+        children: _screens,
       ),
       bottomNavigationBar: SizedBox(
         height: 100 + MediaQuery.paddingOf(context).bottom,

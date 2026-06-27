@@ -437,10 +437,14 @@ class _RelatedRail extends StatelessWidget {
     if (reversed) allTrailers.sort((a, b) => b.title.compareTo(a.title));
     final items = allTrailers.take(8).toList();
 
+    final cardWidth = 220.0;
+    final imageHeight = cardWidth * 9 / 16;
+    final totalHeight = imageHeight + 76.0;
+
     if (items.isEmpty) {
-      return const SizedBox(
-        height: 145,
-        child: Center(
+      return SizedBox(
+        height: totalHeight,
+        child: const Center(
           child: Text('No related trailers',
               style: TextStyle(color: Colors.white38)),
         ),
@@ -448,7 +452,7 @@ class _RelatedRail extends StatelessWidget {
     }
 
     return SizedBox(
-      height: 145,
+      height: totalHeight,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         physics: const BouncingScrollPhysics(),
@@ -467,8 +471,8 @@ class _RelatedRail extends StatelessWidget {
             );
           },
           onPlay: () => showTrailerPlayer(context, items[index]),
-          width: 220,
-          height: 145,
+          width: cardWidth,
+          height: imageHeight, // TrailerCard expects image height, not total height
         ),
       ),
     );
