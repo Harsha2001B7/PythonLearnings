@@ -14,6 +14,7 @@ class TrailerCard extends StatefulWidget {
     this.width = 250,
     this.height = 150,
     this.showPlay = false,
+    this.showDetails = true,
   });
 
   final Trailer trailer;
@@ -22,6 +23,7 @@ class TrailerCard extends StatefulWidget {
   final double width;
   final double height;
   final bool showPlay;
+  final bool showDetails;
 
   @override
   State<TrailerCard> createState() => _TrailerCardState();
@@ -69,7 +71,7 @@ class _TrailerCardState extends State<TrailerCard> {
                   ),
                 ),
                 // Play button overlay (tappable)
-                if (widget.onPlay != null || widget.showPlay)
+                if (widget.showDetails && (widget.onPlay != null || widget.showPlay))
                   Center(
                     child: GestureDetector(
                       onTap: widget.onPlay,
@@ -89,52 +91,53 @@ class _TrailerCardState extends State<TrailerCard> {
                       ),
                     ),
                   ),
-                Positioned(
-                  left: 14,
-                  right: 12,
-                  bottom: 12,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        widget.trailer.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 17,
-                          fontWeight: FontWeight.w900,
-                          decoration: TextDecoration.none,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          HypeLabel(
-                            score: widget.trailer.hypeScore,
-                            compact: true,
+                if (widget.showDetails)
+                  Positioned(
+                    left: 14,
+                    right: 12,
+                    bottom: 12,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          widget.trailer.title,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 17,
+                            fontWeight: FontWeight.w900,
+                            decoration: TextDecoration.none,
                           ),
-                          const Spacer(),
-                          Flexible(
-                            child: Text(
-                              widget.trailer.views,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.right,
-                              style: const TextStyle(
-                                color: AppTheme.muted,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                decoration: TextDecoration.none,
+                        ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            HypeLabel(
+                              score: widget.trailer.hypeScore,
+                              compact: true,
+                            ),
+                            const Spacer(),
+                            Flexible(
+                              child: Text(
+                                widget.trailer.views,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.right,
+                                style: const TextStyle(
+                                  color: AppTheme.muted,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  decoration: TextDecoration.none,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
               ],
             ),
           ),

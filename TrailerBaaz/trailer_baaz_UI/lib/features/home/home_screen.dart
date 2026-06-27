@@ -295,6 +295,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             itemCount: sections.length,
             itemBuilder: (context, index) {
               final entry = sections.entries.elementAt(index);
+              if (entry.key == 'Trending Now') {
+                return _TrendingStackedRail(
+                  title: entry.key,
+                  trailers: entry.value,
+                  onTap: _openDetails,
+                  onPlay: _playTrailer,
+                );
+              }
               return _TrailerRail(
                 title: entry.key,
                 trailers: entry.value,
@@ -1453,6 +1461,247 @@ class _HeroSlide extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ─── Trending Stacked Rail ───────────────────────────────────────────────────
+
+class _TrendingStackedRail extends StatefulWidget {
+  const _TrendingStackedRail({
+    required this.title,
+    required this.trailers,
+    required this.onTap,
+    required this.onPlay,
+  });
+
+  final String title;
+  final List<Trailer> trailers;
+  final ValueChanged<Trailer> onTap;
+  final ValueChanged<Trailer> onPlay;
+
+  @override
+  State<_TrendingStackedRail> createState() => _TrendingStackedRailState();
+}
+
+class _TrendingStackedRailState extends State<_TrendingStackedRail>
+    with SingleTickerProviderStateMixin {
+  // Simple fractional page tracker – NOT tied to PageController so no gesture conflicts
+  double _page = 0.0;
+
+  // Used only for the snap animation after drag ends
+  late AnimationController _snapCtrl;
+  late Animation<double> _snapAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _snapCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 340),
+    )..addListener(() {
+        setState(() {
+          _page = _snapAnim.value;
+        });
+      });
+  }
+
+  @override
+  void dispose() {
+    _snapCtrl.dispose();
+    super.dispose();
+  }
+
+  // ─── Gesture handlers (no PageController involved) ──────────────────────────
+
+  void _onDragUpdate(DragUpdateDetails details) {
+    if (_snapCtrl.isAnimating) _snapCtrl.stop();
+    final double delta = -(details.primaryDelta ?? 0);
+    setState(() {
+      _page += delta / _cardWidth(context);
+      // Allow large range so infinite loop works; trailer index computed via modulo
+    });
+  }
+
+  void _onDragEnd(DragEndDetails details) {
+    final double velocity = details.primaryVelocity ?? 0;
+    double target = _page.roundToDouble();
+
+    if (velocity < -400) {
+      target = _page.floor() + 1.0;
+    } else if (velocity > 400) {
+      target = _page.ceil() - 1.0;
+    }
+
+    _snapAnim = Tween<double>(begin: _page, end: target).animate(
+      CurvedAnimation(parent: _snapCtrl, curve: Curves.easeOutCubic),
+    );
+    _snapCtrl.forward(from: 0.0);
+  }
+
+  double _cardWidth(BuildContext context) =>
+      MediaQuery.sizeOf(context).width * 0.8;
+
+  // ─── Build ───────────────────────────────────────────────────────────────────
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.trailers.isEmpty) return const SizedBox();
+
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final cardWidth = screenWidth * 0.8;
+    final cardHeight = cardWidth * (9 / 16);
+    final int currentIndex = _page.floor();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Section header
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: [
+                Container(
+                  width: 3,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    color: AppTheme.accent,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  widget.title,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
+                    color: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Card stack — GestureDetector owns ALL horizontal drag
+          GestureDetector(
+            onHorizontalDragUpdate: _onDragUpdate,
+            onHorizontalDragEnd: _onDragEnd,
+            behavior: HitTestBehavior.opaque,
+            child: SizedBox(
+              height: cardHeight + 20,
+              child: Stack(
+                clipBehavior: Clip.none,
+                // Render background cards first (behind), front card last (on top)
+                children: [
+                  for (int offset = 3; offset >= 0; offset--)
+                    _buildCard(currentIndex + offset, cardWidth, cardHeight),
+                  // Also render the card going off-screen to the left
+                  _buildCard(currentIndex - 1, cardWidth, cardHeight),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCard(int index, double cardWidth, double cardHeight) {
+    final double diff = index - _page;
+
+    // Only render what is visible: max 3 cards stacked behind, 1 flying left
+    if (diff <= -1.5 || diff >= 3.5) return const SizedBox.shrink();
+
+    // ── Transform math ────────────────────────────────────────────────────────
+    const double scaleStep = 0.06;
+    final double peekWidth = MediaQuery.sizeOf(context).width * 0.055;
+    final double translationStep = cardWidth * scaleStep + peekWidth;
+
+    double scale;
+    double translateX;
+    double dimAlpha; // used for shadow + overlay, NOT Opacity widget
+
+    if (diff <= 0) {
+      // Card is departing to the left
+      scale = (1.0 + diff * 0.03).clamp(0.8, 1.0);
+      translateX = diff * MediaQuery.sizeOf(context).width * 0.88;
+      dimAlpha = 0.0; // front card is fully bright
+    } else {
+      // Card is stacked behind the front
+      scale = (1.0 - diff * scaleStep).clamp(0.0, 1.0);
+      translateX = diff * translationStep;
+      dimAlpha = (diff * 0.32).clamp(0.0, 0.80);
+    }
+
+    final bool isFront = diff.abs() < 0.5;
+    final int trailerIndex =
+        (index % widget.trailers.length + widget.trailers.length) %
+            widget.trailers.length;
+    final trailer = widget.trailers[trailerIndex];
+
+    // ── Render ────────────────────────────────────────────────────────────────
+    return Positioned(
+      left: 20,
+      top: 10,
+      bottom: 10,
+      child: Transform(
+        transform: Matrix4.translationValues(translateX, 0.0, 0.0)
+            * Matrix4.diagonal3Values(scale, scale, 1.0),
+        alignment: Alignment.centerLeft,
+        child: IgnorePointer(
+          ignoring: !isFront,
+          child: DecoratedBox(
+            // Shadow is part of DecoratedBox, NOT inside Opacity →
+            // avoids the Impeller "SetInheritedOpacity" error
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: isFront
+                  ? [
+                      BoxShadow(
+                        color: Colors.black
+                            .withValues(alpha: (0.5 * (1 - dimAlpha)).clamp(0.0, 0.5)),
+                        blurRadius: 16,
+                        offset: const Offset(0, 8),
+                      ),
+                    ]
+                  : [
+                      BoxShadow(
+                        color: Colors.black
+                            .withValues(alpha: (0.25 * (1 - dimAlpha)).clamp(0.0, 0.25)),
+                        blurRadius: 8,
+                        offset: const Offset(-3, 0),
+                      ),
+                    ],
+            ),
+            child: Stack(
+              children: [
+                TrailerCard(
+                  trailer: trailer,
+                  width: cardWidth,
+                  height: cardHeight,
+                  showDetails: isFront,
+                  onTap: () => widget.onTap(trailer),
+                  onPlay: () => widget.onPlay(trailer),
+                ),
+                // Dim overlay for background cards — no Opacity widget used
+                if (dimAlpha > 0.01)
+                  Positioned.fill(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(18),
+                      child: ColoredBox(
+                        color: Colors.black.withValues(alpha: dimAlpha),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
