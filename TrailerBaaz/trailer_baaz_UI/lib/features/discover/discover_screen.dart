@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
@@ -7,7 +6,6 @@ import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../../app/app_theme.dart';
 import '../../core/data/youtube_trailers_provider.dart';
 import '../../core/models/trailer.dart';
-import '../../shared/widgets/cinematic_image.dart';
 import '../../shared/widgets/trailer_player.dart';
 import '../details/trailer_details_screen.dart';
 
@@ -184,19 +182,16 @@ class _ReelPageState extends State<_ReelPage> {
     return Stack(
       fit: StackFit.expand,
       children: [
-        // ── Background: ambient blurred thumbnail ──────────────────
-        Positioned.fill(
-          child: ImageFiltered(
-            imageFilter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-            child: CinematicImage(url: trailer.youtubeThumbnailUrl),
-          ),
+        // ── Background: pitch black ──────────────────
+        const Positioned.fill(
+          child: ColoredBox(color: Colors.black),
         ),
 
         // ── YouTube Player (contained in a 16:9 box) ──────────
         if (_controller != null)
           Positioned.fill(
             child: Align(
-              alignment: const Alignment(0.0, -0.4),
+              alignment: Alignment.center,
               child: AnimatedOpacity(
                 duration: const Duration(milliseconds: 500),
                 opacity: _playerReady ? 1.0 : 0.0,
@@ -231,29 +226,7 @@ class _ReelPageState extends State<_ReelPage> {
           ),
         ),
 
-        // ── Fullscreen icon overlay (opens dedicated player) ────────
-        if (_controller != null && _playerReady)
-          Positioned(
-            right: 16,
-            bottom: bottomPad + 330, // Safely placed below the video
-            child: GestureDetector(
-              onTap: _openFullPlayer,
-              child: Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: Colors.black.withValues(alpha: 0.45),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
-                ),
-                child: const Icon(
-                  Icons.fullscreen_rounded,
-                  color: Colors.white,
-                  size: 20,
-                ),
-              ),
-            ),
-          ),
+
 
         // ── Top bar (Discover label + mute) ─────────────────────────
         Positioned(
@@ -272,6 +245,26 @@ class _ReelPageState extends State<_ReelPage> {
                 ),
               ),
               const Spacer(),
+              if (_controller != null && _playerReady) ...[
+                GestureDetector(
+                  onTap: _openFullPlayer,
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.4),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                    ),
+                    child: const Icon(
+                      Icons.fullscreen_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+              ],
               GestureDetector(
                 onTap: _toggleMute,
                 child: Container(

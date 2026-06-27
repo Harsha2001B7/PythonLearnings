@@ -10,7 +10,7 @@ import '../../shared/widgets/cinematic_image.dart';
 import '../../shared/widgets/glass_icon_button.dart';
 import '../../shared/widgets/meta_widgets.dart';
 import '../../shared/widgets/trailer_action_button.dart';
-import '../../shared/widgets/trailer_card.dart';
+import '../../shared/widgets/trailer_card.dart' show TrailerCard, kCardTextSectionHeight;
 import '../../shared/widgets/trailer_player.dart';
 import '../details/trailer_details_screen.dart';
 import '../shell/app_shell.dart';
@@ -1550,8 +1550,10 @@ class _TrendingStackedRailState extends State<_TrendingStackedRail>
     if (widget.trailers.isEmpty) return const SizedBox();
 
     final screenWidth = MediaQuery.sizeOf(context).width;
-    final cardWidth = screenWidth * 0.8;
-    final cardHeight = cardWidth * (9 / 16);
+    final cardWidth = screenWidth * 0.82;
+    // imageHeight = 16:9; cardHeight = image + text strip (for front card layout)
+    final double imageHeight = cardWidth * (9 / 16);
+    final double cardHeight = imageHeight + kCardTextSectionHeight;
     final int currentIndex = _page.floor();
 
     return Padding(
@@ -1599,9 +1601,9 @@ class _TrendingStackedRailState extends State<_TrendingStackedRail>
                 // Render background cards first (behind), front card last (on top)
                 children: [
                   for (int offset = 3; offset >= 0; offset--)
-                    _buildCard(currentIndex + offset, cardWidth, cardHeight),
+                    _buildCard(currentIndex + offset, cardWidth, cardHeight, imageHeight),
                   // Also render the card going off-screen to the left
-                  _buildCard(currentIndex - 1, cardWidth, cardHeight),
+                  _buildCard(currentIndex - 1, cardWidth, cardHeight, imageHeight),
                 ],
               ),
             ),
@@ -1611,7 +1613,7 @@ class _TrendingStackedRailState extends State<_TrendingStackedRail>
     );
   }
 
-  Widget _buildCard(int index, double cardWidth, double cardHeight) {
+  Widget _buildCard(int index, double cardWidth, double cardHeight, double imageHeight) {
     final double diff = index - _page;
 
     // Only render what is visible: max 3 cards stacked behind, 1 flying left
@@ -1643,6 +1645,8 @@ class _TrendingStackedRailState extends State<_TrendingStackedRail>
         (index % widget.trailers.length + widget.trailers.length) %
             widget.trailers.length;
     final trailer = widget.trailers[trailerIndex];
+    // For background cards, only show the image portion (no text strip)
+    final double renderHeight = isFront ? cardHeight : imageHeight;
 
     // ── Render ────────────────────────────────────────────────────────────────
     return Positioned(
@@ -1683,7 +1687,7 @@ class _TrendingStackedRailState extends State<_TrendingStackedRail>
                 TrailerCard(
                   trailer: trailer,
                   width: cardWidth,
-                  height: cardHeight,
+                  height: isFront ? imageHeight : renderHeight,
                   showDetails: isFront,
                   onTap: () => widget.onTap(trailer),
                   onPlay: () => widget.onPlay(trailer),
@@ -1771,22 +1775,28 @@ class _TrailerRail extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          SizedBox(
-            height: 166,
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
-              itemCount: trailers.length,
-              separatorBuilder: (_, _) => const SizedBox(width: 14),
-              itemBuilder: (context, index) => TrailerCard(
-                trailer: trailers[index],
-                onTap: () => onTap(trailers[index]),
-                onPlay: () => onPlay(trailers[index]),
-                width: MediaQuery.sizeOf(context).width * .72,
-                height: 166,
-              ),
-            ),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final double railCardWidth = MediaQuery.sizeOf(context).width * 0.74;
+              final double imageH = railCardWidth * (9 / 16);
+              return SizedBox(
+                height: imageH + kCardTextSectionHeight,
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: trailers.length,
+                  separatorBuilder: (_, _) => const SizedBox(width: 14),
+                  itemBuilder: (context, index) => TrailerCard(
+                    trailer: trailers[index],
+                    onTap: () => onTap(trailers[index]),
+                    onPlay: () => onPlay(trailers[index]),
+                    width: railCardWidth,
+                    height: imageH,
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),
