@@ -65,7 +65,7 @@ class _AppShellState extends State<AppShell> {
         children: _screens,
       ),
       bottomNavigationBar: SizedBox(
-        height: 100 + MediaQuery.paddingOf(context).bottom,
+        height: 80 + MediaQuery.paddingOf(context).bottom,
         child: Stack(
           alignment: Alignment.bottomCenter,
           children: [
@@ -140,7 +140,7 @@ class _CurvePainter extends CustomPainter {
     final gradient = LinearGradient(
       colors: [
         Colors.transparent,
-        const Color(0xFF00E5FF),
+        const Color(0xFFE50914),
         Colors.transparent,
       ],
       stops: const [0.0, 0.5, 1.0],
@@ -208,7 +208,7 @@ class _NavIcon extends StatelessWidget {
                         shape: BoxShape.circle,
                         gradient: RadialGradient(
                           colors: [
-                            const Color(0xFF00E5FF).withValues(alpha: 0.35),
+                            const Color(0xFFE50914).withValues(alpha: 0.35),
                             Colors.transparent,
                           ],
                           stops: const [0.1, 0.8],
@@ -223,20 +223,7 @@ class _NavIcon extends StatelessWidget {
                 ],
               ),
             ),
-            if (selected) ...[
-              const SizedBox(height: 2),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.2,
-                ),
-              ),
-            ],
-            // To keep the layout balanced when unselected, add invisible space
-            if (!selected) const SizedBox(height: 15),
+
           ],
         ),
       ),

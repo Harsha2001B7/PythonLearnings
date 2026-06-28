@@ -7,9 +7,9 @@ import '../../app/app_theme.dart';
 import '../../core/data/youtube_trailers_provider.dart';
 import '../../core/models/trailer.dart';
 import '../../shared/widgets/cinematic_image.dart';
-import '../../shared/widgets/glass_icon_button.dart';
+
 import '../../shared/widgets/meta_widgets.dart';
-import '../../shared/widgets/trailer_action_button.dart';
+
 import '../../shared/widgets/trailer_card.dart' show TrailerCard, kCardTextSectionHeight;
 import '../../shared/widgets/trailer_player.dart';
 import '../details/trailer_details_screen.dart';
@@ -1349,11 +1349,18 @@ class _HeroSlide extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          Hero(
-            tag: 'backdrop-${trailer.id}',
-            child: CinematicImage(
-              url: trailer.youtubeThumbnailUrl,
-              alignment: Alignment.topCenter,
+          // Thumbnail is clipped to start below the app header area
+          Positioned(
+            top: MediaQuery.paddingOf(context).top + 60,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: Hero(
+              tag: 'backdrop-${trailer.id}',
+              child: CinematicImage(
+                url: trailer.youtubeThumbnailUrl,
+                alignment: Alignment.topCenter,
+              ),
             ),
           ),
           const DecoratedBox(
@@ -1362,109 +1369,152 @@ class _HeroSlide extends StatelessWidget {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Color(0x55000000),
-                  Color(0x11000000),
+                  Color(0xCC000000),
+                  Color(0x00000000),
                   Color(0xD9000000),
                   AppTheme.background,
                 ],
-                stops: [0, .32, .72, 1],
+                stops: [0, .28, .72, 1],
+              ),
+            ),
+          ),
+          // Curved header blur — upside-down arc matching the bottom nav curve
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: ClipPath(
+              clipper: _HeaderCurveClipper(
+                headerHeight: MediaQuery.paddingOf(context).top + 68,
+                curveDepth: 14,
+              ),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                child: Container(
+                  height: MediaQuery.paddingOf(context).top + 68 + 14,
+                  color: Colors.black.withValues(alpha: 0.48),
+                ),
+              ),
+            ),
+          ),
+          // Glowing arc line matching bottom nav style
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: SizedBox(
+              height: MediaQuery.paddingOf(context).top + 68 + 14,
+              child: CustomPaint(
+                painter: _HeaderArcPainter(
+                  headerHeight: MediaQuery.paddingOf(context).top + 68,
+                  curveDepth: 14,
+                ),
               ),
             ),
           ),
           Positioned(
-            left: 28,
-            right: 28,
-            bottom: 52,
-            child: Column(
+            left: 20,
+            right: 16,
+            bottom: 44,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 13,
-                    vertical: 7,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: .62),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(
-                    trailer.studio.toUpperCase(),
-                    style: const TextStyle(
-                      color: AppTheme.accent,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.1,
-                    ),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: .62),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          trailer.studio.toUpperCase(),
+                          style: const TextStyle(
+                            color: AppTheme.accent,
+                            fontSize: 8,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.1,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        trailer.title.toUpperCase(),
+                        maxLines: 2,
+                        textAlign: TextAlign.left,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: width < 380 ? 12 : 14,
+                          height: 1.25,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '"${trailer.tagline}"',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 10,
+                          fontStyle: FontStyle.italic,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        alignment: WrapAlignment.start,
+                        spacing: 6,
+                        runSpacing: 6,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Text(
+                            trailer.genres.take(2).join(' / '),
+                            style: const TextStyle(
+                              color: AppTheme.muted,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const Text('•', style: TextStyle(color: AppTheme.muted, fontSize: 9)),
+                          Text(
+                            trailer.runtime,
+                            style: const TextStyle(color: AppTheme.muted, fontSize: 9),
+                          ),
+                          const Text('•', style: TextStyle(color: AppTheme.muted, fontSize: 9)),
+                          HypeLabel(score: trailer.hypeScore, compact: true),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 14),
-                Text(
-                  trailer.title.toUpperCase(),
-                  maxLines: 2,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: width < 380 ? 34 : 40,
-                    height: .94,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Text(
-                  '"${trailer.tagline}"',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 16,
-                    fontStyle: FontStyle.italic,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 9,
-                  runSpacing: 8,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    Text(
-                      trailer.genres.take(2).join(' / '),
-                      style: const TextStyle(
-                        color: AppTheme.muted,
-                        fontWeight: FontWeight.w700,
+                const SizedBox(width: 12),
+                InkWell(
+                  onTap: onPlay,
+                  borderRadius: BorderRadius.circular(999),
+                  child: Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.black.withValues(alpha: 0.3),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        width: 1.5,
                       ),
                     ),
-                    const Text('•', style: TextStyle(color: AppTheme.muted)),
-                    Text(
-                      trailer.runtime,
-                      style: const TextStyle(color: AppTheme.muted),
+                    child: const Icon(
+                      Icons.play_arrow_rounded,
+                      color: Colors.white,
+                      size: 32,
                     ),
-                    const Text('•', style: TextStyle(color: AppTheme.muted)),
-                    HypeLabel(score: trailer.hypeScore, compact: true),
-                  ],
-                ),
-                const SizedBox(height: 22),
-                Row(
-                  children: [
-                    TrailerActionButton(
-                      label: 'Watch Trailer',
-                      icon: Icons.play_arrow_rounded,
-                      onPressed: onPlay,
-                      expanded: true,
-                    ),
-                    const SizedBox(width: 14),
-                    GlassIconButton(
-                      icon: Icons.bookmark_border_rounded,
-                      tooltip: 'Bookmark',
-                      onPressed: () {},
-                    ),
-                    const SizedBox(width: 10),
-                    GlassIconButton(
-                      icon: Icons.ios_share_rounded,
-                      tooltip: 'Share',
-                      onPressed: () {},
-                    ),
-                  ],
+                  ),
                 ),
               ],
             ),
@@ -1817,4 +1867,91 @@ class _TrailerRail extends StatelessWidget {
       ),
     );
   }
+}
+
+// ─── Header Curve Clipper ────────────────────────────────────────────────────
+
+/// Clips a region shaped like an upside-down arch of the bottom navigation bar.
+/// The top is flat (full width) and the bottom edge curves down in the center.
+class _HeaderCurveClipper extends CustomClipper<Path> {
+  const _HeaderCurveClipper({
+    required this.headerHeight,
+    required this.curveDepth,
+  });
+
+  final double headerHeight;
+  final double curveDepth;
+
+  @override
+  Path getClip(Size size) {
+    final path = Path()
+      ..moveTo(0, 0)
+      ..lineTo(size.width, 0)
+      ..lineTo(size.width, headerHeight)
+      ..quadraticBezierTo(
+        size.width / 2, headerHeight + curveDepth,
+        0, headerHeight,
+      )
+      ..close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(_HeaderCurveClipper old) =>
+      old.headerHeight != headerHeight || old.curveDepth != curveDepth;
+}
+
+// ─── Header Arc Painter ──────────────────────────────────────────────────────
+
+/// Paints a glowing arc line at the bottom of the header — mirrors the bottom nav glow.
+class _HeaderArcPainter extends CustomPainter {
+  const _HeaderArcPainter({
+    required this.headerHeight,
+    required this.curveDepth,
+  });
+
+  final double headerHeight;
+  final double curveDepth;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final path = Path()
+      ..moveTo(0, headerHeight)
+      ..quadraticBezierTo(
+        size.width / 2, headerHeight + curveDepth,
+        size.width, headerHeight,
+      );
+
+    final gradient = const LinearGradient(
+      colors: [
+        Colors.transparent,
+        Color(0xFFE50914),
+        Colors.transparent,
+      ],
+      stops: [0.0, 0.5, 1.0],
+    );
+    final rect = Rect.fromLTWH(0, headerHeight - 20, size.width, curveDepth + 40);
+
+    // Glowing blurred arc
+    canvas.drawPath(
+      path,
+      Paint()
+        ..shader = gradient.createShader(rect)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 4
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+    );
+
+    // Sharp inner core line
+    canvas.drawPath(
+      path,
+      Paint()
+        ..shader = gradient.createShader(rect)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.2,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
