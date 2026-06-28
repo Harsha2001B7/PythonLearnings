@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_theme.dart';
-import '../../core/data/dummy_trailers.dart';
+import '../../core/data/youtube_trailers_provider.dart';
 import '../../core/models/trailer.dart';
 import '../../shared/widgets/cinematic_image.dart';
 import '../../shared/widgets/trailer_card.dart';
@@ -24,90 +24,96 @@ class _SearchScreenState extends State<SearchScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final results = trailers
-        .where(
-          (item) => item.title.toLowerCase().contains(_query.toLowerCase()),
-        )
-        .toList();
-    final visibleResults = _query.isEmpty ? trailers : results;
-    return CustomScrollView(
-      physics: const BouncingScrollPhysics(),
-      slivers: [
-        SliverPadding(
-          padding: EdgeInsets.fromLTRB(
-            20,
-            MediaQuery.paddingOf(context).top + 18,
-            20,
-            110,
-          ),
-          sliver: SliverList(
-            delegate: SliverChildListDelegate([
-              const Text(
-                'Search',
-                style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900),
+    return ListenableBuilder(
+      listenable: YoutubeTrailersProvider.instance,
+      builder: (context, _) {
+        final allTrailers = YoutubeTrailersProvider.instance.allTrailers;
+        final results = allTrailers
+            .where(
+              (item) => item.title.toLowerCase().contains(_query.toLowerCase()),
+            )
+            .toList();
+        final visibleResults = _query.isEmpty ? allTrailers : results;
+        return CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(
+                20,
+                MediaQuery.paddingOf(context).top + 18,
+                20,
+                110,
               ),
-              const SizedBox(height: 18),
-              _SearchBar(onChanged: (value) => setState(() => _query = value)),
-              const SizedBox(height: 24),
-              _ChipBlock(
-                title: 'Recent Searches',
-                items: const ['Neon Shadows', 'Cyberpunk', 'Tamil thrillers'],
-              ),
-              const SizedBox(height: 22),
-              _ChipBlock(
-                title: 'Trending Searches',
-                items: const [
-                  'BookMyShow',
-                  'Korean drama',
-                  'OTT originals',
-                  'Space',
-                ],
-                accent: true,
-              ),
-              const SizedBox(height: 22),
-              _ChipBlock(
-                title: 'Genres',
-                items: const [
-                  'Action',
-                  'Sci-Fi',
-                  'Thriller',
-                  'Drama',
-                  'Adventure',
-                ],
-              ),
-              const SizedBox(height: 22),
-              _ChipBlock(
-                title: 'Languages',
-                items: const ['English', 'Hindi', 'Telugu', 'Tamil', 'Korean'],
-              ),
-              const SizedBox(height: 28),
-              const _SectionHeader('Trending Actors'),
-              const SizedBox(height: 14),
-              const _PeopleRail(),
-              const SizedBox(height: 28),
-              const _SectionHeader('Popular Studios'),
-              const SizedBox(height: 14),
-              _StudioGrid(
-                studios: trailers.map((item) => item.studio).toSet().toList(),
-              ),
-              const SizedBox(height: 28),
-              _SectionHeader(
-                _query.isEmpty ? 'Search Results' : 'Results for "$_query"',
-              ),
-              const SizedBox(height: 14),
-              ...visibleResults.map(
-                (trailer) => Padding(
-                  padding: const EdgeInsets.only(bottom: 14),
-                  child: _ResultCard(
-                    trailer: trailer,
-                    onTap: () => _openDetails(trailer),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  const Text(
+                    'Search',
+                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900),
                   ),
-                ),
+                  const SizedBox(height: 18),
+                  _SearchBar(onChanged: (value) => setState(() => _query = value)),
+                  const SizedBox(height: 24),
+                  _ChipBlock(
+                    title: 'Recent Searches',
+                    items: const ['Neon Shadows', 'Cyberpunk', 'Tamil thrillers'],
+                  ),
+                  const SizedBox(height: 22),
+                  _ChipBlock(
+                    title: 'Trending Searches',
+                    items: const [
+                      'BookMyShow',
+                      'Korean drama',
+                      'OTT originals',
+                      'Space',
+                    ],
+                    accent: true,
+                  ),
+                  const SizedBox(height: 22),
+                  _ChipBlock(
+                    title: 'Genres',
+                    items: const [
+                      'Action',
+                      'Sci-Fi',
+                      'Thriller',
+                      'Drama',
+                      'Adventure',
+                    ],
+                  ),
+                  const SizedBox(height: 22),
+                  _ChipBlock(
+                    title: 'Languages',
+                    items: const ['English', 'Hindi', 'Telugu', 'Tamil', 'Korean'],
+                  ),
+                  const SizedBox(height: 28),
+                  const _SectionHeader('Trending Actors'),
+                  const SizedBox(height: 14),
+                  const _PeopleRail(),
+                  const SizedBox(height: 28),
+                  const _SectionHeader('Popular Studios'),
+                  const SizedBox(height: 14),
+                  _StudioGrid(
+                    studios: allTrailers.map((item) => item.studio).where((s) => s.isNotEmpty).toSet().toList(),
+                  ),
+                  const SizedBox(height: 28),
+                  _SectionHeader(
+                    _query.isEmpty ? 'Search Results' : 'Results for "$_query"',
+                  ),
+                  const SizedBox(height: 14),
+                  ...visibleResults.map(
+                    (trailer) => Padding(
+                      padding: const EdgeInsets.only(bottom: 14),
+                      child: _ResultCard(
+                        trailer: trailer,
+                        onTap: () => _openDetails(trailer),
+                      ),
+                    ),
+                  ),
+                ]),
               ),
-            ]),
-          ),
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -214,7 +220,8 @@ class _PeopleRail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final people = trailers.first.cast;
+    final allTrailers = YoutubeTrailersProvider.instance.allTrailers;
+    final people = allTrailers.isNotEmpty ? allTrailers.first.cast : [];
     return SizedBox(
       height: 96,
       child: ListView.separated(
@@ -292,15 +299,14 @@ class _ResultCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 154,
-      child: TrailerCard(
-        trailer: trailer,
-        onTap: onTap,
-        width: MediaQuery.sizeOf(context).width - 40,
-        height: 154,
-        showPlay: true,
-      ),
+    final width = MediaQuery.sizeOf(context).width - 40;
+    final imageH = width * (9 / 16);
+    return TrailerCard(
+      trailer: trailer,
+      onTap: onTap,
+      width: width,
+      height: imageH,
+      showPlay: true,
     );
   }
 }

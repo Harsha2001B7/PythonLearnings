@@ -8,8 +8,7 @@ import '../../core/data/youtube_trailers_provider.dart';
 import '../../core/models/trailer.dart';
 import '../../shared/widgets/cinematic_image.dart';
 
-import '../../shared/widgets/meta_widgets.dart';
-
+import '../../shared/widgets/popcorn_rating.dart';
 import '../../shared/widgets/trailer_card.dart' show TrailerCard, kCardTextSectionHeight;
 import '../../shared/widgets/trailer_player.dart';
 import '../details/trailer_details_screen.dart';
@@ -1488,7 +1487,16 @@ class _HeroSlide extends StatelessWidget {
                             style: const TextStyle(color: AppTheme.muted, fontSize: 9),
                           ),
                           const Text('•', style: TextStyle(color: AppTheme.muted, fontSize: 9)),
-                          HypeLabel(score: trailer.hypeScore, compact: true),
+                          PopcornBadge(
+                            score: trailer.hypeScore,
+                            compact: true,
+                            onTap: () => showPopcornRating(
+                              context,
+                              hypeScore: trailer.hypeScore,
+                              currentRating: null,
+                              onRatingChanged: (_) {},
+                            ),
+                          ),
                         ],
                       ),
                     ],

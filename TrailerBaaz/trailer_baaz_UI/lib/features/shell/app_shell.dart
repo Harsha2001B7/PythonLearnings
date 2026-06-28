@@ -47,11 +47,7 @@ class _AppShellState extends State<AppShell> {
     setState(() {
       _index = index;
     });
-    _pageController.animateToPage(
-      index,
-      duration: const Duration(milliseconds: 280),
-      curve: Curves.easeOutCubic,
-    );
+    _pageController.jumpToPage(index);
   }
 
   @override
@@ -82,7 +78,7 @@ class _AppShellState extends State<AppShell> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   _NavIcon(
-                    icon: _index == 0 ? Icons.auto_awesome : Icons.home_rounded,
+                    icon: Icons.home_rounded,
                     label: 'Home',
                     selected: _index == 0,
                     onTap: () => setIndex(0),

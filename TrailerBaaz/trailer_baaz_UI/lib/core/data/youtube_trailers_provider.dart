@@ -97,6 +97,19 @@ class YoutubeTrailersProvider extends ChangeNotifier {
   Map<String, List<Trailer>> sections = {};
   List<Trailer> heroTrailers = [];
 
+  List<Trailer> get allTrailers {
+    final Map<String, Trailer> unique = {};
+    for (final t in heroTrailers) {
+      unique[t.id] = t;
+    }
+    for (final list in sections.values) {
+      for (final t in list) {
+        unique[t.id] = t;
+      }
+    }
+    return unique.values.toList();
+  }
+
   final _service = YouTubeService.instance;
 
   /// Call once at app startup.

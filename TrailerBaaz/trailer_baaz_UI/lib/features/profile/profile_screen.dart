@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_theme.dart';
-import '../../core/data/dummy_trailers.dart';
+import '../../core/data/youtube_trailers_provider.dart';
 import '../../shared/widgets/cinematic_image.dart';
 import '../../shared/widgets/trailer_card.dart';
 import '../details/trailer_details_screen.dart';
@@ -12,8 +12,11 @@ class ProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomScrollView(
-      physics: const BouncingScrollPhysics(),
+    return ListenableBuilder(
+      listenable: YoutubeTrailersProvider.instance,
+      builder: (context, _) {
+        return CustomScrollView(
+          physics: const BouncingScrollPhysics(),
       slivers: [
         SliverPadding(
           padding: EdgeInsets.fromLTRB(
@@ -55,6 +58,8 @@ class ProfileScreen extends StatelessWidget {
           ),
         ),
       ],
+        );
+      },
     );
   }
 }
@@ -225,28 +230,37 @@ class _ProfileRail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final allTrailers = YoutubeTrailersProvider.instance.allTrailers;
+    if (allTrailers.isEmpty) return const SizedBox();
+    
     final items = List.generate(
       3,
-      (index) => trailers[(start + index) % trailers.length],
+      (index) => allTrailers[(start + index) % allTrailers.length],
     );
-    return SizedBox(
-      height: 150,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        itemCount: items.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 12),
-        itemBuilder: (context, index) => TrailerCard(
-          trailer: items[index],
-          onTap: () => Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => TrailerDetailsScreen(trailer: items[index]),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cardWidth = MediaQuery.sizeOf(context).width * 0.74;
+        final imageH = cardWidth * (9 / 16);
+        return SizedBox(
+          height: imageH + kCardTextSectionHeight,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            itemCount: items.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 12),
+            itemBuilder: (context, index) => TrailerCard(
+              trailer: items[index],
+              onTap: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => TrailerDetailsScreen(trailer: items[index]),
+                ),
+              ),
+              width: cardWidth,
+              height: imageH,
             ),
           ),
-          width: MediaQuery.sizeOf(context).width * .68,
-          height: 150,
-        ),
-      ),
+        );
+      },
     );
   }
 }

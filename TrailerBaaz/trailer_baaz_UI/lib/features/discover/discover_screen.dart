@@ -6,6 +6,7 @@ import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 import '../../app/app_theme.dart';
 import '../../core/data/youtube_trailers_provider.dart';
 import '../../core/models/trailer.dart';
+import '../../shared/widgets/popcorn_rating.dart';
 import '../../shared/widgets/trailer_player.dart';
 import '../details/trailer_details_screen.dart';
 
@@ -95,7 +96,7 @@ class _ReelPage extends StatefulWidget {
 
 class _ReelPageState extends State<_ReelPage> {
   YoutubePlayerController? _controller;
-  bool _hyped = false;
+  int? _popcornRating;
   bool _bookmarked = false;
   bool _muted = true; // Autoplay requires mute in WebViews
   bool _playerReady = false;
@@ -301,7 +302,7 @@ class _ReelPageState extends State<_ReelPage> {
         Positioned(
           left: 16,
           right: 16,
-          bottom: bottomPad + 60, // tucked completely above the bottom nav
+          bottom: bottomPad + 96, // tucked neatly above the bottom nav (80 + 16 padding)
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -401,11 +402,45 @@ class _ReelPageState extends State<_ReelPage> {
               Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _ReelAction(
-                    icon: _hyped ? Icons.local_fire_department : Icons.local_fire_department_outlined,
-                    label: '${trailer.hypeScore}%',
-                    active: _hyped,
-                    onTap: () => setState(() => _hyped = !_hyped),
+                  GestureDetector(
+                    onTap: () => showPopcornRating(
+                      context,
+                      hypeScore: trailer.hypeScore,
+                      currentRating: _popcornRating,
+                      onRatingChanged: (r) => setState(() => _popcornRating = r),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 52,
+                          height: 52,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: _popcornRating != null
+                                ? AppTheme.hype.withValues(alpha: 0.2)
+                                : Colors.black.withValues(alpha: 0.4),
+                            border: Border.all(
+                              color: _popcornRating != null
+                                  ? AppTheme.hype
+                                  : Colors.white24,
+                            ),
+                          ),
+                          child: const Center(
+                            child: Text('🍿', style: TextStyle(fontSize: 22)),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${trailer.hypeScore}%',
+                          style: TextStyle(
+                            color: _popcornRating != null ? AppTheme.hype : Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   _ReelAction(
                     icon: _bookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,

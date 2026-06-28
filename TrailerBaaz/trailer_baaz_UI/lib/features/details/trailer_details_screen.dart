@@ -6,6 +6,7 @@ import '../../core/models/trailer.dart';
 import '../../shared/widgets/cinematic_image.dart';
 import '../../shared/widgets/glass_icon_button.dart';
 import '../../shared/widgets/meta_widgets.dart';
+import '../../shared/widgets/popcorn_rating.dart';
 import '../../shared/widgets/trailer_card.dart';
 import '../../shared/widgets/trailer_player.dart';
 
@@ -19,7 +20,16 @@ class TrailerDetailsScreen extends StatefulWidget {
 }
 
 class _TrailerDetailsScreenState extends State<TrailerDetailsScreen> {
-  bool _hyped = false;
+  int? _popcornRating;
+
+  void _openPopcornSheet() {
+    showPopcornRating(
+      context,
+      hypeScore: widget.trailer.hypeScore,
+      currentRating: _popcornRating,
+      onRatingChanged: (r) => setState(() => _popcornRating = r),
+    );
+  }
 
   void _playTrailer() {
     showTrailerPlayer(context, widget.trailer);
@@ -140,11 +150,9 @@ class _TrailerDetailsScreenState extends State<TrailerDetailsScreen> {
                 const SizedBox(height: 24),
                 Row(
                   children: [
-                    StatItem(
-                      value: '${trailer.hypeScore}%',
-                      label: 'Audience hype',
-                      icon: Icons.local_fire_department,
-                      valueColor: AppTheme.accent,
+                    PopcornBadge(
+                      score: trailer.hypeScore,
+                      onTap: _openPopcornSheet,
                     ),
                     StatItem(value: trailer.views, label: 'Trailer views'),
                     StatItem(value: trailer.releaseDate, label: 'Released'),
@@ -153,10 +161,10 @@ class _TrailerDetailsScreenState extends State<TrailerDetailsScreen> {
                 const SizedBox(height: 24),
                 const Divider(color: Color(0xFF242424), height: 1),
                 const SizedBox(height: 22),
-                _HypePanel(
+                _PopcornPanel(
                   score: trailer.hypeScore,
-                  hyped: _hyped,
-                  onChanged: () => setState(() => _hyped = !_hyped),
+                  rating: _popcornRating,
+                  onOpen: _openPopcornSheet,
                 ),
                 const SizedBox(height: 18),
                 const _TicketPanel(),
@@ -193,85 +201,84 @@ class _TrailerDetailsScreenState extends State<TrailerDetailsScreen> {
   }
 }
 
-class _HypePanel extends StatelessWidget {
-  const _HypePanel({
+class _PopcornPanel extends StatelessWidget {
+  const _PopcornPanel({
     required this.score,
-    required this.hyped,
-    required this.onChanged,
+    required this.rating,
+    required this.onOpen,
   });
 
   final int score;
-  final bool hyped;
-  final VoidCallback onChanged;
+  final int? rating;
+  final VoidCallback onOpen;
+
+  String get _ratingLabel {
+    if (rating == null) return 'Tap to rate this trailer';
+    const labels = ['', 'Hard pass', 'One kernel?', 'Pop me', 'Gift popcorn', 'Feed the bucket'];
+    return 'Your pop: ${labels[rating!]}';
+  }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 260),
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: hyped
-              ? [const Color(0xFF311015), const Color(0xFF181010)]
-              : [const Color(0xFF171717), const Color(0xFF111111)],
-        ),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: hyped
-              ? AppTheme.accent.withValues(alpha: .45)
-              : Colors.white10,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 58,
-            height: 58,
-            decoration: BoxDecoration(
-              color: AppTheme.accent.withValues(alpha: .16),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.local_fire_department,
-              color: AppTheme.accent,
-              size: 32,
-            ),
+    final rated = rating != null;
+    return GestureDetector(
+      onTap: onOpen,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 260),
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: rated
+                ? [const Color(0xFF1E1A10), const Color(0xFF151208)]
+                : [const Color(0xFF171717), const Color(0xFF111111)],
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '$score% Audience Hype',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  hyped
-                      ? 'You hyped this trailer.'
-                      : 'Make your hype count for TrailerBaaz.',
-                  style:
-                      const TextStyle(color: AppTheme.muted, fontSize: 13),
-                ),
-              ],
-            ),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: rated
+                ? AppTheme.hype.withValues(alpha: .45)
+                : Colors.white10,
           ),
-          FilledButton(
-            onPressed: onChanged,
-            style: FilledButton.styleFrom(
-              backgroundColor: hyped ? Colors.white : AppTheme.accent,
-              foregroundColor: hyped ? Colors.black : Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(999),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 58,
+              height: 58,
+              decoration: BoxDecoration(
+                color: AppTheme.hype.withValues(alpha: .16),
+                shape: BoxShape.circle,
+              ),
+              child: const Center(
+                child: Text('🍿', style: TextStyle(fontSize: 28)),
               ),
             ),
-            child: Text(hyped ? 'Remove' : 'Give Hype'),
-          ),
-        ],
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '$score% Audience Hype',
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.w900),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _ratingLabel,
+                    style: TextStyle(
+                      color: rated ? AppTheme.hype : AppTheme.muted,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            const Icon(Icons.chevron_right_rounded,
+                color: Colors.white38, size: 22),
+          ],
+        ),
       ),
     );
   }
@@ -437,44 +444,46 @@ class _RelatedRail extends StatelessWidget {
     if (reversed) allTrailers.sort((a, b) => b.title.compareTo(a.title));
     final items = allTrailers.take(8).toList();
 
-    final cardWidth = 220.0;
-    final imageHeight = cardWidth * 9 / 16;
-    final totalHeight = imageHeight + 76.0;
-
     if (items.isEmpty) {
-      return SizedBox(
-        height: totalHeight,
-        child: const Center(
+      return const SizedBox(
+        height: 100,
+        child: Center(
           child: Text('No related trailers',
               style: TextStyle(color: Colors.white38)),
         ),
       );
     }
 
-    return SizedBox(
-      height: totalHeight,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        itemCount: items.length,
-        separatorBuilder: (_, _) => const SizedBox(width: 12),
-        itemBuilder: (context, index) => TrailerCard(
-          trailer: items[index],
-          onTap: () {
-            Navigator.of(context).pushReplacement(
-              PageRouteBuilder(
-                pageBuilder: (_, animation, _) => FadeTransition(
-                  opacity: animation,
-                  child: TrailerDetailsScreen(trailer: items[index]),
-                ),
-              ),
-            );
-          },
-          onPlay: () => showTrailerPlayer(context, items[index]),
-          width: cardWidth,
-          height: imageHeight, // TrailerCard expects image height, not total height
-        ),
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final cardWidth = MediaQuery.sizeOf(context).width * 0.74;
+        final imageH = cardWidth * (9 / 16);
+        return SizedBox(
+          height: imageH + kCardTextSectionHeight,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            itemCount: items.length,
+            separatorBuilder: (_, _) => const SizedBox(width: 12),
+            itemBuilder: (context, index) => TrailerCard(
+              trailer: items[index],
+              onTap: () {
+                Navigator.of(context).pushReplacement(
+                  PageRouteBuilder(
+                    pageBuilder: (_, animation, _) => FadeTransition(
+                      opacity: animation,
+                      child: TrailerDetailsScreen(trailer: items[index]),
+                    ),
+                  ),
+                );
+              },
+              onPlay: () => showTrailerPlayer(context, items[index]),
+              width: cardWidth,
+              height: imageH,
+            ),
+          ),
+        );
+      },
     );
   }
 }

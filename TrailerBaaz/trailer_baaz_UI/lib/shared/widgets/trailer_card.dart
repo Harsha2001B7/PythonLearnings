@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 import '../../app/app_theme.dart';
 import '../../core/models/trailer.dart';
 import 'cinematic_image.dart';
-import 'meta_widgets.dart';
+
+import 'popcorn_rating.dart';
 
 // Height of the text strip below the thumbnail.
 const double kCardTextSectionHeight = 76.0;
@@ -175,8 +176,15 @@ class _TrailerCardState extends State<TrailerCard> {
                             const SizedBox(width: 8),
                           ],
                           const Spacer(),
-                          HypeLabel(
-                              score: widget.trailer.hypeScore, compact: true),
+                          PopcornBadge(
+                              score: widget.trailer.hypeScore,
+                              compact: true,
+                              onTap: () => showPopcornRating(
+                                context,
+                                hypeScore: widget.trailer.hypeScore,
+                                currentRating: null,
+                                onRatingChanged: (_) {},
+                              )),
                         ],
                       ),
                       const SizedBox(height: 6),
