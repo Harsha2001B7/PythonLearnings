@@ -9,15 +9,23 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with TickerProviderStateMixin {
   late final AnimationController _logoController;
-  late final AnimationController _contentController;
+  late final AnimationController _textController;
+  late final AnimationController _buttonController;
 
   late final Animation<double> _logoScale;
   late final Animation<double> _logoFade;
-  
-  late final Animation<double> _contentFade;
-  late final Animation<Offset> _contentSlide;
+  late final Animation<double> _logoGlow;
+
+  late final Animation<double> _wordmarkFade;
+  late final Animation<Offset> _wordmarkSlide;
+  late final Animation<double> _taglineFade;
+  late final Animation<Offset> _taglineSlide;
+
+  late final Animation<double> _buttonFade;
+  late final Animation<Offset> _buttonSlide;
 
   @override
   void initState() {
@@ -25,51 +33,105 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
     _logoController = AnimationController(
       vsync: this,
+      duration: const Duration(milliseconds: 2200), // Calm, luxurious entrance
+    );
+
+    _textController = AnimationController(
+      vsync: this,
       duration: const Duration(milliseconds: 1200),
     );
 
-    _contentController = AnimationController(
+    _buttonController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     );
 
-    _logoScale = Tween<double>(begin: 0.85, end: 1.0).animate(
+    // Logo starts slightly larger (1.15) and settles to 1.0 with easeOutCubic
+    _logoScale = Tween<double>(begin: 1.15, end: 1.0).animate(
       CurvedAnimation(parent: _logoController, curve: Curves.easeOutCubic),
     );
 
+    // Fade in logo over the first 50% of the animation
     _logoFade = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _logoController, curve: Curves.easeIn),
+      CurvedAnimation(
+        parent: _logoController,
+        curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
+      ),
     );
 
-    _contentFade = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _contentController, curve: Curves.easeOut),
+    // Glow starts intense (0.7) and reduces to very subtle (0.15) as it lands
+    _logoGlow = Tween<double>(begin: 0.7, end: 0.15).animate(
+      CurvedAnimation(
+        parent: _logoController,
+        curve: const Interval(0.2, 1.0, curve: Curves.easeOutCubic),
+      ),
     );
 
-    _contentSlide = Tween<Offset>(begin: const Offset(0, 0.1), end: Offset.zero).animate(
-      CurvedAnimation(parent: _contentController, curve: Curves.easeOutCubic),
+    // Wordmark staggers in first
+    _wordmarkFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _textController,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
+      ),
+    );
+    _wordmarkSlide = Tween<Offset>(begin: const Offset(0, 0.15), end: Offset.zero).animate(
+      CurvedAnimation(
+        parent: _textController,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeOutCubic),
+      ),
+    );
+
+    // Tagline staggers in next
+    _taglineFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _textController,
+        curve: const Interval(0.3, 1.0, curve: Curves.easeOut),
+      ),
+    );
+    _taglineSlide = Tween<Offset>(begin: const Offset(0, 0.15), end: Offset.zero).animate(
+      CurvedAnimation(
+        parent: _textController,
+        curve: const Interval(0.3, 1.0, curve: Curves.easeOutCubic),
+      ),
+    );
+
+    // Buttons slide up with a gentle fade and spring-like easing (easeOutQuart for premium feel)
+    _buttonFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _buttonController, curve: Curves.easeOut),
+    );
+    _buttonSlide = Tween<Offset>(begin: const Offset(0, 0.25), end: Offset.zero).animate(
+      CurvedAnimation(parent: _buttonController, curve: Curves.easeOutQuart),
     );
 
     _runSequence();
   }
 
   void _runSequence() async {
-    // 1. Initial pause for cinematic breathing room
-    await Future.delayed(const Duration(milliseconds: 400));
+    // 1. Initial pause: Screen is almost completely black.
+    await Future.delayed(const Duration(milliseconds: 500));
     if (!mounted) return;
 
-    // 2. Logo entrance
+    // 2. Logo entrance and landing
     await _logoController.forward();
-    
-    // 3. Staggered entrance for the rest
     if (!mounted) return;
-    _contentController.forward();
+
+    // 3. Texts stagger in after logo has completed entrance
+    _textController.forward();
+    
+    // 4. Wait for text to finish, then short pause before buttons
+    await Future.delayed(const Duration(milliseconds: 1000));
+    if (!mounted) return;
+
+    // 5. Buttons enter
+    _buttonController.forward();
   }
 
   @override
   void dispose() {
     try {
       _logoController.dispose();
-      _contentController.dispose();
+      _textController.dispose();
+      _buttonController.dispose();
     } catch (_) {}
     super.dispose();
   }
@@ -84,10 +146,11 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
         },
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           // Premium shared-axis / scale fade transition
-          final fade = Tween<double>(begin: 0, end: 1).animate(
-            CurvedAnimation(parent: animation, curve: Curves.easeOut),
-          );
-          
+          final fade = Tween<double>(
+            begin: 0,
+            end: 1,
+          ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOut));
+
           final scaleIn = Tween<double>(begin: 0.96, end: 1.0).animate(
             CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
           );
@@ -95,10 +158,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
           // The outgoing page fades out and scales up slightly
           return FadeTransition(
             opacity: fade,
-            child: ScaleTransition(
-              scale: scaleIn,
-              child: child,
-            ),
+            child: ScaleTransition(scale: scaleIn, child: child),
           );
         },
       ),
@@ -109,57 +169,48 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          // Gentle ambient red glow
-          Positioned(
-            top: MediaQuery.sizeOf(context).height * 0.2,
-            left: MediaQuery.sizeOf(context).width * 0.2,
-            right: MediaQuery.sizeOf(context).width * 0.2,
-            child: Container(
-              height: 200,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppTheme.accent.withValues(alpha: 0.15),
-                    blurRadius: 120,
-                    spreadRadius: 80,
-                  ),
-                ],
-              ),
-            ),
-          ),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            children: [
+              const Spacer(flex: 3),
 
-          SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                children: [
-                  const Spacer(flex: 3),
-                  
-                  // Animated Logo
-                  FadeTransition(
+              // Animated Hero Logo
+              AnimatedBuilder(
+                animation: _logoController,
+                builder: (context, child) {
+                  return FadeTransition(
                     opacity: _logoFade,
                     child: ScaleTransition(
                       scale: _logoScale,
-                      child: const _Logo(),
+                      child: _Logo(glowOpacity: _logoGlow.value),
                     ),
-                  ),
+                  );
+                },
+              ),
 
-                  const SizedBox(height: 16),
+              const SizedBox(height: 24),
 
-                  // Tagline & Wordmark
-                  FadeTransition(
-                    opacity: _contentFade,
-                    child: SlideTransition(
-                      position: _contentSlide,
-                      child: Column(
-                        children: [
-                          const _Wordmark(),
-                          const SizedBox(height: 12),
-                          Text(
+              // Tagline & Wordmark
+              AnimatedBuilder(
+                animation: _textController,
+                builder: (context, child) {
+                  return Column(
+                    children: [
+                      FadeTransition(
+                        opacity: _wordmarkFade,
+                        child: SlideTransition(
+                          position: _wordmarkSlide,
+                          child: const _Wordmark(),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      FadeTransition(
+                        opacity: _taglineFade,
+                        child: SlideTransition(
+                          position: _taglineSlide,
+                          child: Text(
                             'Discover the Next Blockbuster.',
                             style: TextStyle(
                               color: Colors.white.withValues(alpha: 0.7),
@@ -168,18 +219,23 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                               letterSpacing: 0.5,
                             ),
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
+                    ],
+                  );
+                },
+              ),
 
-                  const Spacer(flex: 4),
+              const Spacer(flex: 4),
 
-                  // Buttons
-                  FadeTransition(
-                    opacity: _contentFade,
+              // Buttons
+              AnimatedBuilder(
+                animation: _buttonController,
+                builder: (context, child) {
+                  return FadeTransition(
+                    opacity: _buttonFade,
                     child: SlideTransition(
-                      position: _contentSlide,
+                      position: _buttonSlide,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
@@ -195,7 +251,11 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  SvgPicture.asset('assets/icons/google.svg', height: 22, width: 22),
+                                  SvgPicture.asset(
+                                    'assets/icons/google.svg',
+                                    height: 22,
+                                    width: 22,
+                                  ),
                                   const SizedBox(width: 12),
                                   const Text(
                                     'Continue with Google',
@@ -209,9 +269,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                               ),
                             ),
                           ),
-                          
+
                           const SizedBox(height: 16),
-                          
+
                           _ScaleButton(
                             onTap: _navigateHome,
                             child: Container(
@@ -220,7 +280,10 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                               decoration: BoxDecoration(
                                 color: Colors.transparent,
                                 borderRadius: BorderRadius.circular(999),
-                                border: Border.all(color: Colors.white.withValues(alpha: 0.3), width: 1),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.3),
+                                  width: 1,
+                                ),
                               ),
                               child: const Center(
                                 child: Text(
@@ -238,67 +301,48 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                         ],
                       ),
                     ),
-                  ),
-                ],
+                  );
+                },
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 }
 
 class _Logo extends StatelessWidget {
-  const _Logo();
+  const _Logo({required this.glowOpacity});
+
+  final double glowOpacity;
 
   @override
   Widget build(BuildContext context) {
     return Stack(
       alignment: Alignment.center,
       children: [
-        // Subtle red glow behind logo
+        // Subtle ambient red glow behind logo that lands smoothly
         Container(
-          width: 80,
-          height: 80,
+          width: 120,
+          height: 120,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: AppTheme.accent.withValues(alpha: 0.5),
-                blurRadius: 40,
-                spreadRadius: 10,
+                color: AppTheme.accent.withValues(alpha: glowOpacity),
+                blurRadius: 70,
+                spreadRadius: 15,
               ),
             ],
           ),
         ),
-        // Logo letters
-        Container(
-          width: 90,
-          height: 90,
-          decoration: BoxDecoration(
-            color: Colors.black,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1),
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white.withValues(alpha: 0.1),
-                Colors.black,
-              ],
-            ),
-          ),
-          alignment: Alignment.center,
-          child: const Text(
-            'TB',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 36,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -2,
-            ),
-          ),
+        // The hero PNG logo, no container constraints, just the image itself
+        Image.asset(
+          'assets/images/app_icon.png',
+          width: 120,
+          fit: BoxFit.contain,
+          filterQuality: FilterQuality.high,
         ),
       ],
     );
@@ -318,7 +362,15 @@ class _Wordmark extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Text('Trailer', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, letterSpacing: -1, color: Colors.white)),
+        const Text(
+          'Trailer',
+          style: TextStyle(
+            fontSize: 32,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -1,
+            color: Colors.white,
+          ),
+        ),
         Stack(
           alignment: Alignment.center,
           children: [
@@ -328,8 +380,14 @@ class _Wordmark extends StatelessWidget {
               style: style.copyWith(
                 color: AppTheme.accent.withValues(alpha: 0.4),
                 shadows: [
-                  Shadow(color: AppTheme.accent.withValues(alpha: 0.8), blurRadius: 12),
-                  Shadow(color: AppTheme.accent.withValues(alpha: 0.3), blurRadius: 24),
+                  Shadow(
+                    color: AppTheme.accent.withValues(alpha: 0.8),
+                    blurRadius: 12,
+                  ),
+                  Shadow(
+                    color: AppTheme.accent.withValues(alpha: 0.3),
+                    blurRadius: 24,
+                  ),
                 ],
               ),
             ),
@@ -338,7 +396,12 @@ class _Wordmark extends StatelessWidget {
               'Baaz',
               style: style.copyWith(
                 color: AppTheme.accent,
-                shadows: [Shadow(color: AppTheme.accent.withValues(alpha: 0.5), blurRadius: 4)],
+                shadows: [
+                  Shadow(
+                    color: AppTheme.accent.withValues(alpha: 0.5),
+                    blurRadius: 4,
+                  ),
+                ],
               ),
             ),
           ],
@@ -358,7 +421,8 @@ class _ScaleButton extends StatefulWidget {
   State<_ScaleButton> createState() => _ScaleButtonState();
 }
 
-class _ScaleButtonState extends State<_ScaleButton> with SingleTickerProviderStateMixin {
+class _ScaleButtonState extends State<_ScaleButton>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _scale;
 
@@ -370,9 +434,10 @@ class _ScaleButtonState extends State<_ScaleButton> with SingleTickerProviderSta
       duration: const Duration(milliseconds: 150),
       reverseDuration: const Duration(milliseconds: 200),
     );
-    _scale = Tween<double>(begin: 1.0, end: 0.95).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutQuad),
-    );
+    _scale = Tween<double>(
+      begin: 1.0,
+      end: 0.95,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutQuad));
   }
 
   @override
@@ -403,10 +468,7 @@ class _ScaleButtonState extends State<_ScaleButton> with SingleTickerProviderSta
       onTapUp: _onTapUp,
       onTapCancel: _onTapCancel,
       behavior: HitTestBehavior.opaque,
-      child: ScaleTransition(
-        scale: _scale,
-        child: widget.child,
-      ),
+      child: ScaleTransition(scale: _scale, child: widget.child),
     );
   }
 }

@@ -1909,8 +1909,8 @@ class _TopBar extends StatelessWidget {
           onTap: () => AppShell.setIndex(context, 4),
           child: ClipOval(
             child: SizedBox(
-              width: 38,
-              height: 38,
+              width: 32,
+              height: 32,
               child: CinematicImage(
                 url:
                     'https://images.unsplash.com/photo-1527980965255-d3b416303d12?auto=format&fit=crop&w=200&q=80',
