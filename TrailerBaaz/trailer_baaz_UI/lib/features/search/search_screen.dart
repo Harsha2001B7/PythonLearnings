@@ -17,7 +17,7 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen>
     with AutomaticKeepAliveClientMixin {
   String _query = '';
-
+  bool _showAllStudios = false;
   @override
   bool get wantKeepAlive => true;
 
@@ -51,11 +51,17 @@ class _SearchScreenState extends State<SearchScreen>
                     style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900),
                   ),
                   const SizedBox(height: 18),
-                  _SearchBar(onChanged: (value) => setState(() => _query = value)),
+                  _SearchBar(
+                    onChanged: (value) => setState(() => _query = value),
+                  ),
                   const SizedBox(height: 24),
                   _ChipBlock(
                     title: 'Recent Searches',
-                    items: const ['Neon Shadows', 'Cyberpunk', 'Tamil thrillers'],
+                    items: const [
+                      'Neon Shadows',
+                      'Cyberpunk',
+                      'Tamil thrillers',
+                    ],
                   ),
                   const SizedBox(height: 22),
                   _ChipBlock(
@@ -82,7 +88,13 @@ class _SearchScreenState extends State<SearchScreen>
                   const SizedBox(height: 22),
                   _ChipBlock(
                     title: 'Languages',
-                    items: const ['English', 'Hindi', 'Telugu', 'Tamil', 'Korean'],
+                    items: const [
+                      'English',
+                      'Hindi',
+                      'Telugu',
+                      'Tamil',
+                      'Korean',
+                    ],
                   ),
                   const SizedBox(height: 28),
                   const _SectionHeader('Trending Actors'),
@@ -92,7 +104,17 @@ class _SearchScreenState extends State<SearchScreen>
                   const _SectionHeader('Popular Studios'),
                   const SizedBox(height: 14),
                   _StudioGrid(
-                    studios: allTrailers.map((item) => item.studio).where((s) => s.isNotEmpty).toSet().toList(),
+                    studios: allTrailers
+                        .map((item) => item.studio)
+                        .where((s) => s.isNotEmpty)
+                        .toSet()
+                        .toList(),
+                    expanded: _showAllStudios,
+                    onToggle: () {
+                      setState(() {
+                        _showAllStudios = !_showAllStudios;
+                      });
+                    },
                   ),
                   const SizedBox(height: 28),
                   _SectionHeader(
@@ -262,31 +284,83 @@ class _PeopleRail extends StatelessWidget {
 }
 
 class _StudioGrid extends StatelessWidget {
-  const _StudioGrid({required this.studios});
+  const _StudioGrid({
+    required this.studios,
+    required this.expanded,
+    required this.onToggle,
+  });
 
   final List<String> studios;
+  final bool expanded;
+  final VoidCallback onToggle;
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      spacing: 10,
-      runSpacing: 10,
-      children: studios
-          .map(
-            (studio) => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-              decoration: BoxDecoration(
-                color: AppTheme.card,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.white10),
+    final visible = expanded ? studios : studios.take(6).toList();
+
+    return Column(
+      children: [
+        AnimatedSize(
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeOutCubic,
+          child: ShaderMask(
+            shaderCallback: (bounds) {
+              if (expanded) {
+                return const LinearGradient(
+                  colors: [Colors.white, Colors.white],
+                ).createShader(bounds);
+              }
+
+              return const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [Colors.white, Colors.white, Colors.transparent],
+                stops: [0.0, 0.75, 1.0],
+              ).createShader(bounds);
+            },
+            blendMode: BlendMode.dstIn,
+            child: Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: visible
+                  .map(
+                    (studio) => Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppTheme.card,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white10),
+                      ),
+                      child: Text(
+                        studio,
+                        style: const TextStyle(fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                  )
+                  .toList(),
+            ),
+          ),
+        ),
+
+        if (studios.length > 6)
+          Padding(
+            padding: const EdgeInsets.only(top: 16),
+            child: TextButton.icon(
+              onPressed: onToggle,
+              icon: AnimatedRotation(
+                duration: const Duration(milliseconds: 300),
+                turns: expanded ? .5 : 0,
+                child: const Icon(Icons.keyboard_arrow_down_rounded),
               ),
-              child: Text(
-                studio,
-                style: const TextStyle(fontWeight: FontWeight.w800),
+              label: Text(
+                expanded ? "Show less" : "Show ${studios.length - 6} more",
               ),
             ),
-          )
-          .toList(),
+          ),
+      ],
     );
   }
 }

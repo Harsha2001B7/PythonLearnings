@@ -6,9 +6,10 @@ class YouTubeService {
   YouTubeService._();
   static final YouTubeService instance = YouTubeService._();
 
-  static const _apiKey = 'AIzaSyCdEO48zEmJRLz_g_ONfho2tcGCtjKuSDk';
-   //AIzaSyCdEO48zEmJRLz_g_ONfho2tcGCtjKuSDk
-   //AIzaSyDyfWBjInykjeJcuyXMHka1rHtex1gqUpg
+  static const _apiKey = 'AIzaSyBF5z0NUmcEvMQWnxKF9PekBha2EexXKhU';
+   //1. AIzaSyCdEO48zEmJRLz_g_ONfho2tcGCtjKuSDk
+   //2. AIzaSyDyfWBjInykjeJcuyXMHka1rHtex1gqUpg
+   //3. AIzaSyBF5z0NUmcEvMQWnxKF9PekBha2EexXKhU
   static const _baseUrl = 'https://www.googleapis.com/youtube/v3';
 
   final _client = http.Client();

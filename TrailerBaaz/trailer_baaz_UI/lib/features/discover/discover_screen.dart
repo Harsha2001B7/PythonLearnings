@@ -52,7 +52,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     final provider = YoutubeTrailersProvider.instance;
     // Combine all available trailers or fallback to heroTrailers
     final allTrailers = provider.heroTrailers;
-    
+
     if (allTrailers.isEmpty) {
       return const Center(
         child: CircularProgressIndicator(color: AppTheme.accent),
@@ -70,10 +70,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
       itemBuilder: (context, index) {
         final trailer = allTrailers[index % allTrailers.length];
         final isActive = index == _currentPage;
-        return _ReelPage(
-          trailer: trailer,
-          isActive: isActive,
-        );
+        return _ReelPage(trailer: trailer, isActive: isActive);
       },
     );
   }
@@ -82,10 +79,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
 // ─── Reel Page ──────────────────────────────────────────────────────────────
 
 class _ReelPage extends StatefulWidget {
-  const _ReelPage({
-    required this.trailer,
-    required this.isActive,
-  });
+  const _ReelPage({required this.trailer, required this.isActive});
 
   final Trailer trailer;
   final bool isActive;
@@ -128,16 +122,17 @@ class _ReelPageState extends State<_ReelPage> {
       params: const YoutubePlayerParams(
         showControls: false,
         showFullscreenButton: false,
-        mute: true, // Must be true for reliable autoplay in WebView
+        mute: true,
         playsInline: true,
         enableCaption: false,
         loop: true,
+        strictRelatedVideos: true,
       ),
     );
     if (mounted) setState(() {});
 
     // Small delay then mark player as ready for smooth transition
-    Future.delayed(const Duration(milliseconds: 800), () {
+    Future.delayed(const Duration(milliseconds: 1400), () {
       if (mounted && widget.isActive) {
         setState(() => _playerReady = true);
       }
@@ -194,25 +189,73 @@ class _ReelPageState extends State<_ReelPage> {
     return Stack(
       fit: StackFit.expand,
       children: [
-        // ── Background: pitch black ──────────────────
-        const Positioned.fill(
-          child: ColoredBox(color: Colors.black),
-        ),
-
         // ── YouTube Player (contained in a 16:9 box) ──────────
         if (_controller != null)
           Positioned.fill(
             child: Align(
-              alignment: Alignment.center,
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 500),
-                opacity: _playerReady ? 1.0 : 0.0,
-                child: AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: IgnorePointer(
-                    child: YoutubePlayer(controller: _controller!),
+              alignment: const Alignment(0, -0.25),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Movie Poster
+                  AnimatedOpacity(
+                    duration: const Duration(milliseconds: 500),
+                    opacity: _playerReady ? 0 : 1,
+                    child: TweenAnimationBuilder<double>(
+                      duration: const Duration(milliseconds: 1400),
+                      curve: Curves.easeOut,
+                      tween: Tween(begin: 1.15, end: 1.10),
+                      builder: (context, scale, child) {
+                        return Transform.scale(scale: scale, child: child);
+                      },
+                      child: AspectRatio(
+                        aspectRatio: 16 / 9,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(18),
+                          child: Image.network(
+                            trailer.posterUrl,
+                            fit: BoxFit.cover,
+                            filterQuality: FilterQuality.high,
+                            frameBuilder:
+                                (
+                                  context,
+                                  child,
+                                  frame,
+                                  wasSynchronouslyLoaded,
+                                ) {
+                                  return AnimatedOpacity(
+                                    duration: const Duration(milliseconds: 300),
+                                    opacity: frame == null ? 0 : 1,
+                                    child: child,
+                                  );
+                                },
+                            errorBuilder: (_, __, ___) =>
+                                Container(color: Colors.black),
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+
+                  // YouTube Trailer
+                  AnimatedOpacity(
+                    duration: const Duration(milliseconds: 700),
+                    curve: Curves.easeOutCubic,
+                    opacity: _playerReady ? 1 : 0,
+                    child: Transform.scale(
+                      scale: 1.10,
+                      child: AspectRatio(
+                        aspectRatio: 16 / 9,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(14),
+                          child: IgnorePointer(
+                            child: YoutubePlayer(controller: _controller!),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -225,20 +268,19 @@ class _ReelPageState extends State<_ReelPage> {
                 begin: Alignment.topCenter,
                 end: Alignment.bottomCenter,
                 colors: [
-                  Colors.black.withValues(alpha: 0.8),
-                  Colors.black.withValues(alpha: 0.1),
+                  Colors.black.withValues(alpha: .85),
+                  Colors.black.withValues(alpha: .15),
                   Colors.transparent,
-                  Colors.black.withValues(alpha: 0.5),
-                  Colors.black.withValues(alpha: 0.95),
+                  Colors.black.withValues(alpha: .25),
+                  Colors.black.withValues(alpha: .65),
+                  Colors.black.withValues(alpha: .92),
                   Colors.black,
                 ],
-                stops: const [0.0, 0.15, 0.5, 0.75, 0.9, 1.0],
+                stops: const [0.0, 0.12, 0.45, 0.68, 0.82, 0.92, 1.0],
               ),
             ),
           ),
         ),
-
-
 
         // ── Top bar (Discover label + mute) ─────────────────────────
         Positioned(
@@ -266,7 +308,9 @@ class _ReelPageState extends State<_ReelPage> {
                     decoration: BoxDecoration(
                       color: Colors.black.withValues(alpha: 0.4),
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.15),
+                      ),
                     ),
                     child: const Icon(
                       Icons.fullscreen_rounded,
@@ -285,7 +329,9 @@ class _ReelPageState extends State<_ReelPage> {
                   decoration: BoxDecoration(
                     color: Colors.black.withValues(alpha: 0.4),
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.15),
+                    ),
                   ),
                   child: Icon(
                     _muted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
@@ -299,166 +345,120 @@ class _ReelPageState extends State<_ReelPage> {
         ),
 
         // ── Bottom info + actions ───────────────────────────────────
+        // ── Bottom Movie Info + Horizontal Actions ─────────────────────────────
+        // ───────────────── Bottom Movie Info ─────────────────
+        //──────────────── Movie Details ────────────────
         Positioned(
           left: 16,
-          right: 16,
-          bottom: bottomPad + 96, // tucked neatly above the bottom nav (80 + 16 padding)
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              // ── Left: Movie info (small & compact) ──────────────
-              Expanded(
-                child: GestureDetector(
-                  onTap: _openDetails,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Studio badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: AppTheme.accent.withValues(alpha: 0.18),
-                          borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: AppTheme.accent.withValues(alpha: 0.35)),
-                        ),
-                        child: Text(
-                          trailer.studio.toUpperCase(),
-                          style: const TextStyle(
-                            color: AppTheme.accent,
-                            fontSize: 9,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.6,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      // Title (small)
-                      Text(
-                        trailer.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                          height: 1.1,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      // Tagline
-                      Text(
-                        trailer.tagline,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.white.withValues(alpha: 0.6),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      // Genres + views row
-                      Row(
-                        children: [
-                          ...trailer.genres.take(2).map((g) => Padding(
-                                padding: const EdgeInsets.only(right: 6),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(4),
-                                    border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
-                                  ),
-                                  child: Text(
-                                    g.toUpperCase(),
-                                    style: TextStyle(
-                                      fontSize: 8,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white.withValues(alpha: 0.7),
-                                      letterSpacing: 0.5,
-                                    ),
-                                  ),
-                                ),
-                              )),
-                          Text(
-                            '${trailer.views} views',
-                            style: TextStyle(
-                              fontSize: 10,
-                              color: Colors.white.withValues(alpha: 0.45),
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+          right: 90,
+          bottom: bottomPad + 18,
+          child: GestureDetector(
+            onTap: _openDetails,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
                   ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.accent.withValues(alpha: .18),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: Text(
+                    trailer.studio.toUpperCase(),
+                    style: const TextStyle(
+                      color: AppTheme.accent,
+                      fontSize: 7,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 6),
+
+                Text(
+                  trailer.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+
+                const SizedBox(height: 2),
+
+                Text(
+                  trailer.tagline,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: .75),
+                    fontSize: 11,
+                  ),
+                ),
+
+                const SizedBox(height: 3),
+
+                Text(
+                  "${trailer.genres.take(2).join(" • ")} • ${trailer.views} Views",
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: .5),
+                    fontSize: 9,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        //──────────────── Instagram Style Actions ────────────────
+        Positioned(
+          right: 14,
+          bottom: bottomPad + 28,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _ReelAction(
+                emoji: "🍿",
+                label: "${trailer.hypeScore}%",
+                onTap: () => showPopcornRating(
+                  context,
+                  hypeScore: trailer.hypeScore,
+                  currentRating: _popcornRating,
+                  onRatingChanged: (r) => setState(() => _popcornRating = r),
                 ),
               ),
 
-              const SizedBox(width: 12),
+              const SizedBox(height: 16),
 
-              // ── Right: Action buttons (compact column) ──────────
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  GestureDetector(
-                    onTap: () => showPopcornRating(
-                      context,
-                      hypeScore: trailer.hypeScore,
-                      currentRating: _popcornRating,
-                      onRatingChanged: (r) => setState(() => _popcornRating = r),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 52,
-                          height: 52,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: _popcornRating != null
-                                ? AppTheme.hype.withValues(alpha: 0.2)
-                                : Colors.black.withValues(alpha: 0.4),
-                            border: Border.all(
-                              color: _popcornRating != null
-                                  ? AppTheme.hype
-                                  : Colors.white24,
-                            ),
-                          ),
-                          child: const Center(
-                            child: Text('🍿', style: TextStyle(fontSize: 22)),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${trailer.hypeScore}%',
-                          style: TextStyle(
-                            color: _popcornRating != null ? AppTheme.hype : Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  _ReelAction(
-                    icon: _bookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,
-                    label: 'Save',
-                    active: _bookmarked,
-                    onTap: () => setState(() => _bookmarked = !_bookmarked),
-                  ),
-                  _ReelAction(
-                    icon: Icons.mode_comment_outlined,
-                    label: '12K',
-                    onTap: () {},
-                  ),
-                  _ReelAction(
-                    icon: Icons.ios_share_rounded,
-                    label: 'Share',
-                    onTap: () {},
-                  ),
-                ],
+              _ReelAction(
+                icon: _bookmarked
+                    ? Icons.bookmark_rounded
+                    : Icons.bookmark_border_rounded,
+                label: "Save",
+                active: _bookmarked,
+                onTap: () => setState(() => _bookmarked = !_bookmarked),
+              ),
+
+              const SizedBox(height: 16),
+
+              _ReelAction(
+                icon: Icons.mode_comment_outlined,
+                label: "12K",
+                onTap: () {},
+              ),
+
+              const SizedBox(height: 16),
+
+              _ReelAction(
+                icon: Icons.ios_share_rounded,
+                label: "Share",
+                onTap: () {},
               ),
             ],
           ),
@@ -472,46 +472,61 @@ class _ReelPageState extends State<_ReelPage> {
 
 class _ReelAction extends StatelessWidget {
   const _ReelAction({
-    required this.icon,
+    this.icon,
+    this.emoji,
     required this.label,
     required this.onTap,
     this.active = false,
   });
 
-  final IconData icon;
+  final IconData? icon;
+  final String? emoji;
   final String label;
   final VoidCallback onTap;
   final bool active;
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 10),
-      child: GestureDetector(
-        onTap: onTap,
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        width: 48,
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 36,
-              height: 36,
+              width: 42,
+              height: 42,
               decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.3),
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+                color: active
+                    ? AppTheme.accent.withValues(alpha: .16)
+                    : Colors.white.withValues(alpha: .05),
+                border: Border.all(
+                  color: active
+                      ? AppTheme.accent.withValues(alpha: .7)
+                      : Colors.white.withValues(alpha: .08),
+                ),
               ),
-              child: Icon(
-                icon,
-                color: active ? AppTheme.accent : Colors.white,
-                size: 18,
+              child: Center(
+                child: emoji != null
+                    ? Text(emoji!, style: const TextStyle(fontSize: 18))
+                    : Icon(
+                        icon,
+                        color: active ? AppTheme.accent : Colors.white,
+                        size: 18,
+                      ),
               ),
             ),
-            const SizedBox(height: 3),
+
+            const SizedBox(height: 4),
+
             Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 9,
-                fontWeight: FontWeight.w700,
-                color: Colors.white70,
+                fontWeight: FontWeight.w600,
+                color: Colors.white.withValues(alpha: .70),
               ),
             ),
           ],

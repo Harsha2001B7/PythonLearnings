@@ -12,7 +12,11 @@ class PreferencesScreen extends StatefulWidget {
 
 class _PreferencesScreenState extends State<PreferencesScreen>
     with AutomaticKeepAliveClientMixin {
-  final Set<String> _selectedIndustries = {'Hollywood', 'Bollywood', 'Tollywood (Telugu)'};
+  final Set<String> _selectedIndustries = {
+    'Hollywood',
+    'Bollywood',
+    'Tollywood (Telugu)',
+  };
   final Set<String> _selectedGenres = {'Action', 'Sci-Fi', 'Thriller'};
 
   final Map<String, bool> _notifications = {
@@ -25,15 +29,39 @@ class _PreferencesScreenState extends State<PreferencesScreen>
   };
 
   final List<String> _industries = [
-    'Hollywood', 'Bollywood', 'Korean Cinema', 'Tollywood (Telugu)',
-    'Tamil Cinema', 'Malayalam', 'Kannada', 'Marathi', 'Odia', 'Bengali',
-    'Punjabi', 'Spanish / Latin', 'Arabic Cinema', 'Gulf TV',
-    'Japanese Cinema', 'European Cinema'
+    'Hollywood',
+    'Bollywood',
+    'Korean Cinema',
+    'Tollywood (Telugu)',
+    'Tamil Cinema',
+    'Malayalam',
+    'Kannada',
+    'Marathi',
+    'Odia',
+    'Bengali',
+    'Punjabi',
+    'Spanish / Latin',
+    'Arabic Cinema',
+    'Gulf TV',
+    'Japanese Cinema',
+    'European Cinema',
   ];
 
   final List<String> _genres = [
-    'Action', 'Drama', 'Horror', 'Sci-Fi', 'Romance', 'Comedy',
-    'Thriller', 'Animation', 'Documentary', 'Fantasy', 'Crime', 'Musical', 'Adventure', 'Mystery'
+    'Action',
+    'Drama',
+    'Horror',
+    'Sci-Fi',
+    'Romance',
+    'Comedy',
+    'Thriller',
+    'Animation',
+    'Documentary',
+    'Fantasy',
+    'Crime',
+    'Musical',
+    'Adventure',
+    'Mystery',
   ];
 
   void _toggleIndustry(String industry) {
@@ -105,7 +133,11 @@ class _PreferencesScreenState extends State<PreferencesScreen>
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.close, color: Colors.white, size: 28),
+                    icon: const Icon(
+                      Icons.close,
+                      color: Colors.white,
+                      size: 28,
+                    ),
                     onPressed: () => AppShell.setIndex(context, 0),
                   ),
                 ],
@@ -114,68 +146,135 @@ class _PreferencesScreenState extends State<PreferencesScreen>
 
             // Content
             Expanded(
-              child: ListView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                physics: const BouncingScrollPhysics(),
-                children: [
-                  _SectionHeader(title: 'INDUSTRIES'),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: _industries.map((ind) => _SelectableChip(
-                      label: ind,
-                      isSelected: _selectedIndustries.contains(ind),
-                      onTap: () => _toggleIndustry(ind),
-                      showLiveIndicator: ['Hollywood', 'Bollywood', 'Korean Cinema', 'Tollywood (Telugu)', 'Tamil Cinema'].contains(ind),
-                    )).toList(),
+              child: ShaderMask(
+                shaderCallback: (bounds) {
+                  return const LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      Colors.white,
+                      Colors.white,
+                      Colors.white,
+                      Colors.transparent,
+                    ],
+                    stops: [0.0, 0.75, 0.88, 1.0],
+                  ).createShader(bounds);
+                },
+                blendMode: BlendMode.dstIn,
+                child: ListView(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 16,
                   ),
-                  const SizedBox(height: 32),
-
-                  if (_selectedIndustries.isNotEmpty) ...[
-                    _SectionHeader(title: 'HOME INDUSTRY', subtitle: 'Tap to set your default feed. Use × to remove.'),
+                  physics: const BouncingScrollPhysics(),
+                  children: [
+                    _SectionHeader(title: 'INDUSTRIES'),
                     Wrap(
                       spacing: 12,
                       runSpacing: 12,
-                      children: _selectedIndustries.map((ind) => _RemovableChip(
-                        label: ind,
-                        onRemove: () => _toggleIndustry(ind),
-                      )).toList(),
+                      children: _industries
+                          .map(
+                            (ind) => _SelectableChip(
+                              label: ind,
+                              isSelected: _selectedIndustries.contains(ind),
+                              onTap: () => _toggleIndustry(ind),
+                              showLiveIndicator: [
+                                'Hollywood',
+                                'Bollywood',
+                                'Korean Cinema',
+                                'Tollywood (Telugu)',
+                                'Tamil Cinema',
+                              ].contains(ind),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                    const SizedBox(height: 32),
+
+                    if (_selectedIndustries.isNotEmpty) ...[
+                      _SectionHeader(
+                        title: 'HOME INDUSTRY',
+                        subtitle:
+                            'Tap to set your default feed. Use × to remove.',
+                      ),
+                      Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: _selectedIndustries
+                            .map(
+                              (ind) => _RemovableChip(
+                                label: ind,
+                                onRemove: () => _toggleIndustry(ind),
+                              ),
+                            )
+                            .toList(),
+                      ),
+                      const SizedBox(height: 32),
+                    ],
+
+                    _SectionHeader(title: 'GENRES'),
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      children: _genres
+                          .map(
+                            (gen) => _SelectableChip(
+                              label: gen,
+                              isSelected: _selectedGenres.contains(gen),
+                              onTap: () => _toggleGenre(gen),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                    const SizedBox(height: 32),
+
+                    _SectionHeader(title: 'NOTIFICATIONS'),
+                    ..._notifications.entries.map(
+                      (entry) => _NotificationSwitch(
+                        label: entry.key,
+                        value: entry.value,
+                        onChanged: (val) => _toggleNotification(entry.key, val),
+                      ),
                     ),
                     const SizedBox(height: 32),
                   ],
-
-                  _SectionHeader(title: 'GENRES'),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: _genres.map((gen) => _SelectableChip(
-                      label: gen,
-                      isSelected: _selectedGenres.contains(gen),
-                      onTap: () => _toggleGenre(gen),
-                    )).toList(),
-                  ),
-                  const SizedBox(height: 32),
-
-                  _SectionHeader(title: 'NOTIFICATIONS'),
-                  ..._notifications.entries.map((entry) => _NotificationSwitch(
-                    label: entry.key,
-                    value: entry.value,
-                    onChanged: (val) => _toggleNotification(entry.key, val),
-                  )),
-                  const SizedBox(height: 32),
-                ],
+                ),
               ),
             ),
-
+            Positioned(
+              bottom: 118,
+              left: 0,
+              right: 0,
+              child: IgnorePointer(
+                child: Center(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 600),
+                    width: 42,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                  ),
+                ),
+              ),
+            ),
             // Bottom Sticky Area
             ClipRRect(
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                filter: ImageFilter.blur(sigmaX: 50, sigmaY: 50),
                 child: Container(
-                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                  padding: const EdgeInsets.fromLTRB(24, 12, 24, 16),
                   decoration: BoxDecoration(
-                    color: AppTheme.background.withValues(alpha: 0.8),
-                    border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.black.withValues(alpha: .05),
+                        Colors.black.withValues(alpha: .75),
+                        Colors.black,
+                      ],
+                    ),
                   ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -193,7 +292,10 @@ class _PreferencesScreenState extends State<PreferencesScreen>
                         ),
                         child: const Text(
                           'Save preferences',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -208,7 +310,10 @@ class _PreferencesScreenState extends State<PreferencesScreen>
                         ),
                         child: const Text(
                           'Continue Browsing',
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     ],
@@ -251,7 +356,7 @@ class _SectionHeader extends StatelessWidget {
               subtitle!,
               style: const TextStyle(color: Colors.white38, fontSize: 13),
             ),
-          ]
+          ],
         ],
       ),
     );
@@ -300,12 +405,14 @@ class _SelectableChip extends StatelessWidget {
                   Text(
                     '· live',
                     style: TextStyle(
-                      color: isSelected ? AppTheme.accent : AppTheme.accent.withValues(alpha: 0.8),
+                      color: isSelected
+                          ? AppTheme.accent
+                          : AppTheme.accent.withValues(alpha: 0.8),
                       fontWeight: FontWeight.w800,
                       fontSize: 14,
                     ),
                   ),
-                ]
+                ],
               ],
             ),
           ),
