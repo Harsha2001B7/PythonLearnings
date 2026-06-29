@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../app/app_theme.dart';
+import '../../core/data/home_experience_provider.dart';
 import '../../core/data/youtube_trailers_provider.dart';
 import '../../shared/widgets/cinematic_image.dart';
 import '../../shared/widgets/trailer_card.dart';
@@ -299,7 +300,9 @@ class _SettingsPanel extends StatelessWidget {
                 color: AppTheme.muted,
               ),
               onTap: () {
-                if (item.$2 == 'Logout') {
+                if (item.$2 == 'Appearance') {
+                  _showAppearanceSheet(context);
+                } else if (item.$2 == 'Logout') {
                   Navigator.of(context).pushAndRemoveUntil(
                     PageRouteBuilder(
                       transitionDuration: const Duration(milliseconds: 500),
@@ -316,6 +319,15 @@ class _SettingsPanel extends StatelessWidget {
             ),
         ],
       ),
+    );
+  }
+
+  void _showAppearanceSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => const _AppearanceSheet(),
     );
   }
 }
@@ -351,6 +363,184 @@ class _Badge extends StatelessWidget {
       child: Text(
         label,
         style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
+      ),
+    );
+  }
+}
+
+// ─── Appearance Sheet ────────────────────────────────────────────────────────
+
+class _AppearanceSheet extends StatelessWidget {
+  const _AppearanceSheet();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: HomeExperienceProvider.instance,
+      builder: (context, _) {
+        final current = HomeExperienceProvider.instance.experience;
+        return Container(
+          padding: EdgeInsets.only(
+            top: 20,
+            left: 24,
+            right: 24,
+            bottom: MediaQuery.paddingOf(context).bottom + 24,
+          ),
+          decoration: const BoxDecoration(
+            color: Color(0xFF121212),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Handle
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Title
+              const Text(
+                'Home Experience',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Choose how your Home screen looks',
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.5),
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Options
+              _ExperienceOption(
+                title: 'Classic',
+                subtitle: 'The familiar layout you know',
+                icon: Icons.grid_view_rounded,
+                isSelected: current == HomeExperience.classic,
+                onTap: () {
+                  HomeExperienceProvider.instance
+                      .setExperience(HomeExperience.classic);
+                  Navigator.pop(context);
+                },
+              ),
+              const SizedBox(height: 12),
+              _ExperienceOption(
+                title: 'Cinematic',
+                subtitle: 'Immersive, premium cinema-inspired',
+                icon: Icons.movie_filter_rounded,
+                isSelected: current == HomeExperience.cinematic,
+                onTap: () {
+                  HomeExperienceProvider.instance
+                      .setExperience(HomeExperience.cinematic);
+                  Navigator.pop(context);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ExperienceOption extends StatelessWidget {
+  const _ExperienceOption({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppTheme.accent.withValues(alpha: 0.12)
+              : AppTheme.card,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: isSelected
+                ? AppTheme.accent.withValues(alpha: 0.5)
+                : Colors.white10,
+            width: isSelected ? 1.5 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? AppTheme.accent.withValues(alpha: 0.2)
+                    : Colors.white.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(
+                icon,
+                color: isSelected ? AppTheme.accent : Colors.white54,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : Colors.white70,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.4),
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Icon(
+                Icons.check_circle_rounded,
+                color: AppTheme.accent,
+                size: 22,
+              ),
+          ],
+        ),
       ),
     );
   }

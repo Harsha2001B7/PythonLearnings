@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../app/app_theme.dart';
+import '../../core/data/home_experience_provider.dart';
 import '../../core/data/youtube_trailers_provider.dart';
 import '../../core/models/trailer.dart';
 import '../../shared/widgets/cinematic_image.dart';
@@ -117,6 +118,7 @@ class _HomeScreenState extends State<HomeScreen>
   String? _selectedSection;
 
   final _provider = YoutubeTrailersProvider.instance;
+  final _experienceProvider = HomeExperienceProvider.instance;
 
   @override
   void initState() {
@@ -130,6 +132,7 @@ class _HomeScreenState extends State<HomeScreen>
       );
     });
     _provider.addListener(_onDataChanged);
+    _experienceProvider.addListener(_onDataChanged);
   }
 
   void _onDataChanged() {
@@ -143,6 +146,7 @@ class _HomeScreenState extends State<HomeScreen>
       _heroController?.dispose();
     } catch (_) {}
     _provider.removeListener(_onDataChanged);
+    _experienceProvider.removeListener(_onDataChanged);
     super.dispose();
   }
 
@@ -183,6 +187,41 @@ class _HomeScreenState extends State<HomeScreen>
         },
         selectedSection: _selectedSection,
         loadedSections: _provider.sections.keys.toSet(),
+      ),
+    );
+  }
+
+  /// Builds the sections sliver shared by both Classic and Cinematic.
+  Widget _buildSectionsSliver(Map<String, List<Trailer>> sections) {
+    return SliverPadding(
+      padding: const EdgeInsets.only(bottom: 96),
+      sliver: SliverList.builder(
+        itemCount: sections.length,
+        itemBuilder: (context, index) {
+          final entry = sections.entries.elementAt(index);
+          if (entry.key == 'Trending Now') {
+            return _TrendingStackedRail(
+              title: entry.key,
+              trailers: entry.value,
+              onTap: _openDetails,
+              onPlay: _playTrailer,
+            );
+          }
+          if (entry.key == 'Most Awaited') {
+            return _MostAwaitedCarousel(
+              title: entry.key,
+              trailers: entry.value,
+              onTap: _openDetails,
+              onPlay: _playTrailer,
+            );
+          }
+          return _TrailerRail(
+            title: entry.key,
+            trailers: entry.value,
+            onTap: _openDetails,
+            onPlay: _playTrailer,
+          );
+        },
       ),
     );
   }
@@ -229,6 +268,84 @@ class _HomeScreenState extends State<HomeScreen>
       );
     }
 
+    final isCinematic =
+        _experienceProvider.experience == HomeExperience.cinematic;
+
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 350),
+      switchInCurve: Curves.easeOut,
+      switchOutCurve: Curves.easeIn,
+      transitionBuilder: (child, animation) {
+        final slide = Tween<Offset>(
+          begin: const Offset(0, 0.03),
+          end: Offset.zero,
+        ).animate(animation);
+        return FadeTransition(
+          opacity: animation,
+          child: SlideTransition(position: slide, child: child),
+        );
+      },
+      child: isCinematic
+          ? _CinematicHomeBody(
+              key: const ValueKey('cinematic'),
+              heroTrailers: heroTrailers,
+              sections: sections,
+              heroController: _heroController!,
+              page: _page,
+              onPageChanged: (v) => setState(() => _page = v),
+              onOpenDetails: _openDetails,
+              onPlayTrailer: _playTrailer,
+              onShowBrowse: _showBrowseSheet,
+              onSelectSection: _selectSection,
+              buildSectionsSliver: _buildSectionsSliver,
+            )
+          : _ClassicHomeBody(
+              key: const ValueKey('classic'),
+              heroTrailers: heroTrailers,
+              sections: sections,
+              heroController: _heroController!,
+              page: _page,
+              onPageChanged: (v) => setState(() => _page = v),
+              onOpenDetails: _openDetails,
+              onPlayTrailer: _playTrailer,
+              onShowBrowse: _showBrowseSheet,
+              onSelectSection: _selectSection,
+              buildSectionsSliver: _buildSectionsSliver,
+            ),
+    );
+  }
+}
+
+// ─── Classic Home Body (existing layout, untouched) ──────────────────────────
+
+class _ClassicHomeBody extends StatelessWidget {
+  const _ClassicHomeBody({
+    super.key,
+    required this.heroTrailers,
+    required this.sections,
+    required this.heroController,
+    required this.page,
+    required this.onPageChanged,
+    required this.onOpenDetails,
+    required this.onPlayTrailer,
+    required this.onShowBrowse,
+    required this.onSelectSection,
+    required this.buildSectionsSliver,
+  });
+
+  final List<Trailer> heroTrailers;
+  final Map<String, List<Trailer>> sections;
+  final PageController heroController;
+  final int page;
+  final ValueChanged<int> onPageChanged;
+  final ValueChanged<Trailer> onOpenDetails;
+  final ValueChanged<Trailer> onPlayTrailer;
+  final VoidCallback onShowBrowse;
+  final ValueChanged<String> onSelectSection;
+  final Widget Function(Map<String, List<Trailer>>) buildSectionsSliver;
+
+  @override
+  Widget build(BuildContext context) {
     return CustomScrollView(
       physics: const BouncingScrollPhysics(),
       slivers: [
@@ -242,15 +359,15 @@ class _HomeScreenState extends State<HomeScreen>
               children: [
                 if (heroTrailers.isNotEmpty)
                   PageView.builder(
-                    controller: _heroController,
-                    onPageChanged: (v) => setState(() => _page = v),
+                    controller: heroController,
+                    onPageChanged: onPageChanged,
                     itemBuilder: (context, index) {
                       final trailer =
                           heroTrailers[index % heroTrailers.length];
                       return _HeroSlide(
                         trailer: trailer,
-                        onOpen: () => _openDetails(trailer),
-                        onPlay: () => _playTrailer(trailer),
+                        onOpen: () => onOpenDetails(trailer),
+                        onPlay: () => onPlayTrailer(trailer),
                       );
                     },
                   ),
@@ -269,7 +386,7 @@ class _HomeScreenState extends State<HomeScreen>
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(heroTrailers.length, (index) {
                         final selected =
-                            _page % heroTrailers.length == index;
+                            page % heroTrailers.length == index;
                         return AnimatedContainer(
                           duration: const Duration(milliseconds: 220),
                           margin:
@@ -291,42 +408,513 @@ class _HomeScreenState extends State<HomeScreen>
         ),
         SliverToBoxAdapter(
           child: _QuickCategoryBar(
-            onShowBrowse: _showBrowseSheet,
-            onSelect: _selectSection,
+            onShowBrowse: onShowBrowse,
+            onSelect: onSelectSection,
           ),
         ),
-        SliverPadding(
-          padding: const EdgeInsets.only(bottom: 96),
-          sliver: SliverList.builder(
-            itemCount: sections.length,
-            itemBuilder: (context, index) {
-              final entry = sections.entries.elementAt(index);
-              if (entry.key == 'Trending Now') {
-                return _TrendingStackedRail(
-                  title: entry.key,
-                  trailers: entry.value,
-                  onTap: _openDetails,
-                  onPlay: _playTrailer,
-                );
-              }
-              if (entry.key == 'Most Awaited') {
-                return _MostAwaitedCarousel(
-                  title: entry.key,
-                  trailers: entry.value,
-                  onTap: _openDetails,
-                  onPlay: _playTrailer,
-                );
-              }
-              return _TrailerRail(
-                title: entry.key,
-                trailers: entry.value,
-                onTap: _openDetails,
-                onPlay: _playTrailer,
-              );
-            },
+        buildSectionsSliver(sections),
+      ],
+    );
+  }
+}
+
+// ─── Cinematic Home Body ─────────────────────────────────────────────────────
+
+class _CinematicHomeBody extends StatelessWidget {
+  const _CinematicHomeBody({
+    super.key,
+    required this.heroTrailers,
+    required this.sections,
+    required this.heroController,
+    required this.page,
+    required this.onPageChanged,
+    required this.onOpenDetails,
+    required this.onPlayTrailer,
+    required this.onShowBrowse,
+    required this.onSelectSection,
+    required this.buildSectionsSliver,
+  });
+
+  final List<Trailer> heroTrailers;
+  final Map<String, List<Trailer>> sections;
+  final PageController heroController;
+  final int page;
+  final ValueChanged<int> onPageChanged;
+  final ValueChanged<Trailer> onOpenDetails;
+  final ValueChanged<Trailer> onPlayTrailer;
+  final VoidCallback onShowBrowse;
+  final ValueChanged<String> onSelectSection;
+  final Widget Function(Map<String, List<Trailer>>) buildSectionsSliver;
+
+  @override
+  Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final heroHeight = screenHeight * 0.65;
+
+    return CustomScrollView(
+      physics: const BouncingScrollPhysics(),
+      slivers: [
+        // ── Cinematic Hero ───────────────────────────────────────────────
+        SliverToBoxAdapter(
+          child: SizedBox(
+            height: heroHeight + 30, // extra 30 for chip overlap zone
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // Hero PageView — full-bleed artwork
+                if (heroTrailers.isNotEmpty)
+                  Positioned.fill(
+                    bottom: 0,
+                    child: PageView.builder(
+                      controller: heroController,
+                      onPageChanged: onPageChanged,
+                      itemBuilder: (context, index) {
+                        final trailer =
+                            heroTrailers[index % heroTrailers.length];
+                        return _CinematicHeroSlide(
+                          trailer: trailer,
+                          onOpen: () => onOpenDetails(trailer),
+                          onPlay: () => onPlayTrailer(trailer),
+                          bottomPadding: 110.0,
+                        );
+                      },
+                    ),
+                  ),
+
+                // ── Premium Header (integrated with hero) ──────────────
+                Positioned(
+                  left: 28,
+                  right: 28,
+                  top: MediaQuery.paddingOf(context).top + 12,
+                  child: const _CinematicTopBar(),
+                ),
+
+                // ── Progress Indicator (Apple TV+ style) ────────────────
+                if (heroTrailers.isNotEmpty)
+                  Positioned(
+                    left: 28,
+                    right: 28,
+                    bottom: 126,
+                    child: _CinematicProgressBar(
+                      total: heroTrailers.length,
+                      current: page % heroTrailers.length,
+                    ),
+                  ),
+
+                // ── Category Chips (floating, overlapping bottom) ───────
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: ClipRRect(
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(vertical: 6),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              AppTheme.background.withValues(alpha: 0.3),
+                              AppTheme.background.withValues(alpha: 0.85),
+                            ],
+                          ),
+                        ),
+                        child: _QuickCategoryBar(
+                          onShowBrowse: onShowBrowse,
+                          onSelect: onSelectSection,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+
+        // ── Sections (identical to Classic) ────────────────────────────
+        buildSectionsSliver(sections),
+      ],
+    );
+  }
+}
+
+// ─── Cinematic Hero Slide ────────────────────────────────────────────────────
+
+class _CinematicHeroSlide extends StatelessWidget {
+  const _CinematicHeroSlide({
+    required this.trailer,
+    required this.onOpen,
+    required this.onPlay,
+    this.bottomPadding = 0.0,
+  });
+
+  final Trailer trailer;
+  final VoidCallback onOpen;
+  final VoidCallback onPlay;
+  final double bottomPadding;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onOpen,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          // ── Full-bleed artwork ─────────────────────────────────────
+          Hero(
+            tag: 'backdrop-${trailer.id}',
+            child: CinematicImage(
+              url: trailer.youtubeThumbnailUrl,
+              alignment: Alignment.topCenter,
+            ),
+          ),
+
+          // ── Soft ambient glow behind hero ──────────────────────────
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment.center,
+                  radius: 1.4,
+                  colors: [
+                    AppTheme.accent.withValues(alpha: 0.06),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // ── Strong cinematic bottom gradient ───────────────────────
+          const Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    AppTheme.background,
+                    Color(0xE6090909),
+                    Color(0x99090909),
+                    Colors.transparent,
+                    Colors.transparent,
+                  ],
+                  stops: [0.0, 0.12, 0.28, 0.55, 1.0],
+                ),
+              ),
+            ),
+          ),
+
+          // ── Top vignette ───────────────────────────────────────────
+          const Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.center,
+                  colors: [
+                    Color(0x99000000),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // ── Edge vignette ──────────────────────────────────────────
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment.center,
+                  radius: 0.9,
+                  colors: [
+                    Colors.transparent,
+                    Colors.black.withValues(alpha: 0.35),
+                  ],
+                  stops: const [0.6, 1.0],
+                ),
+              ),
+            ),
+          ),
+
+          // ── Movie Info (bottom-left) ───────────────────────────────
+          Positioned(
+            left: 28,
+            right: 80,
+            bottom: 48 + bottomPadding,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Studio badge
+                if (trailer.studio.isNotEmpty)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.15),
+                      ),
+                    ),
+                    child: Text(
+                      trailer.studio.toUpperCase(),
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.7),
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                  ),
+
+                // Title — PRIMARY focus, large and bold
+                Text(
+                  trailer.title.toUpperCase(),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                    height: 1.15,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                // Tagline
+                if (trailer.tagline.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: Text(
+                      '"${trailer.tagline}"',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.5),
+                        fontSize: 11,
+                        fontStyle: FontStyle.italic,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+
+                // Metadata row — smaller and lighter
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Text(
+                      trailer.genres.take(2).join(' · '),
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.4),
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (trailer.runtime.isNotEmpty) ...[
+                      Text('•',
+                          style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.25),
+                              fontSize: 10)),
+                      Text(
+                        trailer.runtime,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.4),
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                    Text('•',
+                        style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.25),
+                            fontSize: 10)),
+                    PopcornBadge(
+                      score: trailer.hypeScore,
+                      compact: true,
+                      onTap: () => showPopcornRating(
+                        context,
+                        hypeScore: trailer.hypeScore,
+                        currentRating: null,
+                        onRatingChanged: (_) {},
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
+          // ── ▶ Play Button (bottom-right) ─────────────────────────────
+          Positioned(
+            right: 28,
+            bottom: 54 + bottomPadding,
+            child: GestureDetector(
+              onTap: onPlay,
+              child: Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white.withValues(alpha: 0.12),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.25),
+                    width: 0.8,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.play_arrow_rounded,
+                  color: Colors.white,
+                  size: 26,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Cinematic Top Bar ───────────────────────────────────────────────────────
+
+class _CinematicTopBar extends StatelessWidget {
+  const _CinematicTopBar();
+
+  @override
+  Widget build(BuildContext context) {
+    const logoStyle = TextStyle(
+      fontSize: 24,
+      fontWeight: FontWeight.w900,
+      letterSpacing: -0.5,
+    );
+    return Row(
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Trailer', style: logoStyle.copyWith(color: Colors.white)),
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                Text(
+                  'Baaz',
+                  style: logoStyle.copyWith(
+                    color: AppTheme.accent.withValues(alpha: 0.35),
+                    shadows: [
+                      Shadow(
+                        color: AppTheme.accent.withValues(alpha: 0.65),
+                        blurRadius: 12,
+                      ),
+                      Shadow(
+                        color: AppTheme.accent.withValues(alpha: 0.3),
+                        blurRadius: 28,
+                      ),
+                    ],
+                  ),
+                ),
+                Text(
+                  'Baaz',
+                  style: logoStyle.copyWith(
+                    color: AppTheme.accent,
+                    shadows: [
+                      Shadow(
+                        color: AppTheme.accent.withValues(alpha: 0.4),
+                        blurRadius: 5,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        const Spacer(),
+        GestureDetector(
+          onTap: () => AppShell.setIndex(context, 4),
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.2),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.accent.withValues(alpha: 0.1),
+                  blurRadius: 12,
+                  spreadRadius: 1,
+                ),
+              ],
+            ),
+            child: ClipOval(
+              child: SizedBox(
+                width: 42,
+                height: 42,
+                child: CinematicImage(
+                  url:
+                      'https://images.unsplash.com/photo-1527980965255-d3b416303d12?auto=format&fit=crop&w=200&q=80',
+                ),
+              ),
+            ),
           ),
         ),
       ],
+    );
+  }
+}
+
+// ─── Cinematic Progress Bar (Apple TV+ style) ────────────────────────────────
+
+class _CinematicProgressBar extends StatelessWidget {
+  const _CinematicProgressBar({
+    required this.total,
+    required this.current,
+  });
+
+  final int total;
+  final int current;
+
+  @override
+  Widget build(BuildContext context) {
+    if (total <= 0) return const SizedBox.shrink();
+
+    return SizedBox(
+      height: 2.5,
+      child: Row(
+        children: List.generate(total, (index) {
+          final isActive = index == current;
+          return Expanded(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeInOut,
+              margin: const EdgeInsets.symmetric(horizontal: 1.5),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(999),
+                color: isActive
+                    ? Colors.white.withValues(alpha: 0.9)
+                    : Colors.white.withValues(alpha: 0.18),
+              ),
+            ),
+          );
+        }),
+      ),
     );
   }
 }

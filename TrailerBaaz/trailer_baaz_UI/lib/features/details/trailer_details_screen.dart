@@ -133,7 +133,7 @@ class _TrailerDetailsScreenState extends State<TrailerDetailsScreen> {
                 Text(
                   trailer.title.toUpperCase(),
                   style: const TextStyle(
-                    fontSize: 30,
+                    fontSize: 24,
                     height: .94,
                     fontWeight: FontWeight.w900,
                   ),
@@ -150,10 +150,6 @@ class _TrailerDetailsScreenState extends State<TrailerDetailsScreen> {
                 const SizedBox(height: 24),
                 Row(
                   children: [
-                    PopcornBadge(
-                      score: trailer.hypeScore,
-                      onTap: _openPopcornSheet,
-                    ),
                     StatItem(value: trailer.views, label: 'Trailer views'),
                     StatItem(value: trailer.releaseDate, label: 'Released'),
                   ],
