@@ -816,8 +816,8 @@ class _CinematicTopBar extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Image.asset(
-              'assets/images/app_icon2.png',
-              height: 38,
+              'assets/images/TrailerBaaz6.png',
+              height: 50,
               fit: BoxFit.contain,
             ),
             /*
@@ -878,8 +878,8 @@ class _CinematicTopBar extends StatelessWidget {
             ),
             child: ClipOval(
               child: SizedBox(
-                width: 42,
-                height: 42,
+                width: 32,
+                height: 32,
                 child: CinematicImage(
                   url:
                       'https://images.unsplash.com/photo-1527980965255-d3b416303d12?auto=format&fit=crop&w=200&q=80',
@@ -1896,8 +1896,8 @@ class _TopBar extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Image.asset(
-              'assets/images/app_icon2.png',
-              height: 38,
+              'assets/images/TrailerBaaz6.png',
+              height: 50,
               fit: BoxFit.contain,
             ),
             /*

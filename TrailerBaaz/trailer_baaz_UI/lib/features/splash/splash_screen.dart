@@ -12,6 +12,7 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
   late final AnimationController _logoController;
+  late final AnimationController _glowController;
   late final AnimationController _textController;
   late final AnimationController _buttonController;
 
@@ -24,8 +25,12 @@ class _SplashScreenState extends State<SplashScreen>
   late final Animation<double> _taglineFade;
   late final Animation<Offset> _taglineSlide;
 
-  late final Animation<double> _buttonFade;
-  late final Animation<Offset> _buttonSlide;
+  late final Animation<double> _googleButtonFade;
+  late final Animation<Offset> _googleButtonSlide;
+  late final Animation<double> _guestButtonFade;
+  late final Animation<Offset> _guestButtonSlide;
+
+  bool _buttonsReady = false;
 
   @override
   void initState() {
@@ -33,103 +38,141 @@ class _SplashScreenState extends State<SplashScreen>
 
     _logoController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2200), // Calm, luxurious entrance
+      duration: const Duration(milliseconds: 700),
+    );
+
+    _glowController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 650),
     );
 
     _textController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 700),
     );
 
     _buttonController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1000),
+      duration: const Duration(milliseconds: 700),
     );
 
-    // Logo starts slightly larger (1.15) and settles to 1.0 with easeOutCubic
-    _logoScale = Tween<double>(begin: 1.15, end: 1.0).animate(
+    // Phase 1: the TB logo emerges from the black center, scaling up smoothly.
+    _logoScale = Tween<double>(begin: 0.5, end: 1.0).animate(
+      CurvedAnimation(parent: _logoController, curve: Curves.easeOutCubic),
+    );
+    _logoFade = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _logoController, curve: Curves.easeOutCubic),
     );
 
-    // Fade in logo over the first 50% of the animation
-    _logoFade = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _logoController,
-        curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
+    // Phase 2: a restrained cinematic red pulse blooms once, then settles.
+    _logoGlow = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween<double>(
+          begin: 0.0,
+          end: 0.36,
+        ).chain(CurveTween(curve: Curves.easeOutCubic)),
+        weight: 42,
       ),
-    );
-
-    // Glow starts intense (0.7) and reduces to very subtle (0.15) as it lands
-    _logoGlow = Tween<double>(begin: 0.7, end: 0.15).animate(
-      CurvedAnimation(
-        parent: _logoController,
-        curve: const Interval(0.2, 1.0, curve: Curves.easeOutCubic),
+      TweenSequenceItem(
+        tween: Tween<double>(
+          begin: 0.36,
+          end: 0.08,
+        ).chain(CurveTween(curve: Curves.easeOutCubic)),
+        weight: 58,
       ),
-    );
+    ]).animate(_glowController);
 
-    // Wordmark staggers in first
+    // Phase 3: the TrailerBaaz wordmark rises subtly after the mark settles.
     _wordmarkFade = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _textController,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
+        curve: const Interval(0.0, 0.72, curve: Curves.easeOutCubic),
       ),
     );
-    _wordmarkSlide = Tween<Offset>(begin: const Offset(0, 0.15), end: Offset.zero).animate(
-      CurvedAnimation(
-        parent: _textController,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeOutCubic),
-      ),
-    );
+    _wordmarkSlide =
+        Tween<Offset>(begin: const Offset(0, 0.18), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _textController,
+            curve: const Interval(0.0, 0.72, curve: Curves.easeOutCubic),
+          ),
+        );
 
-    // Tagline staggers in next
+    // Phase 4: the tagline follows with a small delay and matching upward drift.
     _taglineFade = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(
         parent: _textController,
-        curve: const Interval(0.3, 1.0, curve: Curves.easeOut),
+        curve: const Interval(0.26, 1.0, curve: Curves.easeOutCubic),
       ),
     );
-    _taglineSlide = Tween<Offset>(begin: const Offset(0, 0.15), end: Offset.zero).animate(
-      CurvedAnimation(
-        parent: _textController,
-        curve: const Interval(0.3, 1.0, curve: Curves.easeOutCubic),
-      ),
-    );
+    _taglineSlide =
+        Tween<Offset>(begin: const Offset(0, 0.18), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _textController,
+            curve: const Interval(0.26, 1.0, curve: Curves.easeOutCubic),
+          ),
+        );
 
-    // Buttons slide up with a gentle fade and spring-like easing (easeOutQuart for premium feel)
-    _buttonFade = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _buttonController, curve: Curves.easeOut),
+    // Phase 5: the Google button enters first from below.
+    _googleButtonFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _buttonController,
+        curve: const Interval(0.0, 0.68, curve: Curves.easeOutCubic),
+      ),
     );
-    _buttonSlide = Tween<Offset>(begin: const Offset(0, 0.25), end: Offset.zero).animate(
-      CurvedAnimation(parent: _buttonController, curve: Curves.easeOutQuart),
+    _googleButtonSlide =
+        Tween<Offset>(begin: const Offset(0, 0.24), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _buttonController,
+            curve: const Interval(0.0, 0.68, curve: Curves.easeOutCubic),
+          ),
+        );
+
+    // Phase 6: the guest button follows 100-150ms later for a premium stagger.
+    _guestButtonFade = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _buttonController,
+        curve: const Interval(0.18, 0.92, curve: Curves.easeOutCubic),
+      ),
     );
+    _guestButtonSlide =
+        Tween<Offset>(begin: const Offset(0, 0.24), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _buttonController,
+            curve: const Interval(0.18, 0.92, curve: Curves.easeOutCubic),
+          ),
+        );
 
     _runSequence();
   }
 
   void _runSequence() async {
-    // 1. Initial pause: Screen is almost completely black.
-    await Future.delayed(const Duration(milliseconds: 500));
+    // Start on a completely black frame before any branded element appears.
+    await Future.delayed(const Duration(milliseconds: 360));
     if (!mounted) return;
 
-    // 2. Logo entrance and landing
+    // Bring the TB mark in from the center.
     await _logoController.forward();
     if (!mounted) return;
 
-    // 3. Texts stagger in after logo has completed entrance
-    _textController.forward();
-    
-    // 4. Wait for text to finish, then short pause before buttons
-    await Future.delayed(const Duration(milliseconds: 1000));
+    // Pulse the red glow once while the title begins its cinematic rise.
+    _glowController.forward();
+    await Future.delayed(const Duration(milliseconds: 120));
     if (!mounted) return;
+    await _textController.forward();
 
-    // 5. Buttons enter
-    _buttonController.forward();
+    // Let the brand moment breathe, then reveal the actions one after another.
+    await Future.delayed(const Duration(milliseconds: 300));
+    if (!mounted) return;
+    await _buttonController.forward();
+    if (!mounted) return;
+    setState(() => _buttonsReady = true);
   }
 
   @override
   void dispose() {
     try {
       _logoController.dispose();
+      _glowController.dispose();
       _textController.dispose();
       _buttonController.dispose();
     } catch (_) {}
@@ -139,23 +182,22 @@ class _SplashScreenState extends State<SplashScreen>
   void _navigateHome() {
     Navigator.of(context).pushReplacement(
       PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 800),
-        reverseTransitionDuration: const Duration(milliseconds: 800),
+        transitionDuration: const Duration(milliseconds: 700),
+        reverseTransitionDuration: const Duration(milliseconds: 700),
         pageBuilder: (context, animation, secondaryAnimation) {
           return const AppShell();
         },
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          // Premium shared-axis / scale fade transition
-          final fade = Tween<double>(
-            begin: 0,
-            end: 1,
-          ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOut));
+          // Dissolve into the app shell instead of snapping away from splash.
+          final fade = CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+          );
 
           final scaleIn = Tween<double>(begin: 0.96, end: 1.0).animate(
             CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
           );
 
-          // The outgoing page fades out and scales up slightly
           return FadeTransition(
             opacity: fade,
             child: ScaleTransition(scale: scaleIn, child: child),
@@ -178,7 +220,7 @@ class _SplashScreenState extends State<SplashScreen>
 
               // Animated Hero Logo
               AnimatedBuilder(
-                animation: _logoController,
+                animation: Listenable.merge([_logoController, _glowController]),
                 builder: (context, child) {
                   return FadeTransition(
                     opacity: _logoFade,
@@ -232,66 +274,82 @@ class _SplashScreenState extends State<SplashScreen>
               AnimatedBuilder(
                 animation: _buttonController,
                 builder: (context, child) {
-                  return FadeTransition(
-                    opacity: _buttonFade,
-                    child: SlideTransition(
-                      position: _buttonSlide,
+                  return AbsorbPointer(
+                    absorbing: !_buttonsReady,
+                    child: AnimatedOpacity(
+                      opacity: _buttonController.value == 0 ? 0.0 : 1.0,
+                      duration: const Duration(milliseconds: 180),
+                      curve: Curves.easeOutCubic,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          _ScaleButton(
-                            onTap: _navigateHome,
-                            child: Container(
-                              width: double.infinity,
-                              height: 56,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(999),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  SvgPicture.asset(
-                                    'assets/icons/google.svg',
-                                    height: 22,
-                                    width: 22,
+                          FadeTransition(
+                            opacity: _googleButtonFade,
+                            child: SlideTransition(
+                              position: _googleButtonSlide,
+                              child: _ScaleButton(
+                                onTap: _navigateHome,
+                                child: Container(
+                                  width: double.infinity,
+                                  height: 56,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(999),
                                   ),
-                                  const SizedBox(width: 12),
-                                  const Text(
-                                    'Continue with Google',
-                                    style: TextStyle(
-                                      color: Colors.black,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      SvgPicture.asset(
+                                        'assets/icons/google.svg',
+                                        height: 22,
+                                        width: 22,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      const Text(
+                                        'Continue with Google',
+                                        style: TextStyle(
+                                          color: Colors.black,
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
+                                ),
                               ),
                             ),
                           ),
 
                           const SizedBox(height: 16),
 
-                          _ScaleButton(
-                            onTap: _navigateHome,
-                            child: Container(
-                              width: double.infinity,
-                              height: 56,
-                              decoration: BoxDecoration(
-                                color: Colors.transparent,
-                                borderRadius: BorderRadius.circular(999),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.3),
-                                  width: 1,
-                                ),
-                              ),
-                              child: const Center(
-                                child: Text(
-                                  'Browse as Guest',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
+                          FadeTransition(
+                            opacity: _guestButtonFade,
+                            child: SlideTransition(
+                              position: _guestButtonSlide,
+                              child: _ScaleButton(
+                                onTap: _navigateHome,
+                                child: Container(
+                                  width: double.infinity,
+                                  height: 56,
+                                  decoration: BoxDecoration(
+                                    color: Colors.transparent,
+                                    borderRadius: BorderRadius.circular(999),
+                                    border: Border.all(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.3,
+                                      ),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: const Center(
+                                    child: Text(
+                                      'Browse as Guest',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -356,11 +414,45 @@ class _Logo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Image.asset(
-      'assets/images/app_icon2.png',
-      width: 120,
-      fit: BoxFit.contain,
-      filterQuality: FilterQuality.high,
+    return Stack(
+      alignment: Alignment.center,
+      clipBehavior: Clip.none,
+      children: [
+        // Native Flutter glow only: a soft red bloom that pulses once and recedes.
+        AnimatedOpacity(
+          opacity: glowOpacity.clamp(0.0, 1.0),
+          duration: const Duration(milliseconds: 120),
+          curve: Curves.easeOutCubic,
+          child: Container(
+            width: 168,
+            height: 168,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  AppTheme.accent.withValues(alpha: 0.32),
+                  AppTheme.accent.withValues(alpha: 0.12),
+                  Colors.transparent,
+                ],
+                stops: const [0.0, 0.45, 1.0],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.accent.withValues(alpha: 0.28),
+                  blurRadius: 72,
+                  spreadRadius: 12,
+                ),
+              ],
+            ),
+          ),
+        ),
+        Image.asset(
+          'assets/images/TrailerBaaz6.png',
+          width: 120,
+          fit: BoxFit.contain,
+          filterQuality: FilterQuality.high,
+        ),
+      ],
     );
   }
 }
