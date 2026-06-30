@@ -10,7 +10,8 @@ import '../../core/models/trailer.dart';
 import '../../shared/widgets/cinematic_image.dart';
 
 import '../../shared/widgets/popcorn_rating.dart';
-import '../../shared/widgets/trailer_card.dart' show TrailerCard, kCardTextSectionHeight;
+import '../../shared/widgets/trailer_card.dart'
+    show TrailerCard, kCardTextSectionHeight;
 import '../../shared/widgets/trailer_player.dart';
 import '../details/trailer_details_screen.dart';
 import '../shell/app_shell.dart';
@@ -240,8 +241,10 @@ class _HomeScreenState extends State<HomeScreen>
           children: [
             const Icon(Icons.wifi_off_rounded, size: 48, color: Colors.white38),
             const SizedBox(height: 12),
-            const Text('Could not load trailers',
-                style: TextStyle(color: Colors.white54)),
+            const Text(
+              'Could not load trailers',
+              style: TextStyle(color: Colors.white54),
+            ),
             const SizedBox(height: 16),
             FilledButton(
               onPressed: () => provider.init(),
@@ -362,8 +365,7 @@ class _ClassicHomeBody extends StatelessWidget {
                     controller: heroController,
                     onPageChanged: onPageChanged,
                     itemBuilder: (context, index) {
-                      final trailer =
-                          heroTrailers[index % heroTrailers.length];
+                      final trailer = heroTrailers[index % heroTrailers.length];
                       return _HeroSlide(
                         trailer: trailer,
                         onOpen: () => onOpenDetails(trailer),
@@ -385,17 +387,14 @@ class _ClassicHomeBody extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: List.generate(heroTrailers.length, (index) {
-                        final selected =
-                            page % heroTrailers.length == index;
+                        final selected = page % heroTrailers.length == index;
                         return AnimatedContainer(
                           duration: const Duration(milliseconds: 220),
-                          margin:
-                              const EdgeInsets.symmetric(horizontal: 4),
+                          margin: const EdgeInsets.symmetric(horizontal: 4),
                           width: selected ? 24 : 7,
                           height: 7,
                           decoration: BoxDecoration(
-                            color:
-                                selected ? Colors.white : Colors.white24,
+                            color: selected ? Colors.white : Colors.white24,
                             borderRadius: BorderRadius.circular(999),
                           ),
                         );
@@ -615,10 +614,7 @@ class _CinematicHeroSlide extends StatelessWidget {
                 gradient: LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.center,
-                  colors: [
-                    Color(0x99000000),
-                    Colors.transparent,
-                  ],
+                  colors: [Color(0x99000000), Colors.transparent],
                 ),
               ),
             ),
@@ -655,7 +651,9 @@ class _CinematicHeroSlide extends StatelessWidget {
                   Container(
                     margin: const EdgeInsets.only(bottom: 10),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(999),
@@ -722,10 +720,13 @@ class _CinematicHeroSlide extends StatelessWidget {
                       ),
                     ),
                     if (trailer.runtime.isNotEmpty) ...[
-                      Text('•',
-                          style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.25),
-                              fontSize: 10)),
+                      Text(
+                        '•',
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.25),
+                          fontSize: 10,
+                        ),
+                      ),
                       Text(
                         trailer.runtime,
                         style: TextStyle(
@@ -734,10 +735,13 @@ class _CinematicHeroSlide extends StatelessWidget {
                         ),
                       ),
                     ],
-                    Text('•',
-                        style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.25),
-                            fontSize: 10)),
+                    Text(
+                      '•',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.25),
+                        fontSize: 10,
+                      ),
+                    ),
                     PopcornBadge(
                       score: trailer.hypeScore,
                       compact: true,
@@ -799,16 +803,24 @@ class _CinematicTopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    /*
     const logoStyle = TextStyle(
       fontSize: 24,
       fontWeight: FontWeight.w900,
       letterSpacing: -0.5,
     );
+    */
     return Row(
       children: [
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Image.asset(
+              'assets/images/app_icon2.png',
+              height: 38,
+              fit: BoxFit.contain,
+            ),
+            /*
             Text('Trailer', style: logoStyle.copyWith(color: Colors.white)),
             Stack(
               alignment: Alignment.center,
@@ -843,6 +855,7 @@ class _CinematicTopBar extends StatelessWidget {
                 ),
               ],
             ),
+            */
           ],
         ),
         const Spacer(),
@@ -883,10 +896,7 @@ class _CinematicTopBar extends StatelessWidget {
 // ─── Cinematic Progress Bar (Apple TV+ style) ────────────────────────────────
 
 class _CinematicProgressBar extends StatelessWidget {
-  const _CinematicProgressBar({
-    required this.total,
-    required this.current,
-  });
+  const _CinematicProgressBar({required this.total, required this.current});
 
   final int total;
   final int current;
@@ -922,10 +932,7 @@ class _CinematicProgressBar extends StatelessWidget {
 // ─── Quick Category Bar ──────────────────────────────────────────────────────
 
 class _QuickCategoryBar extends StatelessWidget {
-  const _QuickCategoryBar({
-    required this.onShowBrowse,
-    required this.onSelect,
-  });
+  const _QuickCategoryBar({required this.onShowBrowse, required this.onSelect});
 
   final VoidCallback onShowBrowse;
   final ValueChanged<String> onSelect;
@@ -956,7 +963,9 @@ class _QuickCategoryBar extends StatelessWidget {
                   onTap: onShowBrowse,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 7),
+                      horizontal: 14,
+                      vertical: 7,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(999),
@@ -1003,7 +1012,9 @@ class _QuickCategoryBar extends StatelessWidget {
                   onTap: () => onSelect(cat.sectionKey),
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 8),
+                      horizontal: 14,
+                      vertical: 8,
+                    ),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
@@ -1021,8 +1032,7 @@ class _QuickCategoryBar extends StatelessWidget {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         if (cat.flag != null) ...[
-                          Text(cat.flag!,
-                              style: const TextStyle(fontSize: 13)),
+                          Text(cat.flag!, style: const TextStyle(fontSize: 13)),
                           const SizedBox(width: 5),
                         ] else ...[
                           Icon(cat.icon, color: cat.color, size: 13),
@@ -1073,8 +1083,7 @@ class _BrowseSheet extends StatelessWidget {
       snapSizes: const [0.45, 0.72, 0.92],
       builder: (context, scrollController) {
         return ClipRRect(
-          borderRadius:
-              const BorderRadius.vertical(top: Radius.circular(28)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
             child: Container(
@@ -1087,8 +1096,9 @@ class _BrowseSheet extends StatelessWidget {
                     const Color(0xFF070A11).withValues(alpha: 0.98),
                   ],
                 ),
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(28)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(28),
+                ),
                 border: Border(
                   top: BorderSide(
                     color: AppTheme.accent.withValues(alpha: 0.3),
@@ -1151,7 +1161,9 @@ class _BrowseSheet extends StatelessWidget {
                     child: Column(
                       children: _browseCategories.map((cat) {
                         final isSelected = selectedSection == cat.sectionKey;
-                        final isLoaded = loadedSections.contains(cat.sectionKey);
+                        final isLoaded = loadedSections.contains(
+                          cat.sectionKey,
+                        );
                         return _SheetCategoryTile(
                           category: cat,
                           isSelected: isSelected,
@@ -1173,7 +1185,9 @@ class _BrowseSheet extends StatelessWidget {
                       childAspectRatio: 2.4,
                       children: _languageCategories.map((cat) {
                         final isSelected = selectedSection == cat.sectionKey;
-                        final isLoaded = loadedSections.contains(cat.sectionKey);
+                        final isLoaded = loadedSections.contains(
+                          cat.sectionKey,
+                        );
                         return _SheetLanguageTile(
                           category: cat,
                           isSelected: isSelected,
@@ -1351,8 +1365,7 @@ class _SheetLanguageTile extends StatelessWidget {
               ),
             ),
             Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               child: Row(
                 children: [
                   Text(
@@ -1381,8 +1394,11 @@ class _SheetLanguageTile extends StatelessWidget {
               Positioned(
                 top: 8,
                 right: 10,
-                child: Icon(Icons.check_circle_rounded,
-                    color: category.color, size: 16),
+                child: Icon(
+                  Icons.check_circle_rounded,
+                  color: category.color,
+                  size: 16,
+                ),
               ),
           ],
         ),
@@ -1412,10 +1428,7 @@ class _SectionDetailView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cat = [
-      ..._browseCategories,
-      ..._languageCategories,
-    ].firstWhere(
+    final cat = [..._browseCategories, ..._languageCategories].firstWhere(
       (c) => c.sectionKey == sectionKey,
       orElse: () => const _BrowseCategory(
         label: 'Trailers',
@@ -1475,7 +1488,9 @@ class _SectionDetailView extends StatelessWidget {
                       onTap: onShowBrowse,
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 8),
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(999),
@@ -1495,8 +1510,11 @@ class _SectionDetailView extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 4),
-                            Icon(Icons.keyboard_arrow_up_rounded,
-                                color: AppTheme.accent, size: 18),
+                            Icon(
+                              Icons.keyboard_arrow_up_rounded,
+                              color: AppTheme.accent,
+                              size: 18,
+                            ),
                           ],
                         ),
                       ),
@@ -1515,8 +1533,10 @@ class _SectionDetailView extends StatelessWidget {
                       ),
                       child: cat.flag != null
                           ? Center(
-                              child: Text(cat.flag!,
-                                  style: const TextStyle(fontSize: 26)),
+                              child: Text(
+                                cat.flag!,
+                                style: const TextStyle(fontSize: 26),
+                              ),
                             )
                           : Icon(cat.icon, color: cat.color, size: 26),
                     ),
@@ -1555,8 +1575,11 @@ class _SectionDetailView extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.movie_filter_rounded,
-                      size: 64, color: Colors.white24),
+                  const Icon(
+                    Icons.movie_filter_rounded,
+                    size: 64,
+                    color: Colors.white24,
+                  ),
                   const SizedBox(height: 16),
                   const Text(
                     'No trailers available',
@@ -1659,13 +1682,15 @@ class _LandscapeTrailerTile extends StatelessWidget {
                           Container(
                             margin: const EdgeInsets.only(bottom: 6),
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 3),
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
                             decoration: BoxDecoration(
                               color: AppTheme.accent.withValues(alpha: 0.25),
                               borderRadius: BorderRadius.circular(6),
                               border: Border.all(
-                                  color: AppTheme.accent
-                                      .withValues(alpha: 0.4)),
+                                color: AppTheme.accent.withValues(alpha: 0.4),
+                              ),
                             ),
                             child: Text(
                               trailer.studio.toUpperCase(),
@@ -1703,8 +1728,8 @@ class _LandscapeTrailerTile extends StatelessWidget {
                               Text(
                                 ' • ',
                                 style: TextStyle(
-                                    color:
-                                        Colors.white.withValues(alpha: 0.3)),
+                                  color: Colors.white.withValues(alpha: 0.3),
+                                ),
                               ),
                               Text(
                                 trailer.runtime,
@@ -1771,8 +1796,9 @@ class _LoadingShimmerState extends State<_LoadingShimmer>
   void initState() {
     super.initState();
     _ctrl = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 1200))
-      ..repeat(reverse: true);
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    )..repeat(reverse: true);
     _anim = CurvedAnimation(parent: _ctrl!, curve: Curves.easeInOut);
   }
 
@@ -1827,8 +1853,7 @@ class _LoadingShimmerState extends State<_LoadingShimmer>
                           scrollDirection: Axis.horizontal,
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: 3,
-                          separatorBuilder: (_, _) =>
-                              const SizedBox(width: 14),
+                          separatorBuilder: (_, _) => const SizedBox(width: 14),
                           itemBuilder: (_, _) => Container(
                             width: 260,
                             height: 166,
@@ -1858,16 +1883,24 @@ class _TopBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    /*
     const logoStyle = TextStyle(
       fontSize: 24,
       fontWeight: FontWeight.w900,
       letterSpacing: -0.5,
     );
+    */
     return Row(
       children: [
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            Image.asset(
+              'assets/images/app_icon2.png',
+              height: 38,
+              fit: BoxFit.contain,
+            ),
+            /*
             Text('Trailer', style: logoStyle.copyWith(color: Colors.white)),
             Stack(
               alignment: Alignment.center,
@@ -1902,6 +1935,7 @@ class _TopBar extends StatelessWidget {
                 ),
               ],
             ),
+            */
           ],
         ),
         const Spacer(),
@@ -2077,12 +2111,27 @@ class _HeroSlide extends StatelessWidget {
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                          const Text('•', style: TextStyle(color: AppTheme.muted, fontSize: 9)),
+                          const Text(
+                            '•',
+                            style: TextStyle(
+                              color: AppTheme.muted,
+                              fontSize: 9,
+                            ),
+                          ),
                           Text(
                             trailer.runtime,
-                            style: const TextStyle(color: AppTheme.muted, fontSize: 9),
+                            style: const TextStyle(
+                              color: AppTheme.muted,
+                              fontSize: 9,
+                            ),
                           ),
-                          const Text('•', style: TextStyle(color: AppTheme.muted, fontSize: 9)),
+                          const Text(
+                            '•',
+                            style: TextStyle(
+                              color: AppTheme.muted,
+                              fontSize: 9,
+                            ),
+                          ),
                           PopcornBadge(
                             score: trailer.hypeScore,
                             compact: true,
@@ -2155,7 +2204,9 @@ class _MostAwaitedCarouselState extends State<_MostAwaitedCarousel> {
   void initState() {
     super.initState();
     // initialPage set to a large number to simulate infinite scrolling
-    int initialPage = widget.trailers.isNotEmpty ? widget.trailers.length * 1000 : 0;
+    int initialPage = widget.trailers.isNotEmpty
+        ? widget.trailers.length * 1000
+        : 0;
     _pageController = PageController(
       viewportFraction: 0.82,
       initialPage: initialPage,
@@ -2252,7 +2303,8 @@ class _MostAwaitedCarouselState extends State<_MostAwaitedCarousel> {
                         double dimAlpha = (diff.abs() * 0.4).clamp(0.0, 0.4);
                         double glowIntensity = 1 - diff.abs();
 
-                        final trailer = widget.trailers[index % widget.trailers.length];
+                        final trailer =
+                            widget.trailers[index % widget.trailers.length];
 
                         return Center(
                           child: Transform(
@@ -2269,13 +2321,17 @@ class _MostAwaitedCarouselState extends State<_MostAwaitedCarousel> {
                                 borderRadius: BorderRadius.circular(16),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.6 + (0.2 * glowIntensity)),
+                                    color: Colors.black.withValues(
+                                      alpha: 0.6 + (0.2 * glowIntensity),
+                                    ),
                                     blurRadius: 20 + (10 * glowIntensity),
                                     offset: Offset(0, 12 + (8 * glowIntensity)),
                                   ),
                                   if (glowIntensity > 0)
                                     BoxShadow(
-                                      color: AppTheme.accent.withValues(alpha: 0.15 * glowIntensity),
+                                      color: AppTheme.accent.withValues(
+                                        alpha: 0.15 * glowIntensity,
+                                      ),
                                       blurRadius: 40,
                                       spreadRadius: 2,
                                     ),
@@ -2304,7 +2360,9 @@ class _MostAwaitedCarouselState extends State<_MostAwaitedCarousel> {
                                           radius: 1.2,
                                           colors: [
                                             Colors.transparent,
-                                            Colors.black.withValues(alpha: 0.2 + dimAlpha),
+                                            Colors.black.withValues(
+                                              alpha: 0.2 + dimAlpha,
+                                            ),
                                           ],
                                           stops: const [0.4, 1.0],
                                         ),
@@ -2319,10 +2377,14 @@ class _MostAwaitedCarouselState extends State<_MostAwaitedCarousel> {
                                           begin: Alignment.topLeft,
                                           end: Alignment.bottomRight,
                                           colors: [
-                                            Colors.white.withValues(alpha: 0.12 * glowIntensity),
+                                            Colors.white.withValues(
+                                              alpha: 0.12 * glowIntensity,
+                                            ),
                                             Colors.transparent,
                                             Colors.transparent,
-                                            Colors.white.withValues(alpha: 0.05 * glowIntensity),
+                                            Colors.white.withValues(
+                                              alpha: 0.05 * glowIntensity,
+                                            ),
                                           ],
                                           stops: const [0.0, 0.3, 0.7, 1.0],
                                         ),
@@ -2378,16 +2440,17 @@ class _TrendingStackedRailState extends State<_TrendingStackedRail>
   @override
   void initState() {
     super.initState();
-    _snapCtrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 340),
-    )..addListener(() {
-        if (_snapAnim != null) {
-          setState(() {
-            _page = _snapAnim!.value;
-          });
-        }
-      });
+    _snapCtrl =
+        AnimationController(
+          vsync: this,
+          duration: const Duration(milliseconds: 340),
+        )..addListener(() {
+          if (_snapAnim != null) {
+            setState(() {
+              _page = _snapAnim!.value;
+            });
+          }
+        });
   }
 
   @override
@@ -2488,9 +2551,19 @@ class _TrendingStackedRailState extends State<_TrendingStackedRail>
                 // Render background cards first (behind), front card last (on top)
                 children: [
                   for (int offset = 3; offset >= 0; offset--)
-                    _buildCard(currentIndex + offset, cardWidth, cardHeight, imageHeight),
+                    _buildCard(
+                      currentIndex + offset,
+                      cardWidth,
+                      cardHeight,
+                      imageHeight,
+                    ),
                   // Also render the card going off-screen to the left
-                  _buildCard(currentIndex - 1, cardWidth, cardHeight, imageHeight),
+                  _buildCard(
+                    currentIndex - 1,
+                    cardWidth,
+                    cardHeight,
+                    imageHeight,
+                  ),
                 ],
               ),
             ),
@@ -2500,7 +2573,12 @@ class _TrendingStackedRailState extends State<_TrendingStackedRail>
     );
   }
 
-  Widget _buildCard(int index, double cardWidth, double cardHeight, double imageHeight) {
+  Widget _buildCard(
+    int index,
+    double cardWidth,
+    double cardHeight,
+    double imageHeight,
+  ) {
     final double diff = index - _page;
 
     // Only render what is visible: max 3 cards stacked behind, 1 flying left
@@ -2530,7 +2608,7 @@ class _TrendingStackedRailState extends State<_TrendingStackedRail>
     final bool isFront = diff.abs() < 0.5;
     final int trailerIndex =
         (index % widget.trailers.length + widget.trailers.length) %
-            widget.trailers.length;
+        widget.trailers.length;
     final trailer = widget.trailers[trailerIndex];
     // For background cards, only show the image portion (no text strip)
     final double renderHeight = isFront ? cardHeight : imageHeight;
@@ -2541,8 +2619,9 @@ class _TrendingStackedRailState extends State<_TrendingStackedRail>
       top: 10,
       bottom: 10,
       child: Transform(
-        transform: Matrix4.translationValues(translateX, 0.0, 0.0)
-            * Matrix4.diagonal3Values(scale, scale, 1.0),
+        transform:
+            Matrix4.translationValues(translateX, 0.0, 0.0) *
+            Matrix4.diagonal3Values(scale, scale, 1.0),
         alignment: Alignment.centerLeft,
         child: IgnorePointer(
           ignoring: !isFront,
@@ -2554,16 +2633,18 @@ class _TrendingStackedRailState extends State<_TrendingStackedRail>
               boxShadow: isFront
                   ? [
                       BoxShadow(
-                        color: Colors.black
-                            .withValues(alpha: (0.5 * (1 - dimAlpha)).clamp(0.0, 0.5)),
+                        color: Colors.black.withValues(
+                          alpha: (0.5 * (1 - dimAlpha)).clamp(0.0, 0.5),
+                        ),
                         blurRadius: 16,
                         offset: const Offset(0, 8),
                       ),
                     ]
                   : [
                       BoxShadow(
-                        color: Colors.black
-                            .withValues(alpha: (0.25 * (1 - dimAlpha)).clamp(0.0, 0.25)),
+                        color: Colors.black.withValues(
+                          alpha: (0.25 * (1 - dimAlpha)).clamp(0.0, 0.25),
+                        ),
                         blurRadius: 8,
                         offset: const Offset(-3, 0),
                       ),
@@ -2625,7 +2706,6 @@ class _TrailerRail extends StatelessWidget {
               children: [
                 Expanded(
                   child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
                       Container(
                         width: 3,
@@ -2651,20 +2731,14 @@ class _TrailerRail extends StatelessWidget {
                     ],
                   ),
                 ),
-                TextButton(
-                  onPressed: () {},
-                  child: const Text(
-                    'See All',
-                    style: TextStyle(color: AppTheme.muted),
-                  ),
-                ),
               ],
             ),
           ),
           const SizedBox(height: 10),
           LayoutBuilder(
             builder: (context, constraints) {
-              final double railCardWidth = MediaQuery.sizeOf(context).width * 0.74;
+              final double railCardWidth =
+                  MediaQuery.sizeOf(context).width * 0.74;
               final double imageH = railCardWidth * (9 / 16);
               return SizedBox(
                 height: imageH + kCardTextSectionHeight,
@@ -2711,8 +2785,10 @@ class _HeaderCurveClipper extends CustomClipper<Path> {
       ..lineTo(size.width, 0)
       ..lineTo(size.width, headerHeight)
       ..quadraticBezierTo(
-        size.width / 2, headerHeight + curveDepth,
-        0, headerHeight,
+        size.width / 2,
+        headerHeight + curveDepth,
+        0,
+        headerHeight,
       )
       ..close();
     return path;
@@ -2740,19 +2816,22 @@ class _HeaderArcPainter extends CustomPainter {
     final path = Path()
       ..moveTo(0, headerHeight)
       ..quadraticBezierTo(
-        size.width / 2, headerHeight + curveDepth,
-        size.width, headerHeight,
+        size.width / 2,
+        headerHeight + curveDepth,
+        size.width,
+        headerHeight,
       );
 
     final gradient = const LinearGradient(
-      colors: [
-        Colors.transparent,
-        Color(0xFFE50914),
-        Colors.transparent,
-      ],
+      colors: [Colors.transparent, Color(0xFFE50914), Colors.transparent],
       stops: [0.0, 0.5, 1.0],
     );
-    final rect = Rect.fromLTWH(0, headerHeight - 20, size.width, curveDepth + 40);
+    final rect = Rect.fromLTWH(
+      0,
+      headerHeight - 20,
+      size.width,
+      curveDepth + 40,
+    );
 
     // Glowing blurred arc
     canvas.drawPath(

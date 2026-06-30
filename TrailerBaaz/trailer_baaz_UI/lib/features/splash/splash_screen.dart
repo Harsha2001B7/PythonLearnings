@@ -312,6 +312,43 @@ class _SplashScreenState extends State<SplashScreen>
   }
 }
 
+// class _Logo extends StatelessWidget {
+//   const _Logo({required this.glowOpacity});
+
+//   final double glowOpacity;
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return Stack(
+//       alignment: Alignment.center,
+//       children: [
+//         // Subtle ambient red glow behind logo that lands smoothly
+//         Container(
+//           width: 120,
+//           height: 120,
+//           decoration: BoxDecoration(
+//             shape: BoxShape.circle,
+//             boxShadow: [
+//               BoxShadow(
+//                 color: AppTheme.accent.withValues(alpha: glowOpacity),
+//                 blurRadius: 70,
+//                 spreadRadius: 15,
+//               ),
+//             ],
+//           ),
+//         ),
+//         // The hero PNG logo, no container constraints, just the image itself
+//         Image.asset(
+//           'assets/images/app_icon.png',
+//           width: 120,
+//           fit: BoxFit.contain,
+//           filterQuality: FilterQuality.high,
+//         ),
+//       ],
+//     );
+//   }
+// }
+
 class _Logo extends StatelessWidget {
   const _Logo({required this.glowOpacity});
 
@@ -319,32 +356,11 @@ class _Logo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        // Subtle ambient red glow behind logo that lands smoothly
-        Container(
-          width: 120,
-          height: 120,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: AppTheme.accent.withValues(alpha: glowOpacity),
-                blurRadius: 70,
-                spreadRadius: 15,
-              ),
-            ],
-          ),
-        ),
-        // The hero PNG logo, no container constraints, just the image itself
-        Image.asset(
-          'assets/images/app_icon.png',
-          width: 120,
-          fit: BoxFit.contain,
-          filterQuality: FilterQuality.high,
-        ),
-      ],
+    return Image.asset(
+      'assets/images/app_icon2.png',
+      width: 120,
+      fit: BoxFit.contain,
+      filterQuality: FilterQuality.high,
     );
   }
 }
