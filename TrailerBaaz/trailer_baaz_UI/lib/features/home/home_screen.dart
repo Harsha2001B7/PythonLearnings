@@ -1594,186 +1594,19 @@ class _SectionDetailView extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
             sliver: SliverList.separated(
               itemCount: trailers.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 16),
+              separatorBuilder: (_, _) => const SizedBox(height: 14),
               itemBuilder: (context, index) {
                 final trailer = trailers[index];
-                return _LandscapeTrailerTile(
+                return TrailerCard.large(
                   trailer: trailer,
                   onTap: () => onOpenDetails(trailer),
                   onPlay: () => onPlay(trailer),
+                  width: MediaQuery.sizeOf(context).width - 40,
                 );
               },
             ),
           ),
       ],
-    );
-  }
-}
-
-// ─── Landscape Trailer Tile ───────────────────────────────────────────────────
-
-class _LandscapeTrailerTile extends StatelessWidget {
-  const _LandscapeTrailerTile({
-    required this.trailer,
-    required this.onTap,
-    required this.onPlay,
-  });
-
-  final Trailer trailer;
-  final VoidCallback onTap;
-  final VoidCallback onPlay;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 200,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(20),
-          color: const Color(0xFF111520),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            CinematicImage(
-              url: trailer.youtubeThumbnailUrl,
-              alignment: Alignment.center,
-            ),
-            const DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                  colors: [
-                    Color(0xE6000000),
-                    Color(0x44000000),
-                    Color(0x11000000),
-                  ],
-                  stops: [0, 0.5, 1.0],
-                ),
-              ),
-            ),
-            const Align(
-              alignment: Alignment.bottomCenter,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: [Color(0xCC000000), Colors.transparent],
-                  ),
-                ),
-                child: SizedBox(height: 80, width: double.infinity),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Expanded(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (trailer.studio.isNotEmpty)
-                          Container(
-                            margin: const EdgeInsets.only(bottom: 6),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppTheme.accent.withValues(alpha: 0.25),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(
-                                color: AppTheme.accent.withValues(alpha: 0.4),
-                              ),
-                            ),
-                            child: Text(
-                              trailer.studio.toUpperCase(),
-                              style: const TextStyle(
-                                color: AppTheme.accent,
-                                fontSize: 9,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 0.8,
-                              ),
-                            ),
-                          ),
-                        Text(
-                          trailer.title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            height: 1.2,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Text(
-                              trailer.genres.take(2).join(' · '),
-                              style: TextStyle(
-                                color: Colors.white.withValues(alpha: 0.55),
-                                fontSize: 11,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            if (trailer.runtime.isNotEmpty) ...[
-                              Text(
-                                ' • ',
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.3),
-                                ),
-                              ),
-                              Text(
-                                trailer.runtime,
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.55),
-                                  fontSize: 11,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  GestureDetector(
-                    onTap: onPlay,
-                    child: Container(
-                      width: 52,
-                      height: 52,
-                      decoration: BoxDecoration(
-                        color: AppTheme.accent,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.accent.withValues(alpha: 0.45),
-                            blurRadius: 18,
-                            spreadRadius: 2,
-                          ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.play_arrow_rounded,
-                        color: Colors.black,
-                        size: 28,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -2305,14 +2138,17 @@ class _MostAwaitedCarouselState extends State<_MostAwaitedCarousel> {
 
                         final trailer =
                             widget.trailers[index % widget.trailers.length];
+                        final cardTransform = Matrix4.identity()
+                          ..setEntry(3, 2, 0.001)
+                          ..multiply(
+                            Matrix4.translationValues(0.0, floatY, 0.0),
+                          )
+                          ..multiply(Matrix4.diagonal3Values(scale, scale, 1.0))
+                          ..rotateY(rotateY);
 
                         return Center(
                           child: Transform(
-                            transform: Matrix4.identity()
-                              ..setEntry(3, 2, 0.001)
-                              ..translate(0.0, floatY, 0.0)
-                              ..scale(scale, scale, 1.0)
-                              ..rotateY(rotateY),
+                            transform: cardTransform,
                             alignment: Alignment.center,
                             child: Container(
                               width: cardWidth,

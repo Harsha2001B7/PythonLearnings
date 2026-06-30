@@ -5,6 +5,7 @@ import '../../core/data/youtube_trailers_provider.dart';
 import '../../core/models/trailer.dart';
 import '../../shared/widgets/cinematic_image.dart';
 import '../../shared/widgets/trailer_card.dart';
+import '../../shared/widgets/trailer_player.dart';
 import '../details/trailer_details_screen.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -124,9 +125,11 @@ class _SearchScreenState extends State<SearchScreen>
                   ...visibleResults.map(
                     (trailer) => Padding(
                       padding: const EdgeInsets.only(bottom: 14),
-                      child: _ResultCard(
+                      child: TrailerCard.large(
                         trailer: trailer,
                         onTap: () => _openDetails(trailer),
+                        onPlay: () => _playTrailer(trailer),
+                        width: MediaQuery.sizeOf(context).width - 40,
                       ),
                     ),
                   ),
@@ -143,6 +146,10 @@ class _SearchScreenState extends State<SearchScreen>
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => TrailerDetailsScreen(trailer: trailer)),
     );
+  }
+
+  void _playTrailer(Trailer trailer) {
+    showTrailerPlayer(context, trailer);
   }
 }
 
@@ -361,26 +368,6 @@ class _StudioGrid extends StatelessWidget {
             ),
           ),
       ],
-    );
-  }
-}
-
-class _ResultCard extends StatelessWidget {
-  const _ResultCard({required this.trailer, required this.onTap});
-
-  final Trailer trailer;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final width = MediaQuery.sizeOf(context).width - 40;
-    final imageH = width * (9 / 16);
-    return TrailerCard(
-      trailer: trailer,
-      onTap: onTap,
-      width: width,
-      height: imageH,
-      showPlay: true,
     );
   }
 }

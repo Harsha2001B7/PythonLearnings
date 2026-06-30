@@ -5,6 +5,7 @@ import '../../core/data/home_experience_provider.dart';
 import '../../core/data/youtube_trailers_provider.dart';
 import '../../shared/widgets/cinematic_image.dart';
 import '../../shared/widgets/trailer_card.dart';
+import '../../shared/widgets/trailer_player.dart';
 import '../details/trailer_details_screen.dart';
 import '../splash/splash_screen.dart';
 
@@ -18,47 +19,47 @@ class ProfileScreen extends StatelessWidget {
       builder: (context, _) {
         return CustomScrollView(
           physics: const BouncingScrollPhysics(),
-      slivers: [
-        SliverPadding(
-          padding: EdgeInsets.fromLTRB(
-            20,
-            MediaQuery.paddingOf(context).top + 18,
-            20,
-            110,
-          ),
-          sliver: SliverList(
-            delegate: SliverChildListDelegate([
-              const _ProfileHeader(),
-              const SizedBox(height: 18),
-              const Row(
-                children: [
-                  _ProfileStat(value: '142', label: 'Trailers Hyped'),
-                  SizedBox(width: 10),
-                  _ProfileStat(value: '38', label: 'Bookmarks'),
-                  SizedBox(width: 10),
-                  _ProfileStat(value: '219', label: 'Watch History'),
-                ],
+          slivers: [
+            SliverPadding(
+              padding: EdgeInsets.fromLTRB(
+                20,
+                MediaQuery.paddingOf(context).top + 18,
+                20,
+                110,
               ),
-              const SizedBox(height: 22),
-              const _PreferencePanel(),
-              const SizedBox(height: 26),
-              const _SectionHeader('Watchlist'),
-              const SizedBox(height: 14),
-              _ProfileRail(start: 0),
-              const SizedBox(height: 26),
-              const _SectionHeader('Liked Trailers'),
-              const SizedBox(height: 14),
-              _ProfileRail(start: 2),
-              const SizedBox(height: 26),
-              const _SectionHeader('Recently Viewed'),
-              const SizedBox(height: 14),
-              _ProfileRail(start: 1),
-              const SizedBox(height: 26),
-              const _SettingsPanel(),
-            ]),
-          ),
-        ),
-      ],
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
+                  const _ProfileHeader(),
+                  const SizedBox(height: 18),
+                  const Row(
+                    children: [
+                      _ProfileStat(value: '142', label: 'Trailers Hyped'),
+                      SizedBox(width: 10),
+                      _ProfileStat(value: '38', label: 'Bookmarks'),
+                      SizedBox(width: 10),
+                      _ProfileStat(value: '219', label: 'Watch History'),
+                    ],
+                  ),
+                  const SizedBox(height: 22),
+                  const _PreferencePanel(),
+                  const SizedBox(height: 26),
+                  const _SectionHeader('Watchlist'),
+                  const SizedBox(height: 14),
+                  _ProfileRail(start: 0),
+                  const SizedBox(height: 26),
+                  const _SectionHeader('Liked Trailers'),
+                  const SizedBox(height: 14),
+                  _ProfileRail(start: 2),
+                  const SizedBox(height: 26),
+                  const _SectionHeader('Recently Viewed'),
+                  const SizedBox(height: 14),
+                  _ProfileRail(start: 1),
+                  const SizedBox(height: 26),
+                  const _SettingsPanel(),
+                ]),
+              ),
+            ),
+          ],
         );
       },
     );
@@ -233,7 +234,7 @@ class _ProfileRail extends StatelessWidget {
   Widget build(BuildContext context) {
     final allTrailers = YoutubeTrailersProvider.instance.allTrailers;
     if (allTrailers.isEmpty) return const SizedBox();
-    
+
     final items = List.generate(
       3,
       (index) => allTrailers[(start + index) % allTrailers.length],
@@ -256,6 +257,7 @@ class _ProfileRail extends StatelessWidget {
                   builder: (_) => TrailerDetailsScreen(trailer: items[index]),
                 ),
               ),
+              onPlay: () => showTrailerPlayer(context, items[index]),
               width: cardWidth,
               height: imageH,
             ),
@@ -308,9 +310,9 @@ class _SettingsPanel extends StatelessWidget {
                       transitionDuration: const Duration(milliseconds: 500),
                       pageBuilder: (context, animation, secondaryAnimation) =>
                           FadeTransition(
-                        opacity: animation,
-                        child: const SplashScreen(),
-                      ),
+                            opacity: animation,
+                            child: const SplashScreen(),
+                          ),
                     ),
                     (route) => false,
                   );
@@ -433,8 +435,9 @@ class _AppearanceSheet extends StatelessWidget {
                 icon: Icons.grid_view_rounded,
                 isSelected: current == HomeExperience.classic,
                 onTap: () {
-                  HomeExperienceProvider.instance
-                      .setExperience(HomeExperience.classic);
+                  HomeExperienceProvider.instance.setExperience(
+                    HomeExperience.classic,
+                  );
                   Navigator.pop(context);
                 },
               ),
@@ -445,8 +448,9 @@ class _AppearanceSheet extends StatelessWidget {
                 icon: Icons.movie_filter_rounded,
                 isSelected: current == HomeExperience.cinematic,
                 onTap: () {
-                  HomeExperienceProvider.instance
-                      .setExperience(HomeExperience.cinematic);
+                  HomeExperienceProvider.instance.setExperience(
+                    HomeExperience.cinematic,
+                  );
                   Navigator.pop(context);
                 },
               ),
