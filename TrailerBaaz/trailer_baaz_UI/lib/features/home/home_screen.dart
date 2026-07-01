@@ -14,7 +14,6 @@ import '../../shared/widgets/trailer_card.dart'
     show TrailerCard, kCardTextSectionHeight;
 import '../../shared/widgets/trailer_player.dart';
 import '../details/trailer_details_screen.dart';
-import '../shell/app_shell.dart';
 import 'widgets/home_header.dart';
 
 part 'home_categories.dart';

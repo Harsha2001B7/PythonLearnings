@@ -220,9 +220,6 @@ class _HomeHeaderState extends State<HomeHeader> {
   }
 }
 
-// _NotificationBell has been replaced by NotificationBadge
-// (see lib/features/notifications/notification_badge.dart)
-
 class _HeaderAvatar extends StatelessWidget {
   const _HeaderAvatar();
 
