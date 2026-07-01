@@ -11,9 +11,12 @@ class NotificationController {
       ValueNotifier<List<NotificationItem>>([]);
 
   GlobalKey<NavigatorState>? _navigatorKey;
+  Map<String, dynamic>? _pendingTapPayload;
+  bool _listeningForTrailerData = false;
 
   void setNavigatorKey(GlobalKey<NavigatorState> key) {
     _navigatorKey = key;
+    WidgetsBinding.instance.addPostFrameCallback((_) => _flushPendingTap());
   }
 
   int get unreadCount => notifications.value.where((n) => !n.isRead).length;
@@ -113,18 +116,54 @@ class NotificationController {
       addNotification(newNotif);
     }
 
-    final String? trailerId = payload['trailerId']?.toString();
-    if (trailerId != null && _navigatorKey?.currentState != null) {
-      final trailer = YoutubeTrailersProvider.instance.allTrailers.firstWhere(
-        (t) => t.id == trailerId,
-        orElse: () => YoutubeTrailersProvider.instance.allTrailers.first,
-      );
+    _openTrailerFromPayload(payload);
+  }
 
-      _navigatorKey!.currentState!.push(
-        MaterialPageRoute(
-          builder: (_) => TrailerDetailsScreen(trailer: trailer),
-        ),
-      );
+  void _openTrailerFromPayload(Map<String, dynamic> payload) {
+    final trailerId = payload['trailerId']?.toString();
+    if (trailerId == null || trailerId.isEmpty) return;
+
+    final navigator = _navigatorKey?.currentState;
+    final trailers = YoutubeTrailersProvider.instance.allTrailers;
+
+    if (navigator == null || trailers.isEmpty) {
+      _queuePendingTap(payload);
+      return;
     }
+
+    final trailer = trailers.firstWhere(
+      (t) => t.id == trailerId,
+      orElse: () => trailers.first,
+    );
+
+    navigator.push(
+      MaterialPageRoute(builder: (_) => TrailerDetailsScreen(trailer: trailer)),
+    );
+  }
+
+  void _queuePendingTap(Map<String, dynamic> payload) {
+    _pendingTapPayload = Map<String, dynamic>.from(payload);
+    if (!_listeningForTrailerData) {
+      _listeningForTrailerData = true;
+      YoutubeTrailersProvider.instance.addListener(_flushPendingTap);
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) => _flushPendingTap());
+  }
+
+  void _flushPendingTap() {
+    final payload = _pendingTapPayload;
+    if (payload == null) return;
+
+    final navigator = _navigatorKey?.currentState;
+    final trailers = YoutubeTrailersProvider.instance.allTrailers;
+    if (navigator == null || trailers.isEmpty) return;
+
+    _pendingTapPayload = null;
+    if (_listeningForTrailerData) {
+      _listeningForTrailerData = false;
+      YoutubeTrailersProvider.instance.removeListener(_flushPendingTap);
+    }
+
+    _openTrailerFromPayload(payload);
   }
 }
