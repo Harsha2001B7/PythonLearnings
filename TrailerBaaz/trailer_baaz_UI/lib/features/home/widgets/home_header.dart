@@ -187,7 +187,7 @@ class _HomeHeaderState extends State<HomeHeader> {
         ),
       ),
       padding: EdgeInsets.only(
-        top: widget.topPadding + 10,
+        top: widget.topPadding + 0.5,
         bottom: 24,
         left: 24,
         right: 24,
