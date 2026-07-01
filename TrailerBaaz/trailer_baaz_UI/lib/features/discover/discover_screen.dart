@@ -1,13 +1,10 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 import '../../app/app_theme.dart';
 import '../../core/data/youtube_trailers_provider.dart';
 import '../../core/models/trailer.dart';
 import '../../shared/widgets/popcorn_rating.dart';
-import '../../shared/widgets/trailer_player.dart';
+import '../../shared/trailer_player/trailer_player_feed.dart';
 import '../details/trailer_details_screen.dart';
 
 class DiscoverScreen extends StatefulWidget {
@@ -89,81 +86,8 @@ class _ReelPage extends StatefulWidget {
 }
 
 class _ReelPageState extends State<_ReelPage> {
-  YoutubePlayerController? _controller;
   int? _popcornRating;
   bool _bookmarked = false;
-  bool _muted = true; // Autoplay requires mute in WebViews
-  bool _playerReady = false;
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.isActive) {
-      _initPlayer();
-    }
-  }
-
-  @override
-  void didUpdateWidget(covariant _ReelPage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isActive && !oldWidget.isActive) {
-      _initPlayer();
-    } else if (!widget.isActive && oldWidget.isActive) {
-      _disposePlayer();
-    }
-  }
-
-  void _initPlayer() {
-    _controller?.close();
-    _playerReady = false;
-    _controller = YoutubePlayerController.fromVideoId(
-      videoId: widget.trailer.youtubeVideoId,
-      autoPlay: true,
-      params: const YoutubePlayerParams(
-        showControls: false,
-        showFullscreenButton: false,
-        mute: true,
-        playsInline: true,
-        enableCaption: false,
-        loop: true,
-        strictRelatedVideos: true,
-      ),
-    );
-    if (mounted) setState(() {});
-
-    // Small delay then mark player as ready for smooth transition
-    Future.delayed(const Duration(milliseconds: 1400), () {
-      if (mounted && widget.isActive) {
-        setState(() => _playerReady = true);
-      }
-    });
-  }
-
-  void _disposePlayer() {
-    try {
-      _controller?.close();
-    } catch (_) {}
-    _controller = null;
-    _playerReady = false;
-    if (mounted) setState(() {});
-  }
-
-  @override
-  void dispose() {
-    try {
-      _controller?.close();
-    } catch (_) {}
-    super.dispose();
-  }
-
-  void _toggleMute() {
-    setState(() => _muted = !_muted);
-    if (_muted) {
-      _controller?.mute();
-    } else {
-      _controller?.unMute();
-    }
-  }
 
   void _openDetails() {
     Navigator.of(context).push(
@@ -171,14 +95,6 @@ class _ReelPageState extends State<_ReelPage> {
         builder: (_) => TrailerDetailsScreen(trailer: widget.trailer),
       ),
     );
-  }
-
-  Future<void> _openFullPlayer() async {
-    _disposePlayer();
-    await showTrailerPlayer(context, widget.trailer);
-    if (mounted && widget.isActive) {
-      _initPlayer();
-    }
   }
 
   @override
@@ -189,76 +105,27 @@ class _ReelPageState extends State<_ReelPage> {
     return Stack(
       fit: StackFit.expand,
       children: [
-        // ── YouTube Player (contained in a 16:9 box) ──────────
-        if (_controller != null)
-          Positioned.fill(
-            child: Align(
-              alignment: const Alignment(0, -0.25),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // Movie Poster
-                  AnimatedOpacity(
-                    duration: const Duration(milliseconds: 500),
-                    opacity: _playerReady ? 0 : 1,
-                    child: TweenAnimationBuilder<double>(
-                      duration: const Duration(milliseconds: 1400),
-                      curve: Curves.easeOut,
-                      tween: Tween(begin: 1.15, end: 1.10),
-                      builder: (context, scale, child) {
-                        return Transform.scale(scale: scale, child: child);
-                      },
-                      child: AspectRatio(
-                        aspectRatio: 16 / 9,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(18),
-                          child: Image.network(
-                            trailer.posterUrl,
-                            fit: BoxFit.cover,
-                            filterQuality: FilterQuality.high,
-                            frameBuilder:
-                                (
-                                  context,
-                                  child,
-                                  frame,
-                                  wasSynchronouslyLoaded,
-                                ) {
-                                  return AnimatedOpacity(
-                                    duration: const Duration(milliseconds: 300),
-                                    opacity: frame == null ? 0 : 1,
-                                    child: child,
-                                  );
-                                },
-                            errorBuilder: (_, _, _) =>
-                                Container(color: Colors.black),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  // YouTube Trailer
-                  AnimatedOpacity(
-                    duration: const Duration(milliseconds: 700),
-                    curve: Curves.easeOutCubic,
-                    opacity: _playerReady ? 1 : 0,
-                    child: Transform.scale(
-                      scale: 1.10,
-                      child: AspectRatio(
-                        aspectRatio: 16 / 9,
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(14),
-                          child: IgnorePointer(
-                            child: YoutubePlayer(controller: _controller!),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+        Positioned.fill(
+          child: Align(
+            alignment: const Alignment(0, -0.25),
+            child: TweenAnimationBuilder<double>(
+              duration: const Duration(milliseconds: 1400),
+              curve: Curves.easeOut,
+              tween: Tween(begin: 1.15, end: 1.10),
+              builder: (context, scale, child) {
+                return Transform.scale(scale: scale, child: child);
+              },
+              child: SizedBox(
+                width: MediaQuery.sizeOf(context).width,
+                child: TrailerPlayerFeed(
+                  trailer: trailer,
+                  active: widget.isActive,
+                  onInfo: _openDetails,
+                ),
               ),
             ),
           ),
+        ),
 
         // ── Gradient overlays (blends video edges and boosts text contrast) ──
         Positioned.fill(
@@ -299,47 +166,6 @@ class _ReelPageState extends State<_ReelPage> {
                 ),
               ),
               const Spacer(),
-              if (_controller != null && _playerReady) ...[
-                GestureDetector(
-                  onTap: _openFullPlayer,
-                  child: Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.4),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.15),
-                      ),
-                    ),
-                    child: const Icon(
-                      Icons.fullscreen_rounded,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-              ],
-              GestureDetector(
-                onTap: _toggleMute,
-                child: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.4),
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.15),
-                    ),
-                  ),
-                  child: Icon(
-                    _muted ? Icons.volume_off_rounded : Icons.volume_up_rounded,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-              ),
             ],
           ),
         ),
@@ -352,67 +178,61 @@ class _ReelPageState extends State<_ReelPage> {
           left: 16,
           right: 90,
           bottom: bottomPad + 18,
-          child: GestureDetector(
-            onTap: _openDetails,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 6,
-                    vertical: 2,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppTheme.accent.withValues(alpha: .18),
-                    borderRadius: BorderRadius.circular(5),
-                  ),
-                  child: Text(
-                    trailer.studio.toUpperCase(),
-                    style: const TextStyle(
-                      color: AppTheme.accent,
-                      fontSize: 7,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: AppTheme.accent.withValues(alpha: .18),
+                  borderRadius: BorderRadius.circular(5),
                 ),
-
-                const SizedBox(height: 6),
-
-                Text(
-                  trailer.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                child: Text(
+                  trailer.studio.toUpperCase(),
                   style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
+                    color: AppTheme.accent,
+                    fontSize: 7,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
+              ),
 
-                const SizedBox(height: 2),
+              const SizedBox(height: 6),
 
-                Text(
-                  trailer.tagline,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: .75),
-                    fontSize: 11,
-                  ),
+              Text(
+                trailer.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
                 ),
+              ),
 
-                const SizedBox(height: 3),
+              const SizedBox(height: 2),
 
-                Text(
-                  "${trailer.genres.take(2).join(" • ")} • ${trailer.views} Views",
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: .5),
-                    fontSize: 9,
-                  ),
+              Text(
+                trailer.tagline,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: .75),
+                  fontSize: 11,
                 ),
-              ],
-            ),
+              ),
+
+              const SizedBox(height: 3),
+
+              Text(
+                "${trailer.genres.take(2).join(" • ")} • ${trailer.views} Views",
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: .5),
+                  fontSize: 9,
+                ),
+              ),
+            ],
           ),
         ),
 
