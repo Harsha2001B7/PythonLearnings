@@ -15,6 +15,7 @@ import '../../shared/widgets/trailer_card.dart'
 import '../../shared/widgets/trailer_player.dart';
 import '../details/trailer_details_screen.dart';
 import '../shell/app_shell.dart';
+import 'widgets/home_header.dart';
 
 // ─── Section Categories Configuration ────────────────────────────────────────
 
@@ -271,56 +272,23 @@ class _HomeScreenState extends State<HomeScreen>
       );
     }
 
-    final isCinematic =
-        _experienceProvider.experience == HomeExperience.cinematic;
-
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 350),
-      switchInCurve: Curves.easeOut,
-      switchOutCurve: Curves.easeIn,
-      transitionBuilder: (child, animation) {
-        final slide = Tween<Offset>(
-          begin: const Offset(0, 0.03),
-          end: Offset.zero,
-        ).animate(animation);
-        return FadeTransition(
-          opacity: animation,
-          child: SlideTransition(position: slide, child: child),
-        );
-      },
-      child: isCinematic
-          ? _CinematicHomeBody(
-              key: const ValueKey('cinematic'),
-              heroTrailers: heroTrailers,
-              sections: sections,
-              heroController: _heroController!,
-              page: _page,
-              onPageChanged: (v) => setState(() => _page = v),
-              onOpenDetails: _openDetails,
-              onPlayTrailer: _playTrailer,
-              onShowBrowse: _showBrowseSheet,
-              onSelectSection: _selectSection,
-              buildSectionsSliver: _buildSectionsSliver,
-            )
-          : _ClassicHomeBody(
-              key: const ValueKey('classic'),
-              heroTrailers: heroTrailers,
-              sections: sections,
-              heroController: _heroController!,
-              page: _page,
-              onPageChanged: (v) => setState(() => _page = v),
-              onOpenDetails: _openDetails,
-              onPlayTrailer: _playTrailer,
-              onShowBrowse: _showBrowseSheet,
-              onSelectSection: _selectSection,
-              buildSectionsSliver: _buildSectionsSliver,
-            ),
+    return _CinematicHomeBody(
+      heroTrailers: heroTrailers,
+      sections: sections,
+      heroController: _heroController!,
+      page: _page,
+      onPageChanged: (v) => setState(() => _page = v),
+      onOpenDetails: _openDetails,
+      onPlayTrailer: _playTrailer,
+      onShowBrowse: _showBrowseSheet,
+      onSelectSection: _selectSection,
+      buildSectionsSliver: _buildSectionsSliver,
     );
   }
 }
 
 // ─── Classic Home Body (existing layout, untouched) ──────────────────────────
-
+// ignore: unused_element
 class _ClassicHomeBody extends StatelessWidget {
   const _ClassicHomeBody({
     super.key,
@@ -374,10 +342,12 @@ class _ClassicHomeBody extends StatelessWidget {
                     },
                   ),
                 Positioned(
-                  left: 22,
-                  right: 22,
-                  top: MediaQuery.paddingOf(context).top + 10,
-                  child: const _TopBar(),
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  child: HomeHeader(
+                    topPadding: MediaQuery.paddingOf(context).top,
+                  ),
                 ),
                 if (heroTrailers.isNotEmpty)
                   Positioned(
@@ -482,10 +452,12 @@ class _CinematicHomeBody extends StatelessWidget {
 
                 // ── Premium Header (integrated with hero) ──────────────
                 Positioned(
-                  left: 28,
-                  right: 28,
-                  top: MediaQuery.paddingOf(context).top + 12,
-                  child: const _CinematicTopBar(),
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  child: HomeHeader(
+                    topPadding: MediaQuery.paddingOf(context).top,
+                  ),
                 ),
 
                 // ── Progress Indicator (Apple TV+ style) ────────────────
@@ -505,26 +477,23 @@ class _CinematicHomeBody extends StatelessWidget {
                   left: 0,
                   right: 0,
                   bottom: 0,
-                  child: ClipRRect(
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(vertical: 6),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              AppTheme.background.withValues(alpha: 0.3),
-                              AppTheme.background.withValues(alpha: 0.85),
-                            ],
-                          ),
-                        ),
-                        child: _QuickCategoryBar(
-                          onShowBrowse: onShowBrowse,
-                          onSelect: onSelectSection,
-                        ),
+                  child: Container(
+                    padding: const EdgeInsets.only(top: 32, bottom: 8),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          AppTheme.background.withValues(alpha: 0.6),
+                          AppTheme.background,
+                        ],
+                        stops: const [0.0, 0.5, 1.0],
                       ),
+                    ),
+                    child: _QuickCategoryBar(
+                      onShowBrowse: onShowBrowse,
+                      onSelect: onSelectSection,
                     ),
                   ),
                 ),
@@ -796,8 +765,8 @@ class _CinematicHeroSlide extends StatelessWidget {
   }
 }
 
-// ─── Cinematic Top Bar ───────────────────────────────────────────────────────
-
+// ─── Cinematic Top Bar (SUPERSEDED — use HomeHeader instead) ────────────────
+// ignore: unused_element
 class _CinematicTopBar extends StatelessWidget {
   const _CinematicTopBar();
 
@@ -1711,6 +1680,8 @@ class _LoadingShimmerState extends State<_LoadingShimmer>
 
 // ─── Top Bar ────────────────────────────────────────────────────────────────
 
+// SUPERSEDED — use HomeHeader instead
+// ignore: unused_element
 class _TopBar extends StatelessWidget {
   const _TopBar();
 
