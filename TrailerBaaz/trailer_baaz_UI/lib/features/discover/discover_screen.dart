@@ -229,7 +229,7 @@ class _ReelPageState extends State<_ReelPage> {
                                     child: child,
                                   );
                                 },
-                            errorBuilder: (_, __, ___) =>
+                            errorBuilder: (_, _, _) =>
                                 Container(color: Colors.black),
                           ),
                         ),
