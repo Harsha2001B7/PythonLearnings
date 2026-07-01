@@ -7,6 +7,7 @@ import '../../shared/widgets/trailer_card.dart';
 import '../../shared/widgets/trailer_player.dart';
 import '../details/trailer_details_screen.dart';
 import '../splash/splash_screen.dart';
+import '../../notification/simulator/notification_simulator.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -272,8 +273,9 @@ class _SettingsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const items = [
+    final items = [
       (Icons.notifications_none_rounded, 'Notifications'),
+      (Icons.bug_report_outlined, 'Developer Simulator'),
       (Icons.info_outline_rounded, 'About TrailerBaaz'),
       (Icons.logout_rounded, 'Logout'),
     ];
@@ -300,7 +302,13 @@ class _SettingsPanel extends StatelessWidget {
                 color: AppTheme.muted,
               ),
               onTap: () {
-                if (item.$2 == 'Logout') {
+                if (item.$2 == 'Developer Simulator') {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const NotificationSimulatorScreen(),
+                    ),
+                  );
+                } else if (item.$2 == 'Logout') {
                   Navigator.of(context).pushAndRemoveUntil(
                     PageRouteBuilder(
                       transitionDuration: const Duration(milliseconds: 500),

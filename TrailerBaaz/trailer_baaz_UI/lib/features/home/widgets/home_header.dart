@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
 import '../../../shared/widgets/cinematic_image.dart';
-import '../../notifications/notification_badge.dart';
+import '../../../notification/widgets/notification_badge.dart';
 import '../../shell/app_shell.dart';
 
 const double kHeaderLogoHeight = 52.0; // Enlarged from 42.0

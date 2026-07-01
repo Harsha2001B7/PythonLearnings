@@ -291,7 +291,7 @@ class _HomeScreenState extends State<HomeScreen>
 // ignore: unused_element
 class _ClassicHomeBody extends StatelessWidget {
   const _ClassicHomeBody({
-    super.key,
+    // super.key,
     required this.heroTrailers,
     required this.sections,
     required this.heroController,
@@ -391,7 +391,7 @@ class _ClassicHomeBody extends StatelessWidget {
 
 class _CinematicHomeBody extends StatelessWidget {
   const _CinematicHomeBody({
-    super.key,
+    // super.key, 
     required this.heroTrailers,
     required this.sections,
     required this.heroController,
