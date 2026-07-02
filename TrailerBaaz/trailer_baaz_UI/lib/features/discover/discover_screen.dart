@@ -4,6 +4,7 @@ import '../../app/app_theme.dart';
 import '../../core/data/youtube_trailers_provider.dart';
 import '../../core/models/trailer.dart';
 import '../../shared/widgets/popcorn_rating.dart';
+import '../../shared/widgets/trailer_player.dart';
 import '../../shared/trailer_player/trailer_player_feed.dart';
 import '../details/trailer_details_screen.dart';
 
@@ -121,6 +122,11 @@ class _ReelPageState extends State<_ReelPage> {
                   trailer: trailer,
                   active: widget.isActive,
                   onInfo: _openDetails,
+                  onFullscreen: () => showTrailerPlayer(
+                    context,
+                    trailer,
+                    startFullscreen: true,
+                  ),
                 ),
               ),
             ),
@@ -167,6 +173,34 @@ class _ReelPageState extends State<_ReelPage> {
               ),
               const Spacer(),
             ],
+          ),
+        ),
+        Positioned(
+          top: MediaQuery.paddingOf(context).top + 12,
+          right: 18,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: () =>
+                  showTrailerPlayer(context, trailer, startFullscreen: true),
+              borderRadius: BorderRadius.circular(22),
+              child: Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.45),
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.12),
+                  ),
+                ),
+                child: const Icon(
+                  Icons.fullscreen_rounded,
+                  color: Colors.white,
+                  size: 22,
+                ),
+              ),
+            ),
           ),
         ),
 

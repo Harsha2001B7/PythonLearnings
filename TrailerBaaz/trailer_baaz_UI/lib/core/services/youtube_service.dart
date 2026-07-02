@@ -6,7 +6,7 @@ class YouTubeService {
   YouTubeService._();
   static final YouTubeService instance = YouTubeService._();
 
-  static const _apiKey = 'AIzaSyCdEO48zEmJRLz_g_ONfho2tcGCtjKuSDk';
+  static const _apiKey = 'AIzaSyDyfWBjInykjeJcuyXMHka1rHtex1gqUpg';
    //1. AIzaSyCdEO48zEmJRLz_g_ONfho2tcGCtjKuSDk
    //2. AIzaSyDyfWBjInykjeJcuyXMHka1rHtex1gqUpg
    //3. AIzaSyBF5z0NUmcEvMQWnxKF9PekBha2EexXKhU

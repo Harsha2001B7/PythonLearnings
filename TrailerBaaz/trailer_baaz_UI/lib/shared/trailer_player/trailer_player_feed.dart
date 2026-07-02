@@ -13,11 +13,13 @@ class TrailerPlayerFeed extends StatefulWidget {
     required this.trailer,
     required this.active,
     this.onInfo,
+    this.onFullscreen,
   });
 
   final Trailer trailer;
   final bool active;
   final VoidCallback? onInfo;
+  final VoidCallback? onFullscreen;
 
   @override
   State<TrailerPlayerFeed> createState() => _TrailerPlayerFeedState();
@@ -179,27 +181,14 @@ class _TrailerPlayerFeedState extends State<TrailerPlayerFeed> {
                                             onPressed: widget.onInfo!,
                                           ),
                                         ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                          right: 8,
-                                        ),
-                                        child: TrailerPlayerIconButton(
-                                          icon: state.isMuted
-                                              ? Icons.volume_off_rounded
-                                              : Icons.volume_up_rounded,
-                                          tooltip: state.isMuted
-                                              ? 'Unmute'
-                                              : 'Mute',
-                                          onPressed: _controller!.toggleMute,
-                                        ),
-                                      ),
                                       TrailerPlayerIconButton(
                                         icon: Icons.fullscreen_rounded,
                                         tooltip: 'Fullscreen',
                                         onPressed:
-                                            _controller!.state.isFullscreen
-                                            ? _controller!.exitFullscreen
-                                            : _controller!.enterFullscreen,
+                                            widget.onFullscreen ??
+                                            (_controller!.state.isFullscreen
+                                                ? _controller!.exitFullscreen
+                                                : _controller!.enterFullscreen),
                                       ),
                                     ],
                                   ),

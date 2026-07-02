@@ -12,7 +12,7 @@ import 'trailer_player_state.dart';
 _TrailerPlayerScreenState? _activePlayer;
 Future<void>? _activePlayerFuture;
 
-Future<void> showTrailerPlayer(BuildContext context, Trailer trailer) async {
+Future<void> showTrailerPlayer(BuildContext context, Trailer trailer, {bool startFullscreen = false}) async {
   final launchedFromDetails = context
       .findAncestorWidgetOfExactType<TrailerDetailsScreen>();
   final launchedFromDetailsId = launchedFromDetails?.trailer.id;
@@ -27,6 +27,7 @@ Future<void> showTrailerPlayer(BuildContext context, Trailer trailer) async {
     builder: (_) => _TrailerPlayerScreen(
       trailer: trailer,
       launchedFromDetailsId: launchedFromDetailsId,
+      startFullscreen: startFullscreen,
     ),
   );
 
@@ -42,10 +43,12 @@ class _TrailerPlayerScreen extends StatefulWidget {
   const _TrailerPlayerScreen({
     required this.trailer,
     required this.launchedFromDetailsId,
+    this.startFullscreen = false,
   });
 
   final Trailer trailer;
   final String? launchedFromDetailsId;
+  final bool startFullscreen;
 
   @override
   State<_TrailerPlayerScreen> createState() => _TrailerPlayerScreenState();
@@ -62,6 +65,16 @@ class _TrailerPlayerScreenState extends State<_TrailerPlayerScreen> {
     _activePlayer = this;
     _launchedFromDetailsId = widget.launchedFromDetailsId;
     _controller = TrailerPlayerController(widget.trailer);
+
+    if (widget.startFullscreen) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await Future.delayed(const Duration(milliseconds: 600));
+
+      if (!mounted) return;
+
+      await _controller.enterFullscreen();
+    });
+  }
   }
 
   Future<void> _replaceTrailer(
@@ -171,33 +184,26 @@ class _EmbeddedPlayerView extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
             child: Row(
-              children: [
-                _RoundHeaderButton(
-                  icon: Icons.close_rounded,
-                  tooltip: 'Close',
-                  onPressed: onClose,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    state.trailer.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                _RoundHeaderButton(
-                  icon: Icons.info_outline_rounded,
-                  tooltip: 'Trailer info',
-                  onPressed: onInfo,
-                ),
-              ],
-            ),
+  children: [
+    _RoundHeaderButton(
+      icon: Icons.close_rounded,
+      tooltip: 'Close',
+      onPressed: onClose,
+    ),
+    Expanded(
+      child: Text(
+        state.trailer.title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 16,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    ),
+  ],
+),
           ),
         ),
         SliverToBoxAdapter(
@@ -317,14 +323,6 @@ class _EmbeddedPlayerView extends StatelessWidget {
               runSpacing: 10,
               alignment: WrapAlignment.start,
               children: [
-                _TrailerActionButton(
-                  icon: state.isMuted
-                      ? Icons.volume_off_rounded
-                      : Icons.volume_up_rounded,
-                  label: state.isMuted ? 'Unmute' : 'Mute',
-                  tooltip: state.isMuted ? 'Unmute' : 'Mute',
-                  onPressed: controller.toggleMute,
-                ),
                 _TrailerActionButton(
                   icon: Icons.info_outline_rounded,
                   label: 'Info',
