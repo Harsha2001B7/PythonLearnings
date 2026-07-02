@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'app/trailer_baaz_app.dart';
 import 'core/data/home_experience_provider.dart';
 import 'core/data/youtube_trailers_provider.dart';
-import 'notification/services/local_notification_service.dart';
-import 'notification/controllers/notification_controller.dart';
+import 'features/notifications/services/local_notification_service.dart';
+import 'features/notifications/controllers/notification_controller.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 

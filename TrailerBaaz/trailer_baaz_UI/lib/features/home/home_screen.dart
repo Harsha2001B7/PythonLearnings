@@ -254,7 +254,7 @@ class _WarmHueBackdropState extends State<_WarmHueBackdrop>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _controller,
-      builder: (_, __) {
+      builder: (_, _) {
         final t = Curves.easeInOut.transform(_controller.value);
 
         final glowA = Alignment.lerp(

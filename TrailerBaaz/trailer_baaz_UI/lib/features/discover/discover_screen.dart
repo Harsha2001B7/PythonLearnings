@@ -122,11 +122,7 @@ class _ReelPageState extends State<_ReelPage> {
                   trailer: trailer,
                   active: widget.isActive,
                   onInfo: _openDetails,
-                  onFullscreen: () => showTrailerPlayer(
-                    context,
-                    trailer,
-                    startFullscreen: true,
-                  ),
+                  onFullscreen: () => showTrailerPlayer(context, trailer),
                 ),
               ),
             ),
@@ -212,61 +208,67 @@ class _ReelPageState extends State<_ReelPage> {
           left: 16,
           right: 90,
           bottom: bottomPad + 18,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: AppTheme.accent.withValues(alpha: .18),
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                child: Text(
-                  trailer.studio.toUpperCase(),
-                  style: const TextStyle(
-                    color: AppTheme.accent,
-                    fontSize: 7,
-                    fontWeight: FontWeight.w700,
+          child: GestureDetector(
+            onTap: _openDetails,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppTheme.accent.withValues(alpha: .18),
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: Text(
+                    trailer.studio.toUpperCase(),
+                    style: const TextStyle(
+                      color: AppTheme.accent,
+                      fontSize: 7,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
-              ),
 
-              const SizedBox(height: 6),
+                const SizedBox(height: 6),
 
-              Text(
-                trailer.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w800,
+                Text(
+                  trailer.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: 2),
+                const SizedBox(height: 2),
 
-              Text(
-                trailer.tagline,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: .75),
-                  fontSize: 11,
+                Text(
+                  trailer.tagline,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: .75),
+                    fontSize: 11,
+                  ),
                 ),
-              ),
 
-              const SizedBox(height: 3),
+                const SizedBox(height: 3),
 
-              Text(
-                "${trailer.genres.take(2).join(" • ")} • ${trailer.views} Views",
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: .5),
-                  fontSize: 9,
+                Text(
+                  "${trailer.genres.take(2).join(" • ")} • ${trailer.views} Views",
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: .5),
+                    fontSize: 9,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
 

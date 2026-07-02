@@ -87,8 +87,8 @@ class _CinematicHomeBody extends StatelessWidget {
                         end: Alignment.bottomCenter,
                         colors: [
                           Colors.transparent,
-                          AppTheme.background.withValues(alpha: 0.6),
-                          AppTheme.background,
+                          Colors.black.withValues(alpha: 0.5),
+                          Colors.black.withValues(alpha: 0.8),
                         ],
                         stops: const [0.0, 0.5, 1.0],
                       ),
@@ -131,9 +131,18 @@ class _CinematicHeroSlide extends StatelessWidget {
         children: [
           Hero(
             tag: 'backdrop-${trailer.id}',
-            child: CinematicImage(
-              url: trailer.youtubeThumbnailUrl,
-              alignment: Alignment.topCenter,
+            child: ShaderMask(
+              shaderCallback: (bounds) => LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: const [Colors.black, Colors.black, Colors.transparent],
+                stops: const [0.0, 0.75, 1.0],
+              ).createShader(bounds),
+              blendMode: BlendMode.dstIn,
+              child: CinematicImage(
+                url: trailer.youtubeThumbnailUrl,
+                alignment: Alignment.topCenter,
+              ),
             ),
           ),
           Positioned.fill(
@@ -150,16 +159,16 @@ class _CinematicHeroSlide extends StatelessWidget {
               ),
             ),
           ),
-          const Positioned.fill(
+          Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.bottomCenter,
                   end: Alignment.topCenter,
                   colors: [
-                    AppTheme.background,
-                    Color(0xE6090909),
-                    Color(0x99090909),
+                    Colors.black.withValues(alpha: 0.9),
+                    Colors.black.withValues(alpha: 0.7),
+                    Colors.black.withValues(alpha: 0.4),
                     Colors.transparent,
                     Colors.transparent,
                   ],

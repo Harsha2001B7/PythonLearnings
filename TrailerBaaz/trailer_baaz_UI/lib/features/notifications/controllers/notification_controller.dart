@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/notification_item.dart';
-import '../../core/data/youtube_trailers_provider.dart';
-import '../../features/details/trailer_details_screen.dart';
+import '../../../core/data/youtube_trailers_provider.dart';
+import '../../../features/details/trailer_details_screen.dart';
 
 class NotificationController {
   NotificationController._();

@@ -1,4 +1,4 @@
-import '../../core/models/trailer.dart';
+import '../../../core/models/trailer.dart';
 import 'notification_item.dart';
 
 class RichNotificationContent {

@@ -7,7 +7,7 @@ import '../../shared/widgets/trailer_card.dart';
 import '../../shared/widgets/trailer_player.dart';
 import '../details/trailer_details_screen.dart';
 import '../splash/splash_screen.dart';
-import '../../notification/simulator/notification_simulator.dart';
+import '../notifications/simulator/notification_simulator.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});

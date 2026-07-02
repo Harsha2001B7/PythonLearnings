@@ -1,11 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 import '../../core/models/trailer.dart';
-import 'trailer_player_buttons.dart';
 import 'trailer_player_controller.dart';
-import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 class TrailerPlayerFeed extends StatefulWidget {
   const TrailerPlayerFeed({
@@ -130,70 +129,16 @@ class _TrailerPlayerFeedState extends State<TrailerPlayerFeed> {
                               autoFullScreen: false,
                               enableFullScreenOnVerticalDrag: false,
                               keepAlive: true,
-                              controlsBuilder: (context, isFullscreen) {
-                                if (!isFullscreen) {
-                                  return const SizedBox.shrink();
-                                }
-                                return SafeArea(
-                                  child: Align(
-                                    alignment: Alignment.topLeft,
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(
-                                        left: 12,
-                                        top: 12,
-                                      ),
-                                      child: TrailerPlayerIconButton(
-                                        icon: Icons.arrow_back_ios_new_rounded,
-                                        tooltip: 'Exit fullscreen',
-                                        onPressed: _controller!.exitFullscreen,
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
                               initParams: YoutubePlayerParams(
-                                showControls: true,
+                                showControls: false, // hide controls for inline feed
                                 showFullscreenButton: false,
                                 mute: state.isMuted,
                                 playsInline: true,
-                                enableCaption: true,
+                                enableCaption: false,
                                 strictRelatedVideos: true,
                                 loop: true,
                               ),
                             ),
-                            if (!state.isFullscreen)
-                              Positioned(
-                                top: 10,
-                                right: 10,
-                                child: SafeArea(
-                                  bottom: false,
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      if (widget.onInfo != null)
-                                        Padding(
-                                          padding: const EdgeInsets.only(
-                                            right: 8,
-                                          ),
-                                          child: TrailerPlayerIconButton(
-                                            icon: Icons.info_outline_rounded,
-                                            tooltip: 'Trailer info',
-                                            onPressed: widget.onInfo!,
-                                          ),
-                                        ),
-                                      TrailerPlayerIconButton(
-                                        icon: Icons.fullscreen_rounded,
-                                        tooltip: 'Fullscreen',
-                                        onPressed:
-                                            widget.onFullscreen ??
-                                            (_controller!.state.isFullscreen
-                                                ? _controller!.exitFullscreen
-                                                : _controller!.enterFullscreen),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
                           ],
                         ),
                       ),

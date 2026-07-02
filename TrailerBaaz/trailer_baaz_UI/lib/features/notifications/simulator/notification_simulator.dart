@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
-import '../../app/app_theme.dart';
-import '../../core/data/youtube_trailers_provider.dart';
-import '../../core/models/trailer.dart';
+import '../../../app/app_theme.dart';
+import '../../../core/data/youtube_trailers_provider.dart';
+import '../../../core/models/trailer.dart';
 import '../controllers/notification_controller.dart';
 import '../models/rich_notification_content.dart';
 import '../services/local_notification_service.dart';
