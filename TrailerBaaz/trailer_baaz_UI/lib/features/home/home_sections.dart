@@ -161,24 +161,8 @@ class _SectionDetailView extends StatelessWidget {
           ),
         ),
         if (trailers.isEmpty)
-          SliverFillRemaining(
-            child: Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.movie_filter_rounded,
-                    size: 64,
-                    color: Colors.white24,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'No trailers available',
-                    style: TextStyle(color: Colors.white54, fontSize: 16),
-                  ),
-                ],
-              ),
-            ),
+          const SliverFillRemaining(
+            child: NoResults(),
           )
         else
           SliverPadding(

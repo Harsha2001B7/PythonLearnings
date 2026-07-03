@@ -8,6 +8,7 @@ import '../../app/app_theme.dart';
 import '../../core/data/home_experience_provider.dart';
 import '../../core/data/youtube_trailers_provider.dart';
 import '../../core/models/trailer.dart';
+import '../../shared/ui/ui.dart';
 import '../../shared/widgets/cinematic_image.dart';
 import '../../shared/widgets/popcorn_rating.dart';
 import '../../shared/widgets/trailer_card.dart'
@@ -164,29 +165,7 @@ class _HomeScreenState extends State<HomeScreen>
 
     if (provider.error != null && provider.sections.isEmpty) {
       return _wrapWithBackdrop(
-        Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(
-                Icons.wifi_off_rounded,
-                size: 48,
-                color: Colors.white38,
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Could not load trailers',
-                style: TextStyle(color: Colors.white54),
-              ),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: () => provider.init(),
-                style: FilledButton.styleFrom(backgroundColor: AppTheme.accent),
-                child: const Text('Retry'),
-              ),
-            ],
-          ),
-        ),
+        NetworkError(onRetry: provider.init),
       );
     }
 

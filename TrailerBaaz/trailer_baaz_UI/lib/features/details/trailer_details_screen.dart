@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../app/app_theme.dart';
 import '../../core/data/youtube_trailers_provider.dart';
 import '../../core/models/trailer.dart';
+import '../../shared/ui/ui.dart';
 import '../../shared/widgets/cinematic_image.dart';
 import '../../shared/widgets/glass_icon_button.dart';
 import '../../shared/widgets/meta_widgets.dart';
@@ -443,10 +444,7 @@ class _RelatedRail extends StatelessWidget {
     if (items.isEmpty) {
       return const SizedBox(
         height: 100,
-        child: Center(
-          child: Text('No related trailers',
-              style: TextStyle(color: Colors.white38)),
-        ),
+        child: NoResults(message: 'No related trailers'),
       );
     }
 

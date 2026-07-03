@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../app/app_theme.dart';
 import '../../core/data/youtube_trailers_provider.dart';
 import '../../core/models/trailer.dart';
+import '../../shared/ui/ui.dart';
 import '../../shared/widgets/popcorn_rating.dart';
 import '../../shared/widgets/trailer_player.dart';
 import '../../shared/trailer_player/trailer_player_feed.dart';
@@ -53,7 +54,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
 
     if (allTrailers.isEmpty) {
       return const Center(
-        child: CircularProgressIndicator(color: AppTheme.accent),
+        child: LoadingIndicator(),
       );
     }
 
