@@ -1,8 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+import 'i_trailer_service.dart';
+
 /// Lightweight wrapper around the YouTube Data API v3.
-class YouTubeService {
+class YouTubeService implements ITrailerService {
   YouTubeService._();
   static final YouTubeService instance = YouTubeService._();
 
@@ -16,6 +18,7 @@ class YouTubeService {
 
   /// Search for trailers matching [query].
   /// Returns a list of search result items (raw JSON maps).
+  @override
   Future<List<Map<String, dynamic>>> searchTrailers(
     String query, {
     int maxResults = 5,
@@ -43,6 +46,7 @@ class YouTubeService {
 
   /// Fetch video statistics + content details for a list of video IDs.
   /// Returns a map of {videoId → videoDetails}.
+  @override
   Future<Map<String, Map<String, dynamic>>> getVideoDetails(
     List<String> ids,
   ) async {

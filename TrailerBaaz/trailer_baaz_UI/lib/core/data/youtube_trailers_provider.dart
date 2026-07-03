@@ -1,34 +1,8 @@
 import 'package:flutter/foundation.dart';
 import '../models/trailer.dart';
+import '../repositories/i_trailer_repository.dart';
+import '../repositories/trailer_repository.dart';
 import '../services/youtube_service.dart';
-
-/// Dummy cast used as fallback (YouTube API doesn't return cast).
-const _fallbackCast = [
-  CastMember(
-    name: 'Ryan G.',
-    role: 'Lead',
-    imageUrl:
-        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&q=80',
-  ),
-  CastMember(
-    name: 'Ana D.',
-    role: 'Supporting',
-    imageUrl:
-        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&q=80',
-  ),
-  CastMember(
-    name: 'Leo K.',
-    role: 'Villain',
-    imageUrl:
-        'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=300&q=80',
-  ),
-  CastMember(
-    name: 'Maya R.',
-    role: 'Ally',
-    imageUrl:
-        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&q=80',
-  ),
-];
 
 /// Section query config: section title → (search query, genres, language)
 const _sectionConfig = [
@@ -110,7 +84,7 @@ class YoutubeTrailersProvider extends ChangeNotifier {
     return unique.values.toList();
   }
 
-  final _service = YouTubeService.instance;
+  final ITrailerRepository _repository = TrailerRepository(YouTubeService.instance);
 
   /// Call once at app startup.
   Future<void> init() async {
@@ -121,7 +95,7 @@ class YoutubeTrailersProvider extends ChangeNotifier {
     try {
       // Fire all section searches in parallel
       final futures = _sectionConfig.map(
-        (cfg) => _fetchSection(cfg.$1, cfg.$2, cfg.$3, cfg.$4),
+        (cfg) => _repository.fetchSection(cfg.$1, cfg.$2, cfg.$3, cfg.$4),
       );
       final results = await Future.wait(futures);
 
@@ -145,36 +119,5 @@ class YoutubeTrailersProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<List<Trailer>> _fetchSection(
-    String sectionTitle,
-    String query,
-    List<String> genres,
-    String language,
-  ) async {
-    final searchItems = await _service.searchTrailers(query, maxResults: 6);
-    if (searchItems.isEmpty) return [];
 
-    final videoIds = searchItems
-        .map((item) => (item['id'] as Map?)?['videoId'] as String?)
-        .whereType<String>()
-        .toList();
-
-    final detailsMap = await _service.getVideoDetails(videoIds);
-
-    return searchItems
-        .map((item) {
-          final videoId =
-              (item['id'] as Map?)?['videoId'] as String?;
-          if (videoId == null || videoId.isEmpty) return null;
-          return Trailer.fromYouTube(
-            searchItem: item,
-            videoDetails: detailsMap[videoId],
-            genres: genres,
-            language: language,
-            cast: _fallbackCast,
-          );
-        })
-        .whereType<Trailer>()
-        .toList();
-  }
 }
