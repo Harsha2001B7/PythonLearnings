@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
 import '../../../core/data/youtube_trailers_provider.dart';
+import '../../../core/di/locator.dart';
 import '../../../core/models/trailer.dart';
 import '../controllers/notification_controller.dart';
 import '../models/rich_notification_content.dart';
@@ -17,7 +18,7 @@ class NotificationSimulatorScreen extends StatefulWidget {
 
 class _NotificationSimulatorScreenState
     extends State<NotificationSimulatorScreen> {
-  final _provider = YoutubeTrailersProvider.instance;
+  final _provider = locator<YoutubeTrailersProvider>();
 
   String? _selectedTrailerId;
   bool _isSending = false;
@@ -75,7 +76,7 @@ class _NotificationSimulatorScreenState
 
     setState(() => _isSending = true);
     try {
-      await LocalNotificationService.instance.show(
+      await locator<LocalNotificationService>().show(
         RichNotificationContent.forTrailerRelease(trailer),
       );
       if (!mounted) return;
@@ -180,8 +181,8 @@ class _NotificationSimulatorScreenState
                     ),
                   ),
                   onPressed: () {
-                    NotificationController.instance.clearAll();
-                    LocalNotificationService.instance.cancelAll();
+                    locator<NotificationController>().clearAll();
+                    locator<LocalNotificationService>().cancelAll();
                   },
                   icon: const Icon(Icons.delete_sweep_rounded),
                   label: const Text('Clear All'),

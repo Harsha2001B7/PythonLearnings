@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/notification_item.dart';
+import '../../../core/di/locator.dart';
 import '../controllers/notification_controller.dart';
 import '../../../app/app_theme.dart';
 
@@ -32,11 +33,11 @@ class NotificationTile extends StatelessWidget {
       confirmDismiss: (direction) async {
         if (direction == DismissDirection.startToEnd) {
           // Swipe Right: Mark as Read
-          NotificationController.instance.markAsRead(item.id);
+          locator<NotificationController>().markAsRead(item.id);
           return false; // Do not dismiss from UI list
         } else if (direction == DismissDirection.endToStart) {
           // Swipe Left: Delete
-          NotificationController.instance.deleteNotification(item.id);
+          locator<NotificationController>().deleteNotification(item.id);
           return true; // Perform dismissal
         }
         return false;
@@ -44,9 +45,9 @@ class NotificationTile extends StatelessWidget {
       child: InkWell(
         onTap: () {
           if (item.payload != null) {
-            NotificationController.instance.handleNotificationTap(item.payload!);
+            locator<NotificationController>().handleNotificationTap(item.payload!);
           } else {
-            NotificationController.instance.markAsRead(item.id);
+            locator<NotificationController>().markAsRead(item.id);
           }
         },
         child: Container(

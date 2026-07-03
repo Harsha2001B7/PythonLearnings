@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import '../models/notification_item.dart';
 import '../../../core/data/youtube_trailers_provider.dart';
+import '../../../core/di/locator.dart';
 import '../../../features/details/trailer_details_screen.dart';
 
 class NotificationController {
-  NotificationController._();
-  static final NotificationController instance = NotificationController._();
+  NotificationController();
 
   final ValueNotifier<List<NotificationItem>> notifications =
       ValueNotifier<List<NotificationItem>>([]);
@@ -124,7 +124,7 @@ class NotificationController {
     if (trailerId == null || trailerId.isEmpty) return;
 
     final navigator = _navigatorKey?.currentState;
-    final trailers = YoutubeTrailersProvider.instance.allTrailers;
+    final trailers = locator<YoutubeTrailersProvider>().allTrailers;
 
     if (navigator == null || trailers.isEmpty) {
       _queuePendingTap(payload);
@@ -145,7 +145,7 @@ class NotificationController {
     _pendingTapPayload = Map<String, dynamic>.from(payload);
     if (!_listeningForTrailerData) {
       _listeningForTrailerData = true;
-      YoutubeTrailersProvider.instance.addListener(_flushPendingTap);
+      locator<YoutubeTrailersProvider>().addListener(_flushPendingTap);
     }
     WidgetsBinding.instance.addPostFrameCallback((_) => _flushPendingTap());
   }
@@ -155,13 +155,13 @@ class NotificationController {
     if (payload == null) return;
 
     final navigator = _navigatorKey?.currentState;
-    final trailers = YoutubeTrailersProvider.instance.allTrailers;
+    final trailers = locator<YoutubeTrailersProvider>().allTrailers;
     if (navigator == null || trailers.isEmpty) return;
 
     _pendingTapPayload = null;
     if (_listeningForTrailerData) {
       _listeningForTrailerData = false;
-      YoutubeTrailersProvider.instance.removeListener(_flushPendingTap);
+      locator<YoutubeTrailersProvider>().removeListener(_flushPendingTap);
     }
 
     _openTrailerFromPayload(payload);

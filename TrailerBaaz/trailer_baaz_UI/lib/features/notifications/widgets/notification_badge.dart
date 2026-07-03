@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../core/di/locator.dart';
 import '../controllers/notification_controller.dart';
 import 'notification_sheet.dart';
 import '../../../app/app_theme.dart';
@@ -9,9 +10,9 @@ class NotificationBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<List>(
-      valueListenable: NotificationController.instance.notifications,
+      valueListenable: locator<NotificationController>().notifications,
       builder: (context, list, _) {
-        final unreadCount = NotificationController.instance.unreadCount;
+        final unreadCount = locator<NotificationController>().unreadCount;
         return Stack(
           alignment: Alignment.center,
           clipBehavior: Clip.none,

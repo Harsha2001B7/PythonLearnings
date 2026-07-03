@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/app_theme.dart';
 import '../../core/data/youtube_trailers_provider.dart';
+import '../../core/di/locator.dart';
 import '../../core/models/trailer.dart';
 import '../../shared/ui/ui.dart';
 import '../../shared/widgets/popcorn_rating.dart';
@@ -20,7 +21,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
     with AutomaticKeepAliveClientMixin {
   PageController? _pageController;
   int _currentPage = 0;
-  final _provider = YoutubeTrailersProvider.instance;
+  final _provider = locator<YoutubeTrailersProvider>();
 
   @override
   void initState() {
@@ -48,7 +49,7 @@ class _DiscoverScreenState extends State<DiscoverScreen>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    final provider = YoutubeTrailersProvider.instance;
+    final provider = locator<YoutubeTrailersProvider>();
     // Combine all available trailers or fallback to heroTrailers
     final allTrailers = provider.heroTrailers;
 

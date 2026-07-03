@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import '../../app/app_theme.dart';
 import '../../core/data/home_experience_provider.dart';
 import '../../core/data/youtube_trailers_provider.dart';
+import '../../core/di/locator.dart';
 import '../../core/models/trailer.dart';
 import '../../shared/ui/ui.dart';
 import '../../shared/widgets/cinematic_image.dart';
@@ -36,8 +37,8 @@ class _HomeScreenState extends State<HomeScreen>
   Timer? _timer;
   String? _selectedSection;
 
-  final _provider = YoutubeTrailersProvider.instance;
-  final _experienceProvider = HomeExperienceProvider.instance;
+  final _provider = locator<YoutubeTrailersProvider>();
+  final _experienceProvider = locator<HomeExperienceProvider>();
 
   @override
   void initState() {

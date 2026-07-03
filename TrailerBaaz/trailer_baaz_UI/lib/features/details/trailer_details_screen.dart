@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/app_theme.dart';
 import '../../core/data/youtube_trailers_provider.dart';
+import '../../core/di/locator.dart';
 import '../../core/models/trailer.dart';
 import '../../shared/ui/ui.dart';
 import '../../shared/widgets/cinematic_image.dart';
@@ -433,7 +434,7 @@ class _RelatedRail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = YoutubeTrailersProvider.instance;
+    final provider = locator<YoutubeTrailersProvider>();
     final allTrailers = provider.sections.values
         .expand((list) => list)
         .where((t) => t.id != current.id)

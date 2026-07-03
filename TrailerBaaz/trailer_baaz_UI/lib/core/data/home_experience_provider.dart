@@ -5,9 +5,7 @@ enum HomeExperience { classic, cinematic }
 
 /// Singleton that persists and exposes the user's chosen Home Experience.
 class HomeExperienceProvider extends ChangeNotifier {
-  HomeExperienceProvider._();
-
-  static final HomeExperienceProvider instance = HomeExperienceProvider._();
+  HomeExperienceProvider();
 
   static const _key = 'home_experience';
 

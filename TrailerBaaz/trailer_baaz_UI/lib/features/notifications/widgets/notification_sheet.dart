@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import '../../../core/di/locator.dart';
 import '../controllers/notification_controller.dart';
 import 'notification_header.dart';
 import 'notification_tile.dart';
@@ -24,13 +25,13 @@ class NotificationSheet extends StatelessWidget {
             child: Container(
               color: const Color(0xFF151515).withValues(alpha: 0.9),
               child: ValueListenableBuilder<List>(
-                valueListenable: NotificationController.instance.notifications,
+                valueListenable: locator<NotificationController>().notifications,
                 builder: (context, list, _) {
-                  final unreadCount = NotificationController.instance.unreadCount;
+                  final unreadCount = locator<NotificationController>().unreadCount;
 
                   return RefreshIndicator(
                     onRefresh: () async {
-                      NotificationController.instance.loadDemoNotifications();
+                      locator<NotificationController>().loadDemoNotifications();
                     },
                     child: Column(
                       children: [
@@ -50,7 +51,7 @@ class NotificationSheet extends StatelessWidget {
                         NotificationHeader(
                           unreadCount: unreadCount,
                           onClearAll: () {
-                            NotificationController.instance.clearAll();
+                            locator<NotificationController>().clearAll();
                           },
                         ),
                         const Divider(height: 1, color: Colors.white10),

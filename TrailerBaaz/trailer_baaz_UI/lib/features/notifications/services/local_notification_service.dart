@@ -5,14 +5,14 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:http/http.dart' as http;
 
+import '../../../core/di/locator.dart';
 import '../controllers/notification_controller.dart';
 import '../models/notification_item.dart';
 import '../models/rich_notification_content.dart';
 import 'notification_service.dart';
 
 class LocalNotificationService implements NotificationService {
-  LocalNotificationService._();
-  static final LocalNotificationService instance = LocalNotificationService._();
+  LocalNotificationService();
 
   static const _notificationIcon = 'ic_launcher_foreground';
 
@@ -75,7 +75,7 @@ class LocalNotificationService implements NotificationService {
   void _handlePayload(String payloadStr) {
     try {
       final data = jsonDecode(payloadStr) as Map<String, dynamic>;
-      NotificationController.instance.handleNotificationTap(data);
+      locator<NotificationController>().handleNotificationTap(data);
     } catch (error) {
       debugPrint('[Notification] Error decoding payload: $error');
     }
@@ -127,7 +127,7 @@ class LocalNotificationService implements NotificationService {
       payload: payloadString,
     );
 
-    NotificationController.instance.addNotification(
+    locator<NotificationController>().addNotification(
       NotificationItem(
         id: notification.id,
         title: notification.title,

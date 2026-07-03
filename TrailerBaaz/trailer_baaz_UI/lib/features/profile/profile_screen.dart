@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/app_theme.dart';
 import '../../core/data/youtube_trailers_provider.dart';
+import '../../core/di/locator.dart';
 import '../../shared/widgets/cinematic_image.dart';
 import '../../shared/widgets/trailer_card.dart';
 import '../../shared/widgets/trailer_player.dart';
@@ -15,7 +16,7 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: YoutubeTrailersProvider.instance,
+      listenable: locator<YoutubeTrailersProvider>(),
       builder: (context, _) {
         return CustomScrollView(
           physics: const BouncingScrollPhysics(),
@@ -232,7 +233,7 @@ class _ProfileRail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final allTrailers = YoutubeTrailersProvider.instance.allTrailers;
+    final allTrailers = locator<YoutubeTrailersProvider>().allTrailers;
     if (allTrailers.isEmpty) return const SizedBox();
 
     final items = List.generate(

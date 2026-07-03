@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/app_theme.dart';
 import '../../core/data/youtube_trailers_provider.dart';
+import '../../core/di/locator.dart';
 import '../../core/models/trailer.dart';
 import '../../shared/widgets/cinematic_image.dart';
 import '../../shared/widgets/trailer_card.dart';
@@ -26,9 +27,9 @@ class _SearchScreenState extends State<SearchScreen>
   Widget build(BuildContext context) {
     super.build(context);
     return ListenableBuilder(
-      listenable: YoutubeTrailersProvider.instance,
+      listenable: locator<YoutubeTrailersProvider>(),
       builder: (context, _) {
-        final allTrailers = YoutubeTrailersProvider.instance.allTrailers;
+        final allTrailers = locator<YoutubeTrailersProvider>().allTrailers;
         final results = allTrailers
             .where(
               (item) => item.title.toLowerCase().contains(_query.toLowerCase()),
@@ -249,7 +250,7 @@ class _PeopleRail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final allTrailers = YoutubeTrailersProvider.instance.allTrailers;
+    final allTrailers = locator<YoutubeTrailersProvider>().allTrailers;
     final people = allTrailers.isNotEmpty ? allTrailers.first.cast : [];
     return SizedBox(
       height: 96,

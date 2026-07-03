@@ -5,8 +5,7 @@ import 'i_trailer_service.dart';
 
 /// Lightweight wrapper around the YouTube Data API v3.
 class YouTubeService implements ITrailerService {
-  YouTubeService._();
-  static final YouTubeService instance = YouTubeService._();
+  YouTubeService();
 
   static const _apiKey = 'AIzaSyCdEO48zEmJRLz_g_ONfho2tcGCtjKuSDk';
    //1. AIzaSyCdEO48zEmJRLz_g_ONfho2tcGCtjKuSDk

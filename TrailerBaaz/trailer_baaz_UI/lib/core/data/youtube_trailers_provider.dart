@@ -1,8 +1,6 @@
 import 'package:flutter/foundation.dart';
 import '../models/trailer.dart';
 import '../repositories/i_trailer_repository.dart';
-import '../repositories/trailer_repository.dart';
-import '../services/youtube_service.dart';
 
 /// Section query config: section title → (search query, genres, language)
 const _sectionConfig = [
@@ -63,8 +61,7 @@ const _sectionConfig = [
 ];
 
 class YoutubeTrailersProvider extends ChangeNotifier {
-  YoutubeTrailersProvider._();
-  static final YoutubeTrailersProvider instance = YoutubeTrailersProvider._();
+  YoutubeTrailersProvider(this._repository);
 
   bool isLoading = true;
   String? error;
@@ -84,7 +81,7 @@ class YoutubeTrailersProvider extends ChangeNotifier {
     return unique.values.toList();
   }
 
-  final ITrailerRepository _repository = TrailerRepository(YouTubeService.instance);
+  final ITrailerRepository _repository;
 
   /// Call once at app startup.
   Future<void> init() async {
