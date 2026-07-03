@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
 import '../../core/models/trailer.dart';
+import '../../shared/widgets/cinematic_image.dart';
 import 'trailer_player_controller.dart';
 
 class TrailerPlayerFeed extends StatefulWidget {
@@ -93,10 +94,9 @@ class _TrailerPlayerFeedState extends State<TrailerPlayerFeed> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(18),
         child: _controller == null
-            ? Image.network(
-                trailer.posterUrl,
-                fit: BoxFit.cover,
-                filterQuality: FilterQuality.high,
+            ? CinematicImage(
+                url: trailer.posterUrl,
+                fadeInDuration: Duration.zero,
               )
             : AnimatedBuilder(
                 animation: _controller!,
@@ -109,10 +109,9 @@ class _TrailerPlayerFeedState extends State<TrailerPlayerFeed> {
                       AnimatedOpacity(
                         duration: const Duration(milliseconds: 320),
                         opacity: _ready ? 0 : 1,
-                        child: Image.network(
-                          trailer.posterUrl,
-                          fit: BoxFit.cover,
-                          filterQuality: FilterQuality.high,
+                        child: CinematicImage(
+                          url: trailer.posterUrl,
+                          fadeInDuration: Duration.zero,
                         ),
                       ),
                       AnimatedOpacity(

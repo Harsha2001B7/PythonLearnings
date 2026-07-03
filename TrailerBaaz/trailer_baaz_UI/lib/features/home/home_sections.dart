@@ -293,8 +293,22 @@ class _MostAwaitedCarouselState extends State<_MostAwaitedCarousel> {
                   physics: const BouncingScrollPhysics(),
                   clipBehavior: Clip.none,
                   itemBuilder: (context, index) {
+                    final trailer =
+                        widget.trailers[index % widget.trailers.length];
+                    final card = RepaintBoundary(
+                      child: TrailerCard(
+                        trailer: trailer,
+                        width: cardWidth,
+                        height: imageHeight,
+                        showDetails: true,
+                        onTap: () => widget.onTap(trailer),
+                        onPlay: () => widget.onPlay(trailer),
+                      ),
+                    );
+
                     return AnimatedBuilder(
                       animation: _pageController,
+                      child: card,
                       builder: (context, child) {
                         final page = _pageController.position.haveDimensions
                             ? _pageController.page!
@@ -307,8 +321,6 @@ class _MostAwaitedCarouselState extends State<_MostAwaitedCarousel> {
                         final dimAlpha = (diff.abs() * 0.4).clamp(0.0, 0.4);
                         final glowIntensity = 1 - diff.abs();
 
-                        final trailer =
-                            widget.trailers[index % widget.trailers.length];
                         final cardTransform = Matrix4.identity()
                           ..setEntry(3, 2, 0.001)
                           ..multiply(
@@ -349,14 +361,7 @@ class _MostAwaitedCarouselState extends State<_MostAwaitedCarousel> {
                                 children: [
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(16),
-                                    child: TrailerCard(
-                                      trailer: trailer,
-                                      width: cardWidth,
-                                      height: imageHeight,
-                                      showDetails: true,
-                                      onTap: () => widget.onTap(trailer),
-                                      onPlay: () => widget.onPlay(trailer),
-                                    ),
+                                    child: child,
                                   ),
                                   IgnorePointer(
                                     child: DecoratedBox(
@@ -634,13 +639,15 @@ class _TrendingStackedRailState extends State<_TrendingStackedRail>
             ),
             child: Stack(
               children: [
-                TrailerCard(
-                  trailer: trailer,
-                  width: cardWidth,
-                  height: isFront ? imageHeight : renderHeight,
-                  showDetails: isFront,
-                  onTap: () => widget.onTap(trailer),
-                  onPlay: () => widget.onPlay(trailer),
+                RepaintBoundary(
+                  child: TrailerCard(
+                    trailer: trailer,
+                    width: cardWidth,
+                    height: isFront ? imageHeight : renderHeight,
+                    showDetails: isFront,
+                    onTap: () => widget.onTap(trailer),
+                    onPlay: () => widget.onPlay(trailer),
+                  ),
                 ),
                 if (dimAlpha > 0.01)
                   Positioned.fill(
@@ -724,14 +731,17 @@ class _TrailerRail extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   scrollDirection: Axis.horizontal,
                   physics: const BouncingScrollPhysics(),
+                  scrollCacheExtent: ScrollCacheExtent.pixels(railCardWidth * 2.5),
                   itemCount: trailers.length,
                   separatorBuilder: (_, _) => const SizedBox(width: 14),
-                  itemBuilder: (context, index) => TrailerCard(
-                    trailer: trailers[index],
-                    onTap: () => onTap(trailers[index]),
-                    onPlay: () => onPlay(trailers[index]),
-                    width: railCardWidth,
-                    height: imageH,
+                  itemBuilder: (context, index) => RepaintBoundary(
+                    child: TrailerCard(
+                      trailer: trailers[index],
+                      onTap: () => onTap(trailers[index]),
+                      onPlay: () => onPlay(trailers[index]),
+                      width: railCardWidth,
+                      height: imageH,
+                    ),
                   ),
                 ),
               );

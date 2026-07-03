@@ -71,6 +71,9 @@ class _TrailerCardState extends State<TrailerCard> {
     final imageUrl = widget.trailer.youtubeVideoId.isNotEmpty
         ? widget.trailer.youtubeHqThumbnailUrl
         : widget.trailer.posterUrl;
+    final dpr = MediaQuery.devicePixelRatioOf(context);
+    final memCacheWidth = (widget.width * dpr).round();
+    final memCacheHeight = (widget.height * dpr).round();
 
     return GestureDetector(
       onTapDown: (_) => setState(() => _pressed = true),
@@ -97,7 +100,11 @@ class _TrailerCardState extends State<TrailerCard> {
                     fit: StackFit.expand,
                     children: [
                       // Full-bleed 16:9 thumbnail – the STAR of the show
-                      CinematicImage(url: imageUrl),
+                      CinematicImage(
+                        url: imageUrl,
+                        memCacheWidth: memCacheWidth,
+                        memCacheHeight: memCacheHeight,
+                      ),
 
                       // Subtle top vignette so view-count badge is readable
                       const DecoratedBox(

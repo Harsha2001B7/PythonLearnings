@@ -4,6 +4,7 @@ import '../../../app/app_theme.dart';
 import '../../../core/data/youtube_trailers_provider.dart';
 import '../../../core/di/locator.dart';
 import '../../../core/models/trailer.dart';
+import '../../../shared/widgets/cinematic_image.dart';
 import '../controllers/notification_controller.dart';
 import '../models/rich_notification_content.dart';
 import '../services/local_notification_service.dart';
@@ -290,13 +291,9 @@ class _NotificationPreview extends StatelessWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                Image.network(
-                  trailer.youtubeThumbnailUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, _, _) => Image.network(
-                    trailer.youtubeHqThumbnailUrl,
-                    fit: BoxFit.cover,
-                  ),
+                CinematicImage(
+                  url: trailer.youtubeThumbnailUrl,
+                  fallbackUrl: trailer.youtubeHqThumbnailUrl,
                 ),
                 const DecoratedBox(
                   decoration: BoxDecoration(

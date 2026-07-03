@@ -3,6 +3,7 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show ScrollCacheExtent;
 
 import '../../app/app_theme.dart';
 import '../../core/data/home_experience_provider.dart';
@@ -10,6 +11,7 @@ import '../../core/data/youtube_trailers_provider.dart';
 import '../../core/di/locator.dart';
 import '../../core/models/trailer.dart';
 import '../../core/navigation/navigation_service.dart';
+import '../../core/services/image_cache_service.dart';
 import '../../shared/ui/ui.dart';
 import '../../shared/widgets/cinematic_image.dart';
 import '../../shared/widgets/popcorn_rating.dart';
@@ -39,12 +41,15 @@ class _HomeScreenState extends State<HomeScreen>
 
   final _provider = locator<YoutubeTrailersProvider>();
   final _experienceProvider = locator<HomeExperienceProvider>();
+  final _imageCache = locator<ImageCacheService>();
+  bool _homeImagesWarmed = false;
 
   @override
   void initState() {
     super.initState();
     _pageNotifier = ValueNotifier<int>(1000);
     _heroController = PageController(initialPage: _pageNotifier.value);
+    _pageNotifier.addListener(_onHeroPageChanged);
     _timer = Timer.periodic(const Duration(seconds: 6), (_) {
       if (!mounted || _heroController?.hasClients != true) return;
       _heroController?.nextPage(
@@ -57,13 +62,45 @@ class _HomeScreenState extends State<HomeScreen>
   }
 
   void _onDataChanged() {
-    if (mounted) setState(() {});
+    if (mounted) {
+      setState(() {});
+      _scheduleHomeImageWarm();
+    }
+  }
+
+  void _onHeroPageChanged() {
+    if (!mounted || _provider.heroTrailers.isEmpty) return;
+    _imageCache.precacheHeroNeighbors(
+      context,
+      _provider.heroTrailers,
+      _pageNotifier.value,
+      heroHeight: MediaQuery.sizeOf(context).height * 0.57,
+    );
+  }
+
+  void _scheduleHomeImageWarm() {
+    if (_homeImagesWarmed || _provider.heroTrailers.isEmpty) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _homeImagesWarmed) return;
+      _homeImagesWarmed = true;
+      final screenSize = MediaQuery.sizeOf(context);
+      _imageCache.warmHomeFeed(
+        context,
+        heroTrailers: _provider.heroTrailers,
+        sections: _provider.sections,
+        heroHeight: screenSize.height * 0.57,
+        cardWidth: screenSize.width * 0.74,
+        cardImageHeight: screenSize.width * 0.74 * (9 / 16),
+      );
+      _onHeroPageChanged();
+    });
   }
 
   @override
   void dispose() {
     try {
       _timer?.cancel();
+      _pageNotifier.removeListener(_onHeroPageChanged);
       _heroController?.dispose();
       _pageNotifier.dispose();
     } catch (_) {}

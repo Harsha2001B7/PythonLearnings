@@ -220,6 +220,7 @@ class _CinematicHeroSlide extends StatelessWidget {
               blendMode: BlendMode.dstIn,
               child: CinematicImage(
                 url: trailer.youtubeThumbnailUrl,
+                fallbackUrl: trailer.youtubeHqThumbnailUrl,
                 alignment: Alignment.topCenter,
               ),
             ),
