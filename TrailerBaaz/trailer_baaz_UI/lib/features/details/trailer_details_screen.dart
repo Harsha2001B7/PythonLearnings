@@ -5,6 +5,7 @@ import '../../core/data/youtube_trailers_provider.dart';
 import '../../core/di/locator.dart';
 import '../../core/models/trailer.dart';
 import '../../core/navigation/navigation_service.dart';
+import '../../shared/animations/animations.dart';
 import '../../shared/ui/ui.dart';
 import '../../shared/widgets/cinematic_image.dart';
 import '../../shared/widgets/glass_icon_button.dart';
@@ -53,8 +54,8 @@ class _TrailerDetailsScreenState extends State<TrailerDetailsScreen> {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  Hero(
-                    tag: 'backdrop-${trailer.id}',
+                  TrailerBackdropHero(
+                    trailerId: trailer.id,
                     child: CinematicImage(
                       url: trailer.youtubeThumbnailUrl,
                       alignment: Alignment.topCenter,

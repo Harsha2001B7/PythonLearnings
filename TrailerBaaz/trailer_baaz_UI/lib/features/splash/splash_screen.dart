@@ -3,6 +3,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../../app/app_theme.dart';
 import '../../core/di/locator.dart';
 import '../../core/navigation/navigation_service.dart';
+import '../../shared/animations/animations.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -21,15 +22,10 @@ class _SplashScreenState extends State<SplashScreen>
   late final Animation<double> _logoFade;
   late final Animation<double> _logoGlow;
 
-  late final Animation<double> _wordmarkFade;
-  late final Animation<Offset> _wordmarkSlide;
-  late final Animation<double> _taglineFade;
-  late final Animation<Offset> _taglineSlide;
-
-  late final Animation<double> _googleButtonFade;
-  late final Animation<Offset> _googleButtonSlide;
-  late final Animation<double> _guestButtonFade;
-  late final Animation<Offset> _guestButtonSlide;
+  late final FadeSlideAnimations _wordmarkEntrance;
+  late final FadeSlideAnimations _taglineEntrance;
+  late final FadeSlideAnimations _googleButtonEntrance;
+  late final FadeSlideAnimations _guestButtonEntrance;
 
   bool _buttonsReady = false;
 
@@ -84,64 +80,30 @@ class _SplashScreenState extends State<SplashScreen>
     ]).animate(_glowController);
 
     // Phase 3: the TrailerBaaz wordmark rises subtly after the mark settles.
-    _wordmarkFade = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _textController,
-        curve: const Interval(0.0, 0.72, curve: Curves.easeOutCubic),
-      ),
+    _wordmarkEntrance = FadeSlideAnimations.fromInterval(
+      parent: _textController,
+      interval: const Interval(0.0, 0.72, curve: AppMotion.cinematic),
     );
-    _wordmarkSlide =
-        Tween<Offset>(begin: const Offset(0, 0.18), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _textController,
-            curve: const Interval(0.0, 0.72, curve: Curves.easeOutCubic),
-          ),
-        );
 
     // Phase 4: the tagline follows with a small delay and matching upward drift.
-    _taglineFade = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _textController,
-        curve: const Interval(0.26, 1.0, curve: Curves.easeOutCubic),
-      ),
+    _taglineEntrance = FadeSlideAnimations.fromInterval(
+      parent: _textController,
+      interval: const Interval(0.26, 1.0, curve: AppMotion.cinematic),
     );
-    _taglineSlide =
-        Tween<Offset>(begin: const Offset(0, 0.18), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _textController,
-            curve: const Interval(0.26, 1.0, curve: Curves.easeOutCubic),
-          ),
-        );
 
     // Phase 5: the Google button enters first from below.
-    _googleButtonFade = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _buttonController,
-        curve: const Interval(0.0, 0.68, curve: Curves.easeOutCubic),
-      ),
+    _googleButtonEntrance = FadeSlideAnimations.fromInterval(
+      parent: _buttonController,
+      interval: const Interval(0.0, 0.68, curve: AppMotion.cinematic),
+      slideBegin: AppMotion.slideUpMedium,
     );
-    _googleButtonSlide =
-        Tween<Offset>(begin: const Offset(0, 0.24), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _buttonController,
-            curve: const Interval(0.0, 0.68, curve: Curves.easeOutCubic),
-          ),
-        );
 
     // Phase 6: the guest button follows 100-150ms later for a premium stagger.
-    _guestButtonFade = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _buttonController,
-        curve: const Interval(0.18, 0.92, curve: Curves.easeOutCubic),
-      ),
+    _guestButtonEntrance = FadeSlideAnimations.fromInterval(
+      parent: _buttonController,
+      interval: const Interval(0.18, 0.92, curve: AppMotion.cinematic),
+      slideBegin: AppMotion.slideUpMedium,
     );
-    _guestButtonSlide =
-        Tween<Offset>(begin: const Offset(0, 0.24), end: Offset.zero).animate(
-          CurvedAnimation(
-            parent: _buttonController,
-            curve: const Interval(0.18, 0.92, curve: Curves.easeOutCubic),
-          ),
-        );
 
     _runSequence();
   }
@@ -199,12 +161,10 @@ class _SplashScreenState extends State<SplashScreen>
               AnimatedBuilder(
                 animation: Listenable.merge([_logoController, _glowController]),
                 builder: (context, child) {
-                  return FadeTransition(
+                  return FadeScaleEntrance(
                     opacity: _logoFade,
-                    child: ScaleTransition(
-                      scale: _logoScale,
-                      child: _Logo(glowOpacity: _logoGlow.value),
-                    ),
+                    scale: _logoScale,
+                    child: _Logo(glowOpacity: _logoGlow.value),
                   );
                 },
               ),
@@ -217,26 +177,20 @@ class _SplashScreenState extends State<SplashScreen>
                 builder: (context, child) {
                   return Column(
                     children: [
-                      FadeTransition(
-                        opacity: _wordmarkFade,
-                        child: SlideTransition(
-                          position: _wordmarkSlide,
-                          child: const _Wordmark(),
-                        ),
+                      FadeSlideEntrance.from(
+                        animations: _wordmarkEntrance,
+                        child: const _Wordmark(),
                       ),
                       const SizedBox(height: 12),
-                      FadeTransition(
-                        opacity: _taglineFade,
-                        child: SlideTransition(
-                          position: _taglineSlide,
-                          child: Text(
-                            'Discover the Next Blockbuster.',
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.7),
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              letterSpacing: 0.5,
-                            ),
+                      FadeSlideEntrance.from(
+                        animations: _taglineEntrance,
+                        child: Text(
+                          'Discover the Next Blockbuster.',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.7),
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 0.5,
                           ),
                         ),
                       ),
@@ -255,18 +209,16 @@ class _SplashScreenState extends State<SplashScreen>
                     absorbing: !_buttonsReady,
                     child: AnimatedOpacity(
                       opacity: _buttonController.value == 0 ? 0.0 : 1.0,
-                      duration: const Duration(milliseconds: 180),
-                      curve: Curves.easeOutCubic,
+                      duration: AppMotion.buttonColumnOpacity,
+                      curve: AppMotion.cinematic,
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          FadeTransition(
-                            opacity: _googleButtonFade,
-                            child: SlideTransition(
-                              position: _googleButtonSlide,
-                              child: _ScaleButton(
-                                onTap: _navigateHome,
-                                child: Container(
+                          FadeSlideEntrance.from(
+                            animations: _googleButtonEntrance,
+                            child: PressScaleButton(
+                              onTap: _navigateHome,
+                              child: Container(
                                   width: double.infinity,
                                   height: 56,
                                   decoration: BoxDecoration(
@@ -293,19 +245,16 @@ class _SplashScreenState extends State<SplashScreen>
                                     ],
                                   ),
                                 ),
-                              ),
                             ),
                           ),
 
                           const SizedBox(height: 16),
 
-                          FadeTransition(
-                            opacity: _guestButtonFade,
-                            child: SlideTransition(
-                              position: _guestButtonSlide,
-                              child: _ScaleButton(
-                                onTap: _navigateHome,
-                                child: Container(
+                          FadeSlideEntrance.from(
+                            animations: _guestButtonEntrance,
+                            child: PressScaleButton(
+                              onTap: _navigateHome,
+                              child: Container(
                                   width: double.infinity,
                                   height: 56,
                                   decoration: BoxDecoration(
@@ -329,7 +278,6 @@ class _SplashScreenState extends State<SplashScreen>
                                     ),
                                   ),
                                 ),
-                              ),
                             ),
                           ),
                           const SizedBox(height: 32),
@@ -492,68 +440,6 @@ class _Wordmark extends StatelessWidget {
           ],
         ),
       ],
-    );
-  }
-}
-
-class _ScaleButton extends StatefulWidget {
-  final Widget child;
-  final VoidCallback onTap;
-
-  const _ScaleButton({required this.child, required this.onTap});
-
-  @override
-  State<_ScaleButton> createState() => _ScaleButtonState();
-}
-
-class _ScaleButtonState extends State<_ScaleButton>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
-  late final Animation<double> _scale;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 150),
-      reverseDuration: const Duration(milliseconds: 200),
-    );
-    _scale = Tween<double>(
-      begin: 1.0,
-      end: 0.95,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutQuad));
-  }
-
-  @override
-  void dispose() {
-    try {
-      _controller.dispose();
-    } catch (_) {}
-    super.dispose();
-  }
-
-  void _onTapDown(TapDownDetails details) {
-    _controller.forward();
-  }
-
-  void _onTapUp(TapUpDetails details) {
-    _controller.reverse();
-    widget.onTap();
-  }
-
-  void _onTapCancel() {
-    _controller.reverse();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTapDown: _onTapDown,
-      onTapUp: _onTapUp,
-      onTapCancel: _onTapCancel,
-      behavior: HitTestBehavior.opaque,
-      child: ScaleTransition(scale: _scale, child: widget.child),
     );
   }
 }

@@ -12,6 +12,7 @@ import '../../core/di/locator.dart';
 import '../../core/models/trailer.dart';
 import '../../core/navigation/navigation_service.dart';
 import '../../core/services/image_cache_service.dart';
+import '../../shared/animations/animations.dart';
 import '../../shared/ui/ui.dart';
 import '../../shared/widgets/cinematic_image.dart';
 import '../../shared/widgets/popcorn_rating.dart';

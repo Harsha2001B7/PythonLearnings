@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/app_theme.dart';
 import '../../core/models/trailer.dart';
+import '../../shared/animations/animations.dart';
 import 'cinematic_image.dart';
 
 import 'popcorn_rating.dart';
@@ -80,10 +81,8 @@ class _TrailerCardState extends State<TrailerCard> {
       onTapCancel: () => setState(() => _pressed = false),
       onTapUp: (_) => setState(() => _pressed = false),
       onTap: widget.onTap,
-      child: AnimatedScale(
-        duration: const Duration(milliseconds: 140),
-        curve: Curves.easeOut,
-        scale: _pressed ? 0.97 : 1.0,
+      child: PressScale(
+        pressed: _pressed,
         child: SizedBox(
           width: widget.width,
           child: Column(

@@ -208,8 +208,8 @@ class _CinematicHeroSlide extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           // Cinematic thumbnail with bottom fade
-          Hero(
-            tag: 'backdrop-${trailer.id}',
+          TrailerBackdropHero(
+            trailerId: trailer.id,
             child: ShaderMask(
               shaderCallback: (bounds) => const LinearGradient(
                 begin: Alignment.topCenter,

@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
 
+import '../animations/animations.dart';
+
 class TrailerPlayerRoute extends PageRouteBuilder<void> {
   TrailerPlayerRoute({
     required WidgetBuilder builder,
     required String trailerId,
   }) : super(
          settings: RouteSettings(name: 'trailer-player:$trailerId'),
-         transitionDuration: const Duration(milliseconds: 260),
-         reverseTransitionDuration: const Duration(milliseconds: 200),
+         transitionDuration: AppMotion.routePlayerForward,
+         reverseTransitionDuration: AppMotion.routePlayerReverse,
          opaque: true,
          pageBuilder: (context, animation, secondaryAnimation) =>
              builder(context),
          transitionsBuilder: (context, animation, secondaryAnimation, child) {
-           return FadeTransition(
-             opacity: CurvedAnimation(
-               parent: animation,
-               curve: Curves.easeOutCubic,
-               reverseCurve: Curves.easeInCubic,
-             ),
+           return AppPageTransitions.curvedFade(
+             animation: animation,
              child: child,
            );
          },

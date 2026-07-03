@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
+import '../../../shared/animations/animations.dart';
 import '../../../shared/widgets/cinematic_image.dart';
 import '../../../core/di/locator.dart';
 import '../../../core/navigation/navigation_service.dart';
@@ -109,12 +110,7 @@ class HeaderSubtitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedSwitcher(
-      duration: const Duration(milliseconds: 400),
-      switchInCurve: Curves.easeIn,
-      switchOutCurve: Curves.easeOut,
-      transitionBuilder: (child, animation) =>
-          FadeTransition(opacity: animation, child: child),
+    return AnimatedFadeSwitcher(
       child: Text(
         subtitle,
         key: ValueKey(subtitle),

@@ -5,6 +5,7 @@ import '../../features/details/trailer_details_screen.dart';
 import '../../features/notifications/simulator/notification_simulator.dart';
 import '../../features/shell/app_shell.dart';
 import '../../features/splash/splash_screen.dart';
+import '../../shared/animations/animations.dart';
 import '../../shared/trailer_player/trailer_player_fullscreen.dart';
 import 'routes.dart';
 
@@ -12,43 +13,19 @@ import 'routes.dart';
 /// centralization.
 abstract final class AppRouter {
   static Route<void> splashToShell() {
-    return PageRouteBuilder<void>(
+    return AppPageTransitions.fadeScale<void>(
       settings: const RouteSettings(name: AppRoutes.shell),
-      transitionDuration: const Duration(milliseconds: 700),
-      reverseTransitionDuration: const Duration(milliseconds: 700),
-      pageBuilder: (context, animation, secondaryAnimation) {
-        return const AppShell();
-      },
-      transitionsBuilder: (context, animation, secondaryAnimation, child) {
-        final fade = CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutCubic,
-        );
-
-        final scaleIn = Tween<double>(begin: 0.96, end: 1.0).animate(
-          CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
-        );
-
-        return FadeTransition(
-          opacity: fade,
-          child: ScaleTransition(scale: scaleIn, child: child),
-        );
-      },
+      page: const AppShell(),
     );
   }
 
   static Route<void> trailerDetailsFade(Trailer trailer) {
-    return PageRouteBuilder<void>(
+    return AppPageTransitions.fade<void>(
       settings: RouteSettings(
         name: AppRoutes.trailerDetails,
         arguments: trailer.id,
       ),
-      transitionDuration: const Duration(milliseconds: 420),
-      reverseTransitionDuration: const Duration(milliseconds: 280),
-      pageBuilder: (_, animation, _) => FadeTransition(
-        opacity: animation,
-        child: TrailerDetailsScreen(trailer: trailer),
-      ),
+      page: TrailerDetailsScreen(trailer: trailer),
     );
   }
 
@@ -63,15 +40,14 @@ abstract final class AppRouter {
   }
 
   static Route<void> trailerDetailsReplacement(Trailer trailer) {
-    return PageRouteBuilder<void>(
+    return AppPageTransitions.fade<void>(
       settings: RouteSettings(
         name: AppRoutes.trailerDetails,
         arguments: trailer.id,
       ),
-      pageBuilder: (_, animation, _) => FadeTransition(
-        opacity: animation,
-        child: TrailerDetailsScreen(trailer: trailer),
-      ),
+      page: TrailerDetailsScreen(trailer: trailer),
+      transitionDuration: AppMotion.routeMaterialDefault,
+      reverseTransitionDuration: AppMotion.routeMaterialDefault,
     );
   }
 
@@ -83,13 +59,11 @@ abstract final class AppRouter {
   }
 
   static Route<void> logoutToSplash() {
-    return PageRouteBuilder<void>(
+    return AppPageTransitions.fade<void>(
       settings: const RouteSettings(name: AppRoutes.splash),
-      transitionDuration: const Duration(milliseconds: 500),
-      pageBuilder: (context, animation, secondaryAnimation) => FadeTransition(
-        opacity: animation,
-        child: const SplashScreen(),
-      ),
+      page: const SplashScreen(),
+      transitionDuration: AppMotion.routeLogout,
+      reverseTransitionDuration: AppMotion.routeLogout,
     );
   }
 
