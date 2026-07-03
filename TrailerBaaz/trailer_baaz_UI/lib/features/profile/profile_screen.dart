@@ -3,12 +3,10 @@ import 'package:flutter/material.dart';
 import '../../app/app_theme.dart';
 import '../../core/data/youtube_trailers_provider.dart';
 import '../../core/di/locator.dart';
+import '../../core/navigation/navigation_service.dart';
 import '../../shared/widgets/cinematic_image.dart';
 import '../../shared/widgets/trailer_card.dart';
 import '../../shared/widgets/trailer_player.dart';
-import '../details/trailer_details_screen.dart';
-import '../splash/splash_screen.dart';
-import '../notifications/simulator/notification_simulator.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -253,10 +251,9 @@ class _ProfileRail extends StatelessWidget {
             separatorBuilder: (_, _) => const SizedBox(width: 12),
             itemBuilder: (context, index) => TrailerCard(
               trailer: items[index],
-              onTap: () => Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => TrailerDetailsScreen(trailer: items[index]),
-                ),
+              onTap: () => locator<NavigationService>().pushTrailerDetails(
+                context,
+                items[index],
               ),
               onPlay: () => showTrailerPlayer(context, items[index]),
               width: cardWidth,
@@ -304,23 +301,11 @@ class _SettingsPanel extends StatelessWidget {
               ),
               onTap: () {
                 if (item.$2 == 'Developer Simulator') {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const NotificationSimulatorScreen(),
-                    ),
+                  locator<NavigationService>().openNotificationSimulator(
+                    context,
                   );
                 } else if (item.$2 == 'Logout') {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    PageRouteBuilder(
-                      transitionDuration: const Duration(milliseconds: 500),
-                      pageBuilder: (context, animation, secondaryAnimation) =>
-                          FadeTransition(
-                            opacity: animation,
-                            child: const SplashScreen(),
-                          ),
-                    ),
-                    (route) => false,
-                  );
+                  locator<NavigationService>().logoutToSplash(context);
                 }
               },
             ),

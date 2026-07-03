@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import '../../app/app_theme.dart';
-import '../shell/app_shell.dart';
+import '../../core/di/locator.dart';
+import '../../core/navigation/navigation_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -180,31 +181,7 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   void _navigateHome() {
-    Navigator.of(context).pushReplacement(
-      PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 700),
-        reverseTransitionDuration: const Duration(milliseconds: 700),
-        pageBuilder: (context, animation, secondaryAnimation) {
-          return const AppShell();
-        },
-        transitionsBuilder: (context, animation, secondaryAnimation, child) {
-          // Dissolve into the app shell instead of snapping away from splash.
-          final fade = CurvedAnimation(
-            parent: animation,
-            curve: Curves.easeOutCubic,
-          );
-
-          final scaleIn = Tween<double>(begin: 0.96, end: 1.0).animate(
-            CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
-          );
-
-          return FadeTransition(
-            opacity: fade,
-            child: ScaleTransition(scale: scaleIn, child: child),
-          );
-        },
-      ),
-    );
+    locator<NavigationService>().replaceWithShell(context);
   }
 
   @override

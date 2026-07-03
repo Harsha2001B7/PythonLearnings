@@ -4,10 +4,10 @@ import '../../app/app_theme.dart';
 import '../../core/data/youtube_trailers_provider.dart';
 import '../../core/di/locator.dart';
 import '../../core/models/trailer.dart';
+import '../../core/navigation/navigation_service.dart';
 import '../../shared/widgets/cinematic_image.dart';
 import '../../shared/widgets/trailer_card.dart';
 import '../../shared/widgets/trailer_player.dart';
-import '../details/trailer_details_screen.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -144,9 +144,7 @@ class _SearchScreenState extends State<SearchScreen>
   }
 
   void _openDetails(Trailer trailer) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => TrailerDetailsScreen(trailer: trailer)),
-    );
+    locator<NavigationService>().pushTrailerDetails(context, trailer);
   }
 
   void _playTrailer(Trailer trailer) {

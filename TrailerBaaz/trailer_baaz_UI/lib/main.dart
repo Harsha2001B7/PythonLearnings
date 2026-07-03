@@ -7,15 +7,12 @@ import 'core/di/locator.dart';
 import 'features/notifications/services/local_notification_service.dart';
 import 'features/notifications/controllers/notification_controller.dart';
 
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   setupLocator();
 
   await locator<LocalNotificationService>().initialize();
-  locator<NotificationController>().setNavigatorKey(navigatorKey);
   locator<NotificationController>().loadDemoNotifications();
 
   // Initialize providers

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/notification_item.dart';
 import '../../../core/data/youtube_trailers_provider.dart';
 import '../../../core/di/locator.dart';
-import '../../../features/details/trailer_details_screen.dart';
+import '../../../core/navigation/navigation_service.dart';
 
 class NotificationController {
   NotificationController();
@@ -10,14 +10,8 @@ class NotificationController {
   final ValueNotifier<List<NotificationItem>> notifications =
       ValueNotifier<List<NotificationItem>>([]);
 
-  GlobalKey<NavigatorState>? _navigatorKey;
   Map<String, dynamic>? _pendingTapPayload;
   bool _listeningForTrailerData = false;
-
-  void setNavigatorKey(GlobalKey<NavigatorState> key) {
-    _navigatorKey = key;
-    WidgetsBinding.instance.addPostFrameCallback((_) => _flushPendingTap());
-  }
 
   int get unreadCount => notifications.value.where((n) => !n.isRead).length;
   bool get hasUnread => unreadCount > 0;
@@ -123,10 +117,9 @@ class NotificationController {
     final trailerId = payload['trailerId']?.toString();
     if (trailerId == null || trailerId.isEmpty) return;
 
-    final navigator = _navigatorKey?.currentState;
     final trailers = locator<YoutubeTrailersProvider>().allTrailers;
 
-    if (navigator == null || trailers.isEmpty) {
+    if (trailers.isEmpty) {
       _queuePendingTap(payload);
       return;
     }
@@ -136,9 +129,7 @@ class NotificationController {
       orElse: () => trailers.first,
     );
 
-    navigator.push(
-      MaterialPageRoute(builder: (_) => TrailerDetailsScreen(trailer: trailer)),
-    );
+    locator<NavigationService>().pushTrailerDetailsGlobal(trailer);
   }
 
   void _queuePendingTap(Map<String, dynamic> payload) {
@@ -154,9 +145,8 @@ class NotificationController {
     final payload = _pendingTapPayload;
     if (payload == null) return;
 
-    final navigator = _navigatorKey?.currentState;
     final trailers = locator<YoutubeTrailersProvider>().allTrailers;
-    if (navigator == null || trailers.isEmpty) return;
+    if (trailers.isEmpty) return;
 
     _pendingTapPayload = null;
     if (_listeningForTrailerData) {

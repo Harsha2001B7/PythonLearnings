@@ -4,6 +4,7 @@ import '../../app/app_theme.dart';
 import '../../core/data/youtube_trailers_provider.dart';
 import '../../core/di/locator.dart';
 import '../../core/models/trailer.dart';
+import '../../core/navigation/navigation_service.dart';
 import '../../shared/ui/ui.dart';
 import '../../shared/widgets/cinematic_image.dart';
 import '../../shared/widgets/glass_icon_button.dart';
@@ -106,7 +107,8 @@ class _TrailerDetailsScreenState extends State<TrailerDetailsScreen> {
                           icon: Icons.arrow_back_ios_new_rounded,
                           tooltip: 'Back',
                           size: 46,
-                          onPressed: () => Navigator.of(context).pop(),
+                          onPressed: () =>
+                              locator<NavigationService>().pop(context),
                         ),
                         const Spacer(),
                         GlassIconButton(
@@ -463,13 +465,9 @@ class _RelatedRail extends StatelessWidget {
             itemBuilder: (context, index) => TrailerCard(
               trailer: items[index],
               onTap: () {
-                Navigator.of(context).pushReplacement(
-                  PageRouteBuilder(
-                    pageBuilder: (_, animation, _) => FadeTransition(
-                      opacity: animation,
-                      child: TrailerDetailsScreen(trailer: items[index]),
-                    ),
-                  ),
+                locator<NavigationService>().replaceTrailerDetails(
+                  context,
+                  items[index],
                 );
               },
               onPlay: () => showTrailerPlayer(context, items[index]),

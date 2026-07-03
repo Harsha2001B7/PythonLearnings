@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../core/navigation/navigation_service.dart';
 import '../features/splash/splash_screen.dart';
 import 'app_theme.dart';
-import '../main.dart';
 
 class TrailerBaazApp extends StatelessWidget {
   const TrailerBaazApp({super.key});

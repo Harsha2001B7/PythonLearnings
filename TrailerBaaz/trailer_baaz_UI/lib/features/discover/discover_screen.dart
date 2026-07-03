@@ -4,11 +4,11 @@ import '../../app/app_theme.dart';
 import '../../core/data/youtube_trailers_provider.dart';
 import '../../core/di/locator.dart';
 import '../../core/models/trailer.dart';
+import '../../core/navigation/navigation_service.dart';
 import '../../shared/ui/ui.dart';
 import '../../shared/widgets/popcorn_rating.dart';
 import '../../shared/widgets/trailer_player.dart';
 import '../../shared/trailer_player/trailer_player_feed.dart';
-import '../details/trailer_details_screen.dart';
 
 class DiscoverScreen extends StatefulWidget {
   const DiscoverScreen({super.key});
@@ -93,11 +93,7 @@ class _ReelPageState extends State<_ReelPage> {
   bool _bookmarked = false;
 
   void _openDetails() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => TrailerDetailsScreen(trailer: widget.trailer),
-      ),
-    );
+    locator<NavigationService>().pushTrailerDetails(context, widget.trailer);
   }
 
   @override

@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 
 import '../../../app/app_theme.dart';
 import '../../../shared/widgets/cinematic_image.dart';
+import '../../../core/di/locator.dart';
+import '../../../core/navigation/navigation_service.dart';
+import '../../../core/navigation/routes.dart';
 import '../../notifications/widgets/notification_badge.dart';
-import '../../shell/app_shell.dart';
 
 const double kHeaderLogoHeight = 52.0; // Enlarged from 42.0
 const double kHeaderAvatarSize = 32.0; // Reduced from 40.0
@@ -226,7 +228,10 @@ class _HeaderAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () => AppShell.setIndex(context, 4),
+      onTap: () => locator<NavigationService>().setShellTab(
+        context,
+        ShellTab.profile,
+      ),
       child: Container(
         decoration: BoxDecoration(
           shape: BoxShape.circle,

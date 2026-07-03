@@ -9,13 +9,13 @@ import '../../core/data/home_experience_provider.dart';
 import '../../core/data/youtube_trailers_provider.dart';
 import '../../core/di/locator.dart';
 import '../../core/models/trailer.dart';
+import '../../core/navigation/navigation_service.dart';
 import '../../shared/ui/ui.dart';
 import '../../shared/widgets/cinematic_image.dart';
 import '../../shared/widgets/popcorn_rating.dart';
 import '../../shared/widgets/trailer_card.dart'
     show TrailerCard, kCardTextSectionHeight;
 import '../../shared/widgets/trailer_player.dart';
-import '../details/trailer_details_screen.dart';
 import 'widgets/home_header.dart';
 
 part 'home_categories.dart';
@@ -76,16 +76,7 @@ class _HomeScreenState extends State<HomeScreen>
   bool get wantKeepAlive => true;
 
   void _openDetails(Trailer trailer) {
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 420),
-        reverseTransitionDuration: const Duration(milliseconds: 280),
-        pageBuilder: (_, animation, _) => FadeTransition(
-          opacity: animation,
-          child: TrailerDetailsScreen(trailer: trailer),
-        ),
-      ),
-    );
+    locator<NavigationService>().pushTrailerDetailsFade(context, trailer);
   }
 
   void _playTrailer(Trailer trailer) {
@@ -104,7 +95,7 @@ class _HomeScreenState extends State<HomeScreen>
       barrierColor: Colors.black.withValues(alpha: 0.6),
       builder: (ctx) => _BrowseSheet(
         onSelect: (sectionKey) {
-          Navigator.pop(ctx);
+          locator<NavigationService>().pop(ctx);
           _selectSection(sectionKey);
         },
         selectedSection: _selectedSection,

@@ -1,7 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../app/app_theme.dart';
-import '../shell/app_shell.dart';
+import '../../core/di/locator.dart';
+import '../../core/navigation/navigation_service.dart';
+import '../../core/navigation/routes.dart';
 
 class PreferencesScreen extends StatefulWidget {
   const PreferencesScreen({super.key});
@@ -138,7 +140,10 @@ class _PreferencesScreenState extends State<PreferencesScreen>
                       color: Colors.white,
                       size: 28,
                     ),
-                    onPressed: () => AppShell.setIndex(context, 0),
+                    onPressed: () => locator<NavigationService>().setShellTab(
+                      context,
+                      ShellTab.home,
+                    ),
                   ),
                 ],
               ),
@@ -280,7 +285,10 @@ class _PreferencesScreenState extends State<PreferencesScreen>
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       ElevatedButton(
-                        onPressed: () => AppShell.setIndex(context, 0),
+                        onPressed: () => locator<NavigationService>().setShellTab(
+                      context,
+                      ShellTab.home,
+                    ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: Colors.black,
@@ -300,7 +308,10 @@ class _PreferencesScreenState extends State<PreferencesScreen>
                       ),
                       const SizedBox(height: 12),
                       TextButton(
-                        onPressed: () => AppShell.setIndex(context, 0),
+                        onPressed: () => locator<NavigationService>().setShellTab(
+                      context,
+                      ShellTab.home,
+                    ),
                         style: TextButton.styleFrom(
                           foregroundColor: Colors.white54,
                           minimumSize: const Size(double.infinity, 48),

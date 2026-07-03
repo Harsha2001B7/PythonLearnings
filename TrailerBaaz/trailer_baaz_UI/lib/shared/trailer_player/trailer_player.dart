@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
+import '../../core/di/locator.dart';
 import '../../core/models/trailer.dart';
+import '../../core/navigation/app_router.dart';
+import '../../core/navigation/navigation_service.dart';
 import '../../features/details/trailer_details_screen.dart';
 import 'trailer_player_buttons.dart';
 import 'trailer_player_controller.dart';
-import 'trailer_player_fullscreen.dart';
 
 _TrailerPlayerScreenState? _activePlayer;
 Future<void>? _activePlayerFuture;
@@ -19,7 +21,7 @@ Future<void> showTrailerPlayer(BuildContext context, Trailer trailer, {bool star
     return _activePlayerFuture;
   }
 
-  final route = TrailerPlayerRoute(
+  final route = AppRouter.trailerPlayer(
     trailerId: trailer.id,
     builder: (_) => _TrailerPlayerScreen(
       trailer: trailer,
@@ -27,7 +29,11 @@ Future<void> showTrailerPlayer(BuildContext context, Trailer trailer, {bool star
     ),
   );
 
-  _activePlayerFuture = Navigator.of(context, rootNavigator: true).push(route);
+  _activePlayerFuture = locator<NavigationService>().pushRoute(
+    context,
+    route,
+    rootNavigator: true,
+  );
   try {
     await _activePlayerFuture;
   } finally {
@@ -88,7 +94,7 @@ class _TrailerPlayerScreenState extends State<_TrailerPlayerScreen> {
     await _controller.restorePortraitChrome();
     if (!mounted) return;
     setState(() => _allowPop = true);
-    Navigator.of(context).pop();
+    locator<NavigationService>().pop(context);
   }
 
   Future<void> _openInfo() async {
@@ -100,12 +106,13 @@ class _TrailerPlayerScreenState extends State<_TrailerPlayerScreen> {
     setState(() => _allowPop = true);
     
     if (_launchedFromDetailsId == trailer.id) {
-      Navigator.of(context).pop();
+      locator<NavigationService>().pop(context);
       return;
     }
 
-    Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (_) => TrailerDetailsScreen(trailer: trailer)),
+    locator<NavigationService>().replaceWithTrailerDetailsFromPlayer(
+      context,
+      trailer,
     );
   }
 
