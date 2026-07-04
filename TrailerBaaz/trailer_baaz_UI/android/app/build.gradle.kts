@@ -15,9 +15,27 @@ android {
         isCoreLibraryDesugaringEnabled = true
     }
 
+    signingConfigs {
+        create("release") {
+            val keystoreFile = System.getenv("RELEASE_STORE_FILE")?.let { file(it) }
+            if (keystoreFile != null && keystoreFile.exists()) {
+                storeFile = keystoreFile
+                storePassword = System.getenv("RELEASE_STORE_PASSWORD")
+                keyAlias = System.getenv("RELEASE_KEY_ALIAS")
+                keyPassword = System.getenv("RELEASE_KEY_PASSWORD")
+            } else {
+                // Fallback to debug configuration to prevent local builds from breaking
+                val debugConfig = signingConfigs.getByName("debug")
+                storeFile = debugConfig.storeFile
+                storePassword = debugConfig.storePassword
+                keyAlias = debugConfig.keyAlias
+                keyPassword = debugConfig.keyPassword
+            }
+        }
+    }
+
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.trailer_baaz_ui"
+        applicationId = "com.trailerbaaz.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -28,9 +46,13 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
         }
     }
 }
