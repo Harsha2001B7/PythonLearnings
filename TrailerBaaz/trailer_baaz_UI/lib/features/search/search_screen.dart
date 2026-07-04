@@ -7,7 +7,7 @@ import '../../core/models/trailer.dart';
 import '../../core/navigation/navigation_service.dart';
 import '../../shared/widgets/cinematic_image.dart';
 import '../../shared/widgets/trailer_card.dart';
-import '../../shared/widgets/trailer_player.dart';
+import '../../shared/trailer_player/trailer_player.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({super.key});
@@ -44,97 +44,107 @@ class _SearchScreenState extends State<SearchScreen>
                 20,
                 MediaQuery.paddingOf(context).top + 18,
                 20,
-                110,
+                0,
               ),
-              sliver: SliverList(
-                delegate: SliverChildListDelegate([
-                  const Text(
-                    'Search',
-                    style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900),
-                  ),
-                  const SizedBox(height: 18),
-                  _SearchBar(
-                    onChanged: (value) => setState(() => _query = value),
-                  ),
-                  const SizedBox(height: 24),
-                  _ChipBlock(
-                    title: 'Recent Searches',
-                    items: const [
-                      'Neon Shadows',
-                      'Cyberpunk',
-                      'Tamil thrillers',
-                    ],
-                  ),
-                  const SizedBox(height: 22),
-                  _ChipBlock(
-                    title: 'Trending Searches',
-                    items: const [
-                      'BookMyShow',
-                      'Korean drama',
-                      'OTT originals',
-                      'Space',
-                    ],
-                    accent: true,
-                  ),
-                  const SizedBox(height: 22),
-                  _ChipBlock(
-                    title: 'Genres',
-                    items: const [
-                      'Action',
-                      'Sci-Fi',
-                      'Thriller',
-                      'Drama',
-                      'Adventure',
-                    ],
-                  ),
-                  const SizedBox(height: 22),
-                  _ChipBlock(
-                    title: 'Languages',
-                    items: const [
-                      'English',
-                      'Hindi',
-                      'Telugu',
-                      'Tamil',
-                      'Korean',
-                    ],
-                  ),
-                  const SizedBox(height: 28),
-                  const _SectionHeader('Trending Actors'),
-                  const SizedBox(height: 14),
-                  const _PeopleRail(),
-                  const SizedBox(height: 28),
-                  const _SectionHeader('Popular Studios'),
-                  const SizedBox(height: 14),
-                  _StudioGrid(
-                    studios: allTrailers
-                        .map((item) => item.studio)
-                        .where((s) => s.isNotEmpty)
-                        .toSet()
-                        .toList(),
-                    expanded: _showAllStudios,
-                    onToggle: () {
-                      setState(() {
-                        _showAllStudios = !_showAllStudios;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 28),
-                  _SectionHeader(
-                    _query.isEmpty ? 'Search Results' : 'Results for "$_query"',
-                  ),
-                  const SizedBox(height: 14),
-                  ...visibleResults.map(
-                    (trailer) => Padding(
-                      padding: const EdgeInsets.only(bottom: 14),
-                      child: TrailerCard.large(
-                        trailer: trailer,
-                        onTap: () => _openDetails(trailer),
-                        onPlay: () => _playTrailer(trailer),
-                        width: MediaQuery.sizeOf(context).width - 40,
-                      ),
+              sliver: SliverToBoxAdapter(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Search',
+                      style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900),
                     ),
-                  ),
-                ]),
+                    const SizedBox(height: 18),
+                    _SearchBar(
+                      onChanged: (value) => setState(() => _query = value),
+                    ),
+                    const SizedBox(height: 24),
+                    const _ChipBlock(
+                      title: 'Recent Searches',
+                      items: [
+                        'Neon Shadows',
+                        'Cyberpunk',
+                        'Tamil thrillers',
+                      ],
+                    ),
+                    const SizedBox(height: 22),
+                    const _ChipBlock(
+                      title: 'Trending Searches',
+                      items: [
+                        'BookMyShow',
+                        'Korean drama',
+                        'OTT originals',
+                        'Space',
+                      ],
+                      accent: true,
+                    ),
+                    const SizedBox(height: 22),
+                    const _ChipBlock(
+                      title: 'Genres',
+                      items: [
+                        'Action',
+                        'Sci-Fi',
+                        'Thriller',
+                        'Drama',
+                        'Adventure',
+                      ],
+                    ),
+                    const SizedBox(height: 22),
+                    const _ChipBlock(
+                      title: 'Languages',
+                      items: [
+                        'English',
+                        'Hindi',
+                        'Telugu',
+                        'Tamil',
+                        'Korean',
+                      ],
+                    ),
+                    const SizedBox(height: 28),
+                    const _SectionHeader('Trending Actors'),
+                    const SizedBox(height: 14),
+                    const _PeopleRail(),
+                    const SizedBox(height: 28),
+                    const _SectionHeader('Popular Studios'),
+                    const SizedBox(height: 14),
+                    _StudioGrid(
+                      studios: allTrailers
+                          .map((item) => item.studio)
+                          .where((s) => s.isNotEmpty)
+                          .toSet()
+                          .toList(),
+                      expanded: _showAllStudios,
+                      onToggle: () {
+                        setState(() {
+                          _showAllStudios = !_showAllStudios;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 28),
+                    _SectionHeader(
+                      _query.isEmpty ? 'Search Results' : 'Results for "$_query"',
+                    ),
+                    const SizedBox(height: 14),
+                  ],
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 110),
+              sliver: SliverList.builder(
+                itemCount: visibleResults.length,
+                itemBuilder: (context, index) {
+                  final trailer = visibleResults[index];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 14),
+                    child: TrailerCard.large(
+                      trailer: trailer,
+                      onTap: () => _openDetails(trailer),
+                      onPlay: () => _playTrailer(trailer),
+                      width: MediaQuery.sizeOf(context).width - 40,
+                    ),
+                  );
+                },
               ),
             ),
           ],
@@ -162,9 +172,9 @@ class _SearchBar extends StatelessWidget {
     return Container(
       height: 62,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: .08),
+        color: const Color(0x14FFFFFF),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withValues(alpha: .11)),
+        border: Border.all(color: const Color(0x1CFFFFFF)),
       ),
       child: TextField(
         onChanged: onChanged,
@@ -218,8 +228,8 @@ class _ChipBlock extends StatelessWidget {
                         )
                       : null,
                   backgroundColor: accent
-                      ? AppTheme.accent.withValues(alpha: .14)
-                      : Colors.white.withValues(alpha: .07),
+                      ? const Color(0x24E50914)
+                      : const Color(0x12FFFFFF),
                 ),
               )
               .toList(),

@@ -114,8 +114,8 @@ class HeaderSubtitle extends StatelessWidget {
       child: Text(
         subtitle,
         key: ValueKey(subtitle),
-        style: TextStyle(
-          color: Colors.white.withValues(alpha: 0.7),
+        style: const TextStyle(
+          color: Color(0xB2FFFFFF),
           fontSize: 12,
           fontWeight: FontWeight.w600,
           letterSpacing: 0.1,
@@ -171,17 +171,17 @@ class _HomeHeaderState extends State<HomeHeader> {
   Widget build(BuildContext context) {
     return Container(
       // Unified top gradient, no curves at the bottom, just a smooth fade
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            Colors.black.withValues(alpha: 0.9),
-            Colors.black.withValues(alpha: 0.6),
-            Colors.black.withValues(alpha: 0.1),
+            Color(0xE6000000),
+            Color(0x99000000),
+            Color(0x1A000000),
             Colors.transparent,
           ],
-          stops: const [0.0, 0.4, 0.7, 1.0],
+          stops: [0.0, 0.4, 0.7, 1.0],
         ),
       ),
       padding: EdgeInsets.only(
@@ -229,15 +229,17 @@ class _HeaderAvatar extends StatelessWidget {
         ShellTab.profile,
       ),
       child: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           shape: BoxShape.circle,
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.22),
-            width: 1.5,
+          border: Border.fromBorderSide(
+            BorderSide(
+              color: Color(0x38FFFFFF),
+              width: 1.5,
+            ),
           ),
           boxShadow: [
             BoxShadow(
-              color: AppTheme.accent.withValues(alpha: 0.12),
+              color: Color(0x1FE50914),
               blurRadius: 14,
               spreadRadius: 1,
             ),

@@ -1,4 +1,4 @@
-﻿part of 'home_screen.dart';
+part of 'home_screen.dart';
 
 // ─── Cinematic Home Body ─────────────────────────────────────────────────────
 
@@ -164,18 +164,20 @@ class _HeroPlayButton extends StatelessWidget {
       child: Container(
         width: _CinematicHomeBody._playButtonSize,
         height: _CinematicHomeBody._playButtonSize,
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           shape: BoxShape.circle,
-          color: Colors.white.withValues(alpha: 0.12),
-          border: Border.all(
-            color: Colors.white.withValues(alpha: 0.25),
-            width: 0.8,
+          color: Color(0x1FFFFFFF),
+          border: Border.fromBorderSide(
+            BorderSide(
+              color: Color(0x40FFFFFF),
+              width: 0.8,
+            ),
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.3),
+              color: Color(0x4D000000),
               blurRadius: 12,
-              offset: const Offset(0, 4),
+              offset: Offset(0, 4),
             ),
           ],
         ),
@@ -227,13 +229,13 @@ class _CinematicHeroSlide extends StatelessWidget {
           ),
           // Subtle cinematic accent glow
           Positioned.fill(
-            child: DecoratedBox(
+            child: const DecoratedBox(
               decoration: BoxDecoration(
                 gradient: RadialGradient(
                   center: Alignment.center,
                   radius: 1.4,
                   colors: [
-                    AppTheme.accent.withValues(alpha: 0.06),
+                    Color(0x0FE50914),
                     Colors.transparent,
                   ],
                 ),
@@ -311,8 +313,8 @@ class _HeroInfoSection extends StatelessWidget {
                 '"${trailer.tagline}"',
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.55),
+                style: const TextStyle(
+                  color: Color(0x8CFFFFFF),
                   fontSize: 11,
                   fontStyle: FontStyle.italic,
                   fontWeight: FontWeight.w400,
@@ -343,14 +345,14 @@ class _StudioBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
+        color: const Color(0x14FFFFFF),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.14)),
+        border: Border.all(color: const Color(0x24FFFFFF)),
       ),
       child: Text(
         label.toUpperCase(),
-        style: TextStyle(
-          color: Colors.white.withValues(alpha: 0.6),
+        style: const TextStyle(
+          color: Color(0x99FFFFFF),
           fontSize: 9,
           fontWeight: FontWeight.w700,
           letterSpacing: 1.3,
@@ -369,13 +371,13 @@ class _HeroMetadataRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final metaStyle = TextStyle(
-      color: Colors.white.withValues(alpha: 0.65),
+    const metaStyle = TextStyle(
+      color: Color(0xA6FFFFFF),
       fontSize: 11,
       fontWeight: FontWeight.w500,
     );
-    final dotStyle = TextStyle(
-      color: Colors.white.withValues(alpha: 0.3),
+    const dotStyle = TextStyle(
+      color: Color(0x4DFFFFFF),
       fontSize: 11,
     );
 
@@ -387,10 +389,10 @@ class _HeroMetadataRow extends StatelessWidget {
         if (trailer.genres.isNotEmpty)
           Text(trailer.genres.take(2).join(' · '), style: metaStyle),
         if (trailer.runtime.isNotEmpty) ...[
-          Text('·', style: dotStyle),
+          const Text('·', style: dotStyle),
           Text(trailer.runtime, style: metaStyle),
         ],
-        Text('·', style: dotStyle),
+        const Text('·', style: dotStyle),
         PopcornBadge(
           score: trailer.hypeScore,
           compact: true,
@@ -437,8 +439,8 @@ class _CinematicProgressBar extends StatelessWidget {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(999),
                     color: isActive
-                        ? Colors.white.withValues(alpha: 0.9)
-                        : Colors.white.withValues(alpha: 0.18),
+                        ? const Color(0xE6FFFFFF)
+                        : const Color(0x2EFFFFFF),
                   ),
                 ),
               );

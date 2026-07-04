@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../app/app_theme.dart';
+import '../../../app/app_theme.dart';
 
 /// A simple circular progress indicator styled with [AppTheme.accent].
 ///

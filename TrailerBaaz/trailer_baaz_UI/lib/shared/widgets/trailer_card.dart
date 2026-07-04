@@ -21,7 +21,7 @@ const TextStyle _kCardTitleStyle = TextStyle(
 
 enum TrailerCardVariant { home, large }
 
-class TrailerCard extends StatefulWidget {
+class TrailerCard extends StatelessWidget {
   const TrailerCard({
     super.key,
     required this.trailer,
@@ -61,197 +61,180 @@ class TrailerCard extends StatefulWidget {
       showDetails ? height + kCardTextSectionHeight : height;
 
   @override
-  State<TrailerCard> createState() => _TrailerCardState();
-}
-
-class _TrailerCardState extends State<TrailerCard> {
-  bool _pressed = false;
-
-  @override
   Widget build(BuildContext context) {
-    final imageUrl = widget.trailer.youtubeVideoId.isNotEmpty
-        ? widget.trailer.youtubeHqThumbnailUrl
-        : widget.trailer.posterUrl;
+    final imageUrl = trailer.youtubeVideoId.isNotEmpty
+        ? trailer.youtubeHqThumbnailUrl
+        : trailer.posterUrl;
     final dpr = MediaQuery.devicePixelRatioOf(context);
-    final memCacheWidth = (widget.width * dpr).round();
-    final memCacheHeight = (widget.height * dpr).round();
+    final memCacheWidth = (width * dpr).round();
+    final memCacheHeight = (height * dpr).round();
 
-    return GestureDetector(
-      onTapDown: (_) => setState(() => _pressed = true),
-      onTapCancel: () => setState(() => _pressed = false),
-      onTapUp: (_) => setState(() => _pressed = false),
-      onTap: widget.onTap,
-      child: PressScale(
-        pressed: _pressed,
-        child: SizedBox(
-          width: widget.width,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ── Thumbnail ──────────────────────────────────────────────────
-              ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: SizedBox(
-                  width: widget.width,
-                  height: widget.height,
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      // Full-bleed 16:9 thumbnail – the STAR of the show
-                      CinematicImage(
-                        url: imageUrl,
-                        memCacheWidth: memCacheWidth,
-                        memCacheHeight: memCacheHeight,
+    return PressScale(
+      onTap: onTap,
+      child: SizedBox(
+        width: width,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // ── Thumbnail ──────────────────────────────────────────────────
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: SizedBox(
+                width: width,
+                height: height,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    // Full-bleed 16:9 thumbnail – the STAR of the show
+                    CinematicImage(
+                      url: imageUrl,
+                      memCacheWidth: memCacheWidth,
+                      memCacheHeight: memCacheHeight,
+                    ),
+
+                    // Subtle top vignette so view-count badge is readable
+                    const DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.center,
+                          colors: [Color(0x66000000), Colors.transparent],
+                        ),
                       ),
+                    ),
 
-                      // Subtle top vignette so view-count badge is readable
-                      const DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.center,
-                            colors: [Color(0x66000000), Colors.transparent],
+                    // View count badge – top-left
+                    if (trailer.views.isNotEmpty)
+                      Positioned(
+                        top: 10,
+                        left: 10,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0x99000000),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            trailer.views,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              decoration: TextDecoration.none,
+                            ),
                           ),
                         ),
                       ),
 
-                      // View count badge – top-left
-                      if (widget.trailer.views.isNotEmpty)
-                        Positioned(
-                          top: 10,
-                          left: 10,
+                    // Play button – centered on image
+                    if (showDetails && onPlay != null)
+                      Center(
+                        child: GestureDetector(
+                          onTap: onPlay,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
+                            width: 50,
+                            height: 50,
                             decoration: BoxDecoration(
-                              color: Colors.black.withValues(alpha: 0.60),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              widget.trailer.views,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                                decoration: TextDecoration.none,
+                              color: const Color(0x85000000),
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.white60,
+                                width: 1.5,
                               ),
                             ),
-                          ),
-                        ),
-
-                      // Play button – centered on image
-                      if (widget.showDetails && widget.onPlay != null)
-                        Center(
-                          child: GestureDetector(
-                            onTap: widget.onPlay,
-                            child: Container(
-                              width: 50,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                color: Colors.black.withValues(alpha: 0.52),
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.white60,
-                                  width: 1.5,
-                                ),
-                              ),
-                              child: const Icon(
-                                Icons.play_arrow_rounded,
-                                color: Colors.white,
-                                size: 30,
-                              ),
+                            child: const Icon(
+                              Icons.play_arrow_rounded,
+                              color: Colors.white,
+                              size: 30,
                             ),
                           ),
                         ),
-                    ],
-                  ),
+                      ),
+                  ],
                 ),
               ),
+            ),
 
-              // ── Text strip below thumbnail ─────────────────────────────────
-              if (widget.showDetails) ...[
-                const SizedBox(height: 10),
-                SizedBox(
-                  width: widget.width,
-                  height: kCardTextSectionHeight - 10,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Metadata always owns a fixed row, so long titles can
-                      // only use the remaining space and never push badges out.
-                      SizedBox(
-                        height: _kCardMetadataHeight,
-                        child: Row(
-                          children: [
-                            if (widget.trailer.studio.isNotEmpty) ...[
-                              Flexible(
-                                child: Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 7,
-                                      vertical: 2,
+            // ── Text strip below thumbnail ─────────────────────────────────
+            if (showDetails) ...[
+              const SizedBox(height: 10),
+              SizedBox(
+                width: width,
+                height: kCardTextSectionHeight - 10,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Metadata always owns a fixed row, so long titles can
+                    // only use the remaining space and never push badges out.
+                    SizedBox(
+                      height: _kCardMetadataHeight,
+                      child: Row(
+                        children: [
+                          if (trailer.studio.isNotEmpty) ...[
+                            Flexible(
+                              child: Align(
+                                alignment: Alignment.centerLeft,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 7,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0x2EE50914),
+                                    borderRadius: BorderRadius.circular(6),
+                                    border: Border.all(
+                                      color: const Color(0x73E50914),
+                                      width: 0.8,
                                     ),
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.accent.withValues(
-                                        alpha: 0.18,
-                                      ),
-                                      borderRadius: BorderRadius.circular(6),
-                                      border: Border.all(
-                                        color: AppTheme.accent.withValues(
-                                          alpha: 0.45,
-                                        ),
-                                        width: 0.8,
-                                      ),
-                                    ),
-                                    child: Text(
-                                      widget.trailer.studio.toUpperCase(),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.fade,
-                                      softWrap: false,
-                                      style: const TextStyle(
-                                        color: AppTheme.accent,
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: 0.8,
-                                        decoration: TextDecoration.none,
-                                      ),
+                                  ),
+                                  child: Text(
+                                    trailer.studio.toUpperCase(),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.fade,
+                                    softWrap: false,
+                                    style: const TextStyle(
+                                      color: AppTheme.accent,
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w800,
+                                      letterSpacing: 0.8,
+                                      decoration: TextDecoration.none,
                                     ),
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                            ] else
-                              const Spacer(),
-                            PopcornBadge(
-                              score: widget.trailer.hypeScore,
-                              compact: true,
-                              onTap: () => showPopcornRating(
-                                context,
-                                hypeScore: widget.trailer.hypeScore,
-                                currentRating: null,
-                                onRatingChanged: (_) {},
-                              ),
                             ),
-                          ],
-                        ),
+                            const SizedBox(width: 8),
+                          ] else
+                            const Spacer(),
+                          PopcornBadge(
+                            score: trailer.hypeScore,
+                            compact: true,
+                            onTap: () => showPopcornRating(
+                              context,
+                              hypeScore: trailer.hypeScore,
+                              currentRating: null,
+                              onRatingChanged: (_) {},
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: _kCardMetadataTitleGap),
-                      Expanded(
-                        child: _FadingTrailerTitle(
-                          title: widget.trailer.title,
-                          style: _kCardTitleStyle,
-                        ),
+                    ),
+                    const SizedBox(height: _kCardMetadataTitleGap),
+                    Expanded(
+                      child: _FadingTrailerTitle(
+                        title: trailer.title,
+                        style: _kCardTitleStyle,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ],
-          ),
+          ],
         ),
       ),
     );

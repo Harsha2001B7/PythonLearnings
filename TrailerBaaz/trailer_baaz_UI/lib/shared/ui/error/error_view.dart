@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../app/app_theme.dart';
+import '../../../app/app_theme.dart';
 import 'retry_button.dart';
 
 /// A full-area error state with an [icon], [title], optional [subtitle]

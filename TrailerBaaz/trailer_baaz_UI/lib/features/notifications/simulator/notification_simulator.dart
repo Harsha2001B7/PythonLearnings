@@ -4,10 +4,11 @@ import '../../../app/app_theme.dart';
 import '../../../core/data/youtube_trailers_provider.dart';
 import '../../../core/di/locator.dart';
 import '../../../core/models/trailer.dart';
-import '../../../shared/widgets/cinematic_image.dart';
 import '../controllers/notification_controller.dart';
 import '../models/rich_notification_content.dart';
 import '../services/local_notification_service.dart';
+import '../widgets/trailer_picker.dart';
+import '../widgets/notification_preview.dart';
 
 class NotificationSimulatorScreen extends StatefulWidget {
   const NotificationSimulatorScreen({super.key});
@@ -133,13 +134,13 @@ class _NotificationSimulatorScreenState
                 onRetry: _provider.init,
               )
             else ...[
-              _TrailerPicker(
+              TrailerPicker(
                 trailers: _trailers,
                 selectedTrailerId: trailer.id,
                 onChanged: (id) => setState(() => _selectedTrailerId = id),
               ),
               const SizedBox(height: 20),
-              _NotificationPreview(trailer: trailer, content: content),
+              NotificationPreview(trailer: trailer, content: content),
               const SizedBox(height: 28),
               SizedBox(
                 width: double.infinity,
@@ -217,185 +218,6 @@ class _TriggerMode extends StatelessWidget {
           ),
           Spacer(),
           Text('Instant', style: TextStyle(fontWeight: FontWeight.w800)),
-        ],
-      ),
-    );
-  }
-}
-
-class _TrailerPicker extends StatelessWidget {
-  const _TrailerPicker({
-    required this.trailers,
-    required this.selectedTrailerId,
-    required this.onChanged,
-  });
-
-  final List<Trailer> trailers;
-  final String selectedTrailerId;
-  final ValueChanged<String?> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Trailer', style: TextStyle(fontWeight: FontWeight.w800)),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: AppTheme.card,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white10),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: selectedTrailerId,
-              dropdownColor: AppTheme.card,
-              isExpanded: true,
-              items: trailers.map((trailer) {
-                return DropdownMenuItem(
-                  value: trailer.id,
-                  child: Text(trailer.title, overflow: TextOverflow.ellipsis),
-                );
-              }).toList(),
-              onChanged: onChanged,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _NotificationPreview extends StatelessWidget {
-  const _NotificationPreview({required this.trailer, required this.content});
-
-  final Trailer trailer;
-  final RichNotificationContent content;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.card,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white10),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          AspectRatio(
-            aspectRatio: 16 / 9,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                CinematicImage(
-                  url: trailer.youtubeThumbnailUrl,
-                  fallbackUrl: trailer.youtubeHqThumbnailUrl,
-                ),
-                const DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Colors.transparent, Colors.black87],
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: 14,
-                  right: 14,
-                  bottom: 14,
-                  child: Text(
-                    trailer.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                      height: 1.1,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(14),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.asset(
-                        'assets/images/TrailerBaaz5.png',
-                        width: 34,
-                        height: 34,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    const Expanded(
-                      child: Text(
-                        'TrailerBaaz',
-                        style: TextStyle(
-                          color: AppTheme.muted,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                    const Icon(
-                      Icons.notifications_active_rounded,
-                      color: AppTheme.hype,
-                      size: 20,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  content.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w900,
-                    height: 1.18,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  content.body,
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.72),
-                    height: 1.35,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    const Icon(
-                      Icons.play_circle_fill_rounded,
-                      color: AppTheme.accent,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      content.actionLabel,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
         ],
       ),
     );

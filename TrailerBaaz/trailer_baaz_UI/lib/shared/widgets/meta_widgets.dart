@@ -12,9 +12,9 @@ class GenreChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: .08),
+        color: const Color(0x14FFFFFF),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white.withValues(alpha: .13)),
+        border: Border.all(color: const Color(0x21FFFFFF)),
       ),
       child: Text(
         label.toUpperCase(),

@@ -58,13 +58,15 @@ class _TrailerPlayerFeedState extends State<TrailerPlayerFeed> {
     }
   }
 
+  Timer? _readyTimer;
+
   void _initController() {
     _disposeController();
     _ready = false;
     _controller = TrailerPlayerController(widget.trailer, initialMuted: true);
     if (mounted) setState(() {});
 
-    Future.delayed(const Duration(milliseconds: 1100), () {
+    _readyTimer = Timer(const Duration(milliseconds: 1100), () {
       if (mounted && widget.active) {
         setState(() => _ready = true);
       }
@@ -72,6 +74,8 @@ class _TrailerPlayerFeedState extends State<TrailerPlayerFeed> {
   }
 
   void _disposeController() {
+    _readyTimer?.cancel();
+    _readyTimer = null;
     try {
       _controller?.dispose();
     } catch (_) {}

@@ -6,7 +6,7 @@ import '../../core/di/locator.dart';
 import '../../core/navigation/navigation_service.dart';
 import '../../shared/widgets/cinematic_image.dart';
 import '../../shared/widgets/trailer_card.dart';
-import '../../shared/widgets/trailer_player.dart';
+import '../../shared/trailer_player/trailer_player.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});

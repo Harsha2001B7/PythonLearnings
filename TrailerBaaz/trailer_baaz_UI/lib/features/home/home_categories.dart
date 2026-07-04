@@ -83,6 +83,8 @@ const _languageCategories = [
   ),
 ];
 
+final _allCats = [..._browseCategories, ..._languageCategories];
+
 class _QuickCategoryBar extends StatelessWidget {
   const _QuickCategoryBar({required this.onShowBrowse, required this.onSelect});
 
@@ -91,8 +93,6 @@ class _QuickCategoryBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final allCats = [..._browseCategories, ..._languageCategories];
-
     return Padding(
       padding: const EdgeInsets.fromLTRB(0, 16, 0, 4),
       child: Column(
@@ -119,19 +119,19 @@ class _QuickCategoryBar extends StatelessWidget {
                       vertical: 7,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.08),
+                      color: const Color(0x14FFFFFF),
                       borderRadius: BorderRadius.circular(999),
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.15),
+                        color: const Color(0x26FFFFFF),
                       ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text(
+                        const Text(
                           'All Categories',
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.85),
+                            color: Color(0xD9FFFFFF),
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),
@@ -156,10 +156,10 @@ class _QuickCategoryBar extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               scrollDirection: Axis.horizontal,
               physics: const BouncingScrollPhysics(),
-              itemCount: allCats.length,
+              itemCount: _allCats.length,
               separatorBuilder: (_, _) => const SizedBox(width: 8),
               itemBuilder: (context, i) {
-                final cat = allCats[i];
+                final cat = _allCats[i];
                 return GestureDetector(
                   onTap: () => onSelect(cat.sectionKey),
                   child: Container(
@@ -238,20 +238,20 @@ class _BrowseSheet extends StatelessWidget {
             filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
             child: Container(
               decoration: BoxDecoration(
-                gradient: LinearGradient(
+                gradient: const LinearGradient(
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    const Color(0xFF0D1117).withValues(alpha: 0.96),
-                    const Color(0xFF070A11).withValues(alpha: 0.98),
+                    Color(0xF50D1117),
+                    Color(0xFA070A11),
                   ],
                 ),
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(28),
                 ),
-                border: Border(
+                border: const Border(
                   top: BorderSide(
-                    color: AppTheme.accent.withValues(alpha: 0.3),
+                    color: Color(0x4CE50914),
                     width: 1.2,
                   ),
                 ),
@@ -282,12 +282,12 @@ class _BrowseSheet extends StatelessWidget {
                           width: 3,
                           height: 20,
                           decoration: BoxDecoration(
-                            gradient: LinearGradient(
+                            gradient: const LinearGradient(
                               begin: Alignment.topCenter,
                               end: Alignment.bottomCenter,
                               colors: [
                                 AppTheme.accent,
-                                AppTheme.accent.withValues(alpha: 0.3),
+                                Color(0x4CE50914),
                               ],
                             ),
                             borderRadius: BorderRadius.circular(999),
@@ -368,8 +368,8 @@ class _SheetSectionHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(24, 4, 24, 0),
       child: Text(
         label,
-        style: TextStyle(
-          color: Colors.white.withValues(alpha: 0.5),
+        style: const TextStyle(
+          color: Color(0x80FFFFFF),
           fontSize: 11,
           fontWeight: FontWeight.w700,
           letterSpacing: 1.4,
@@ -407,16 +407,16 @@ class _SheetCategoryTile extends StatelessWidget {
                     category.color.withValues(alpha: 0.35),
                     category.color.withValues(alpha: 0.18),
                   ]
-                : [
-                    Colors.white.withValues(alpha: 0.05),
-                    Colors.white.withValues(alpha: 0.02),
+                : const [
+                    Color(0x0DFFFFFF),
+                    Color(0x05FFFFFF),
                   ],
           ),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
                 ? category.color.withValues(alpha: 0.6)
-                : Colors.white.withValues(alpha: 0.08),
+                : const Color(0x14FFFFFF),
             width: isSelected ? 1.5 : 1,
           ),
         ),
@@ -438,7 +438,7 @@ class _SheetCategoryTile extends StatelessWidget {
                 style: TextStyle(
                   color: isSelected
                       ? Colors.white
-                      : Colors.white.withValues(alpha: 0.85),
+                      : const Color(0xD9FFFFFF),
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
                 ),
@@ -451,7 +451,7 @@ class _SheetCategoryTile extends StatelessWidget {
                     : Icons.arrow_forward_ios_rounded,
                 color: isSelected
                     ? category.color
-                    : Colors.white.withValues(alpha: 0.3),
+                    : const Color(0x4DFFFFFF),
                 size: isSelected ? 20 : 14,
               ),
           ],
@@ -509,9 +509,9 @@ class _SheetLanguageTile extends StatelessWidget {
               bottom: -4,
               child: Text(
                 category.flag ?? '',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 40,
-                  color: Colors.white.withValues(alpha: 0.08),
+                  color: Color(0x14FFFFFF),
                 ),
               ),
             ),
@@ -530,7 +530,7 @@ class _SheetLanguageTile extends StatelessWidget {
                       style: TextStyle(
                         color: isSelected
                             ? Colors.white
-                            : Colors.white.withValues(alpha: 0.85),
+                            : const Color(0xD9FFFFFF),
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
                       ),

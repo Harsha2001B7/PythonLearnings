@@ -184,10 +184,10 @@ class _SplashScreenState extends State<SplashScreen>
                       const SizedBox(height: 12),
                       FadeSlideEntrance.from(
                         animations: _taglineEntrance,
-                        child: Text(
+                        child: const Text(
                           'Discover the Next Blockbuster.',
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.7),
+                            color: Color(0xB2FFFFFF),
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
                             letterSpacing: 0.5,
@@ -261,9 +261,7 @@ class _SplashScreenState extends State<SplashScreen>
                                     color: Colors.transparent,
                                     borderRadius: BorderRadius.circular(999),
                                     border: Border.all(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.3,
-                                      ),
+                                      color: const Color(0x4DFFFFFF),
                                       width: 1,
                                     ),
                                   ),
@@ -332,6 +330,20 @@ class _SplashScreenState extends State<SplashScreen>
 //   }
 // }
 
+class _LogoImage extends StatelessWidget {
+  const _LogoImage();
+
+  @override
+  Widget build(BuildContext context) {
+    return Image.asset(
+      'assets/images/TrailerBaaz6.png',
+      width: 120,
+      fit: BoxFit.contain,
+      filterQuality: FilterQuality.medium,
+    );
+  }
+}
+
 class _Logo extends StatelessWidget {
   const _Logo({required this.glowOpacity});
 
@@ -353,17 +365,17 @@ class _Logo extends StatelessWidget {
             height: 168,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: RadialGradient(
+              gradient: const RadialGradient(
                 colors: [
-                  AppTheme.accent.withValues(alpha: 0.32),
-                  AppTheme.accent.withValues(alpha: 0.12),
+                  Color(0x52E50914),
+                  Color(0x1FE50914),
                   Colors.transparent,
                 ],
-                stops: const [0.0, 0.45, 1.0],
+                stops: [0.0, 0.45, 1.0],
               ),
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
-                  color: AppTheme.accent.withValues(alpha: 0.28),
+                  color: Color(0x47E50914),
                   blurRadius: 72,
                   spreadRadius: 12,
                 ),
@@ -371,12 +383,7 @@ class _Logo extends StatelessWidget {
             ),
           ),
         ),
-        Image.asset(
-          'assets/images/TrailerBaaz6.png',
-          width: 120,
-          fit: BoxFit.contain,
-          filterQuality: FilterQuality.high,
-        ),
+        const _LogoImage(),
       ],
     );
   }
@@ -411,14 +418,14 @@ class _Wordmark extends StatelessWidget {
             Text(
               'Baaz',
               style: style.copyWith(
-                color: AppTheme.accent.withValues(alpha: 0.4),
-                shadows: [
+                color: const Color(0x66E50914),
+                shadows: const [
                   Shadow(
-                    color: AppTheme.accent.withValues(alpha: 0.8),
+                    color: Color(0xCCE50914),
                     blurRadius: 12,
                   ),
                   Shadow(
-                    color: AppTheme.accent.withValues(alpha: 0.3),
+                    color: Color(0x4CE50914),
                     blurRadius: 24,
                   ),
                 ],
@@ -429,9 +436,9 @@ class _Wordmark extends StatelessWidget {
               'Baaz',
               style: style.copyWith(
                 color: AppTheme.accent,
-                shadows: [
+                shadows: const [
                   Shadow(
-                    color: AppTheme.accent.withValues(alpha: 0.5),
+                    color: Color(0x80E50914),
                     blurRadius: 4,
                   ),
                 ],

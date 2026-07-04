@@ -3,29 +3,42 @@ import 'package:flutter/material.dart';
 import '../app_motion.dart';
 
 /// Implicit press feedback via [AnimatedScale] (card-style tap).
-class PressScale extends StatelessWidget {
+class PressScale extends StatefulWidget {
   const PressScale({
     super.key,
-    required this.pressed,
+    required this.onTap,
     required this.child,
     this.scale = AppMotion.pressScaleCard,
     this.duration = AppMotion.pressScaleFast,
     this.curve = Curves.easeOut,
   });
 
-  final bool pressed;
+  final VoidCallback onTap;
   final Widget child;
   final double scale;
   final Duration duration;
   final Curve curve;
 
   @override
+  State<PressScale> createState() => _PressScaleState();
+}
+
+class _PressScaleState extends State<PressScale> {
+  bool _pressed = false;
+
+  @override
   Widget build(BuildContext context) {
-    return AnimatedScale(
-      duration: duration,
-      curve: curve,
-      scale: pressed ? scale : 1.0,
-      child: child,
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapCancel: () => setState(() => _pressed = false),
+      onTapUp: (_) => setState(() => _pressed = false),
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        duration: widget.duration,
+        curve: widget.curve,
+        scale: _pressed ? widget.scale : 1.0,
+        child: widget.child,
+      ),
     );
   }
 }

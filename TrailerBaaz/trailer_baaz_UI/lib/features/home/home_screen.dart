@@ -3,8 +3,6 @@ import 'dart:ui';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart' show ScrollCacheExtent;
-
 import '../../app/app_theme.dart';
 import '../../core/data/home_experience_provider.dart';
 import '../../core/data/youtube_trailers_provider.dart';
@@ -16,10 +14,12 @@ import '../../shared/animations/animations.dart';
 import '../../shared/ui/ui.dart';
 import '../../shared/widgets/cinematic_image.dart';
 import '../../shared/widgets/popcorn_rating.dart';
-import '../../shared/widgets/trailer_card.dart'
-    show TrailerCard, kCardTextSectionHeight;
-import '../../shared/widgets/trailer_player.dart';
+import '../../shared/widgets/trailer_card.dart' show TrailerCard;
+import '../../shared/trailer_player/trailer_player.dart';
 import 'widgets/home_header.dart';
+import 'widgets/most_awaited_carousel.dart';
+import 'widgets/trending_stacked_rail.dart';
+import 'widgets/trailer_rail.dart';
 
 part 'home_categories.dart';
 part 'home_hero.dart';
@@ -130,7 +130,7 @@ class _HomeScreenState extends State<HomeScreen>
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withValues(alpha: 0.6),
+      barrierColor: const Color(0x99000000),
       builder: (ctx) => _BrowseSheet(
         onSelect: (sectionKey) {
           locator<NavigationService>().pop(ctx);
@@ -150,7 +150,7 @@ class _HomeScreenState extends State<HomeScreen>
         itemBuilder: (context, index) {
           final entry = sections.entries.elementAt(index);
           if (entry.key == 'Trending Now') {
-            return _TrendingStackedRail(
+            return TrendingStackedRail(
               title: entry.key,
               trailers: entry.value,
               onTap: _openDetails,
@@ -158,14 +158,14 @@ class _HomeScreenState extends State<HomeScreen>
             );
           }
           if (entry.key == 'Most Awaited') {
-            return _MostAwaitedCarousel(
+            return MostAwaitedCarousel(
               title: entry.key,
               trailers: entry.value,
               onTap: _openDetails,
               onPlay: _playTrailer,
             );
           }
-          return _TrailerRail(
+          return TrailerRail(
             title: entry.key,
             trailers: entry.value,
             onTap: _openDetails,
@@ -180,7 +180,13 @@ class _HomeScreenState extends State<HomeScreen>
     return Stack(
       fit: StackFit.expand,
       children: [
-        const Positioned.fill(child: IgnorePointer(child: _WarmHueBackdrop())),
+        const Positioned.fill(
+          child: IgnorePointer(
+            child: RepaintBoundary(
+              child: _WarmHueBackdrop(),
+            ),
+          ),
+        ),
         child,
       ],
     );
@@ -263,7 +269,138 @@ class _WarmHueBackdropState extends State<_WarmHueBackdrop>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _controller,
-      builder: (_, _) {
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          //----------------------------------------------------
+          // Soft white spotlight behind hero
+          //----------------------------------------------------
+          const Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: RadialGradient(
+                  center: Alignment(0, -.35),
+                  radius: 1.25,
+                  colors: [
+                    Color(0x14FFFFFF),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          //----------------------------------------------------
+          // Top cinematic wash
+          //----------------------------------------------------
+          const Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xCC000000),
+                    Color(0x66000000),
+                    Colors.transparent,
+                  ],
+                  stops: [0.0, .18, .7],
+                ),
+              ),
+            ),
+          ),
+
+          //----------------------------------------------------
+          // Bottom fade
+          //----------------------------------------------------
+          const Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [
+                    Color(0xFF000000),
+                    Color(0xDD000000),
+                    Colors.transparent,
+                  ],
+                  stops: [0.0, .20, .7],
+                ),
+              ),
+            ),
+          ),
+
+          //----------------------------------------------------
+          // Left vignette
+          //----------------------------------------------------
+          const Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [
+                    Color(0xCC000000),
+                    Colors.transparent,
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          //----------------------------------------------------
+          // Right vignette
+          //----------------------------------------------------
+          const Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.centerRight,
+                  end: Alignment.centerLeft,
+                  colors: [
+                    Color(0xCC000000),
+                    Colors.transparent,
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          //----------------------------------------------------
+          // Extra top glow
+          //----------------------------------------------------
+          const Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0x66C62828),
+                    Colors.transparent,
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          //----------------------------------------------------
+          // Heavy blur
+          //----------------------------------------------------
+          Positioned.fill(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(
+                sigmaX: 70,
+                sigmaY: 70,
+              ),
+              child: const SizedBox.expand(),
+            ),
+          ),
+        ],
+      ),
+      builder: (context, staticOverlays) {
         final t = Curves.easeInOut.transform(_controller.value);
 
         final glowA = Alignment.lerp(
@@ -351,132 +488,7 @@ class _WarmHueBackdropState extends State<_WarmHueBackdrop>
               ),
             ),
 
-            //----------------------------------------------------
-            // Soft white spotlight behind hero
-            //----------------------------------------------------
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: RadialGradient(
-                    center: const Alignment(0, -.35),
-                    radius: 1.25,
-                    colors: [
-                      Colors.white.withValues(alpha: .08),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            //----------------------------------------------------
-            // Top cinematic wash
-            //----------------------------------------------------
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: const [
-                      Color(0xCC000000),
-                      Color(0x66000000),
-                      Colors.transparent,
-                    ],
-                    stops: [0.0, .18, .7],
-                  ),
-                ),
-              ),
-            ),
-
-            //----------------------------------------------------
-            // Bottom fade
-            //----------------------------------------------------
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
-                    colors: const [
-                      Color(0xFF000000),
-                      Color(0xDD000000),
-                      Colors.transparent,
-                    ],
-                    stops: [0.0, .20, .7],
-                  ),
-                ),
-              ),
-            ),
-
-            //----------------------------------------------------
-            // Left vignette
-            //----------------------------------------------------
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.centerLeft,
-                    end: Alignment.centerRight,
-                    colors: const [
-                      Color(0xCC000000),
-                      Colors.transparent,
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            //----------------------------------------------------
-            // Right vignette
-            //----------------------------------------------------
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.centerRight,
-                    end: Alignment.centerLeft,
-                    colors: const [
-                      Color(0xCC000000),
-                      Colors.transparent,
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            //----------------------------------------------------
-            // Extra top glow
-            //----------------------------------------------------
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      const Color(0x66C62828),
-                      Colors.transparent,
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            //----------------------------------------------------
-            // Heavy blur
-            //----------------------------------------------------
-            Positioned.fill(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(
-                  sigmaX: 70,
-                  sigmaY: 70,
-                ),
-                child: const SizedBox.expand(),
-              ),
-            ),
+            ?staticOverlays,
           ],
         );
       },

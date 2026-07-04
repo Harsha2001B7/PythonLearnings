@@ -25,14 +25,14 @@ class GlassIconButton extends StatelessWidget {
           width: size,
           height: size,
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: .08),
+            color: const Color(0x14FFFFFF),
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.white.withValues(alpha: .14)),
-            boxShadow: [
+            border: Border.all(color: const Color(0x24FFFFFF)),
+            boxShadow: const [
               BoxShadow(
-                color: Colors.black.withValues(alpha: .28),
+                color: Color(0x47000000),
                 blurRadius: 22,
-                offset: const Offset(0, 12),
+                offset: Offset(0, 12),
               ),
             ],
           ),
