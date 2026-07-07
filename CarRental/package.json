@@ -1,0 +1,15 @@
+{
+  "name": "luxury-car-rental-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace=apps/web",
+    "build:web": "npm run build --workspace=apps/web",
+    "start:backend": "cd apps/backend && uvicorn app.main:app --reload",
+    "dev": "npm run dev:web & npm run start:backend"
+  }
+}
