@@ -293,21 +293,35 @@ const Hero: React.FC = () => {
     <section
       id="top"
       ref={heroRef}
-      className="relative"
+      className="relative overflow-hidden"
       style={{ background: '#0D0D0D' }}
       aria-label="Falcon View — Drive Dubai, delivered to you"
     >
-      {/* Ambient glow */}
-      <div className="absolute inset-0 pointer-events-none" aria-hidden>
-        <div style={{ background: 'radial-gradient(ellipse at 65% 50%, rgba(255,107,0,0.07) 0%, transparent 60%)' }} className="absolute inset-0" />
-        <div style={{ background: 'radial-gradient(ellipse at 20% 85%, rgba(255,107,0,0.04) 0%, transparent 50%)' }} className="absolute inset-0" />
-      </div>
+      <div className="relative w-full">
+        {/* Background Image & Overlay */}
+        <div className="absolute inset-x-0 top-0 h-[90%] lg:h-[85%] z-0 pointer-events-none">
+          <img 
+            src="/falconviewbackground.png" 
+            alt="Luxury Fleet" 
+            className="w-full h-full object-cover object-center"
+          />
+          {/* Left-to-right gradient to protect text readability while leaving cars visible */}
+          <div className="absolute inset-0 bg-[#0D0D0D]/40 lg:bg-gradient-to-r lg:from-[#0D0D0D]/90 lg:via-[#0D0D0D]/50 lg:to-transparent" />
+          {/* Bottom fade to blend seamlessly into the dark background below */}
+          <div className="absolute inset-x-0 bottom-0 h-64 bg-gradient-to-t from-[#0D0D0D] to-transparent" />
+        </div>
 
-      {/* ── Top section: Headline + Logo card ── */}
-      <motion.div
-        style={{ y: textY }}
-        className="relative z-10 section-container pt-32 pb-12 flex flex-col lg:flex-row items-center gap-12"
-      >
+        {/* Ambient glow */}
+        <div className="absolute inset-0 pointer-events-none z-0" aria-hidden>
+          <div style={{ background: 'radial-gradient(ellipse at 65% 50%, rgba(255,107,0,0.12) 0%, transparent 60%)' }} className="absolute inset-0" />
+          <div style={{ background: 'radial-gradient(ellipse at 20% 85%, rgba(255,107,0,0.06) 0%, transparent 50%)' }} className="absolute inset-0" />
+        </div>
+
+        {/* ── Top section: Headline + Logo card ── */}
+        <motion.div
+          style={{ y: textY }}
+          className="relative z-10 section-container pt-32 pb-12 flex flex-col lg:flex-row items-center gap-12"
+        >
         {/* LEFT */}
         <div className="flex-1 flex flex-col gap-7 lg:pr-8">
           {/* Badge */}
@@ -395,7 +409,8 @@ const Hero: React.FC = () => {
           transition={{ duration: 0.9, ease: ease.elegant, delay: 0.4 }}>
           <FloatingLogoCard />
         </motion.div>
-      </motion.div>
+        </motion.div>
+      </div>
 
       {/* ── Booking Form Card — white, at bottom of dark hero ── */}
       <motion.div
