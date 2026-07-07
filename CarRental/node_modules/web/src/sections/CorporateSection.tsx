@@ -20,13 +20,13 @@ const CorporateSection: React.FC = () => {
   const { addToast } = useToastStore();
 
   return (
-    <section id="corporate" className="py-24 bg-vanta-paper overflow-hidden">
+    <section id="corporate" className="py-32 bg-surface-secondary overflow-hidden">
       <div className="section-container">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
           {/* Left: Content */}
           <div>
             <motion.div
-              className="eyebrow mb-3"
+              className="eyebrow mb-6 text-accent-orange"
               initial={{ opacity: 0, x: -16 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
@@ -35,26 +35,26 @@ const CorporateSection: React.FC = () => {
               For Business
             </motion.div>
             <motion.h2
-              className="font-display text-display-lg text-vanta-ink mb-5"
+              className="font-display text-display-lg text-text-primary mb-6"
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: duration.slow, ease: ease.elegant, delay: 0.1 }}
             >
               Fleet management,{' '}
-              <span className="italic font-light text-vanta-amber">effortless at scale.</span>
+              <span className="italic font-light text-accent-orange">effortless at scale.</span>
             </motion.h2>
             <motion.p
-              className="text-vanta-ink-muted text-[15px] leading-relaxed mb-8"
+              className="text-text-secondary text-body-lg mb-10"
               initial={{ opacity: 0, y: 16 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: duration.slow, ease: ease.elegant, delay: 0.15 }}
             >
-              VANTA Corporate provides UAE businesses with a flexible, fully managed vehicle fleet — without the overhead of ownership or long-term lease commitments. From law firms to logistics companies, 1,200+ businesses trust VANTA.
+              Falcon View Corporate provides UAE businesses with a flexible, fully managed vehicle fleet — without the overhead of ownership or long-term lease commitments. From law firms to logistics companies, 1,200+ businesses trust Falcon View.
             </motion.p>
 
-            <div className="flex flex-col gap-5 mb-10">
+            <div className="flex flex-col gap-8 mb-12">
               {FEATURES.map((feat, i) => {
                 const Icon = feat.icon;
                 return (
@@ -64,14 +64,14 @@ const CorporateSection: React.FC = () => {
                     whileInView={{ opacity: 1, x: 0 }}
                     viewport={{ once: true }}
                     transition={{ duration: duration.slow, ease: ease.elegant, delay: 0.2 + i * 0.1 }}
-                    className="flex items-start gap-4"
+                    className="flex items-start gap-5"
                   >
-                    <div className="w-10 h-10 rounded-xl bg-vanta-amber-pale border border-vanta-amber/20 flex items-center justify-center shrink-0">
-                      <Icon size={18} className="text-vanta-amber" />
+                    <div className="w-12 h-12 rounded-xl bg-accent-orange/10 border border-accent-orange/20 flex items-center justify-center shrink-0">
+                      <Icon size={20} className="text-accent-orange" />
                     </div>
                     <div>
-                      <h3 className="font-grotesk font-semibold text-[15px] text-vanta-ink">{feat.title}</h3>
-                      <p className="text-vanta-ink-muted text-[13px] mt-0.5 leading-relaxed">{feat.desc}</p>
+                      <h3 className="font-grotesk font-semibold text-heading-2 text-text-primary">{feat.title}</h3>
+                      <p className="text-text-secondary text-body-md mt-1.5">{feat.desc}</p>
                     </div>
                   </motion.div>
                 );
@@ -107,10 +107,10 @@ const CorporateSection: React.FC = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: 0.3 + i * 0.1 }}
-                className="shimmer-card bg-vanta-panel rounded-2xl p-8 flex flex-col gap-2"
+                className="shimmer-card bg-surface-primary rounded-3xl p-10 flex flex-col gap-3 shadow-card-sm"
               >
-                <span className="font-grotesk font-bold text-5xl text-vanta-ink">{stat.value}</span>
-                <span className="font-mono text-[10px] uppercase tracking-[0.15em] text-vanta-ink-muted">{stat.label}</span>
+                <span className="font-grotesk font-bold text-5xl md:text-6xl text-text-primary">{stat.value}</span>
+                <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-text-subtle">{stat.label}</span>
               </motion.div>
             ))}
           </motion.div>

@@ -21,7 +21,7 @@ const ITEMS = [
 
 const MarqueeTicker: React.FC = () => (
   <div
-    className="overflow-hidden border-y border-gray-200 bg-white py-3"
+    className="overflow-hidden py-8"
     aria-label="Features banner"
     style={{ userSelect: 'none' }}
   >

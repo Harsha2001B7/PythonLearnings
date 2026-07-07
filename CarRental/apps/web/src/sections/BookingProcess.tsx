@@ -63,7 +63,18 @@ const BookingProcess: React.FC = () => {
   }, []);
 
   return (
-    <section ref={sectionRef} id="how-it-works" className="py-24 bg-vanta-paper overflow-hidden">
+    <section 
+      ref={sectionRef} 
+      id="how-it-works" 
+      className="py-24 overflow-hidden rounded-[32px] sm:rounded-[48px] mx-4 sm:mx-6 lg:mx-12 my-20 shadow-2xl"
+      style={{ 
+        backgroundColor: '#0D0D0D',
+        '--vanta-ink': '#FFFFFF',
+        '--vanta-ink-muted': '#A0A0A0',
+        '--vanta-panel': '#1A1A1A',
+        '--vanta-border': '#2A2A2A',
+      } as React.CSSProperties}
+    >
       <div className="section-container">
         {/* Header */}
         <div className="mb-16">

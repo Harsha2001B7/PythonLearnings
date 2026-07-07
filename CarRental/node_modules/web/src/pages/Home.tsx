@@ -19,6 +19,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, BarChart2, MessageCircle } from 'lucide-react';
 import { FLEET_DATA } from '../data/fleet';
 import { formatAED } from '../lib/formatters';
+import { useGSAPReveal } from '../hooks/useGSAPReveal';
 
 // ── Preloader ─────────────────────────────────────────────────────
 const Preloader: React.FC<{ done: boolean }> = ({ done }) => (
@@ -242,6 +243,8 @@ const FloatingCompareBtn: React.FC = () => {
 // ── Home Page ─────────────────────────────────────────────────────
 const Home: React.FC = () => {
   const [preloaderDone, setPreloaderDone] = useState(false);
+  
+  useGSAPReveal();
 
   useEffect(() => {
     const t = setTimeout(() => setPreloaderDone(true), 1800);
@@ -260,7 +263,7 @@ const Home: React.FC = () => {
           <Hero />
 
           {/* ── LIGHT sections: everything below ── */}
-          <div data-theme="light" className="pt-32 sm:pt-40 lg:pt-48">
+          <div data-theme="light">
             <MarqueeTicker />
             <FeaturedFleet />
             <WhyVanta />

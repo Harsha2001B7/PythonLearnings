@@ -402,7 +402,7 @@ const Hero: React.FC = () => {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.7, ease: ease.elegant, delay: 1.1 }}
-        className="relative z-10 section-container pb-0 -mb-32 sm:-mb-40 lg:-mb-48"
+        className="relative z-10 section-container pb-16"
       >
         <BookingCard />
       </motion.div>

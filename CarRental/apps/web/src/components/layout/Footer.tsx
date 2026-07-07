@@ -29,16 +29,16 @@ const Footer: React.FC = () => {
   };
 
   return (
-    <footer id="contact" className="bg-[#080808] text-white border-t border-vanta-border" role="contentinfo">
+    <footer id="contact" className="bg-surface-primary text-text-primary border-t border-subtle" role="contentinfo">
       {/* Newsletter Bar */}
-      <div className="border-b border-white/8">
-        <div className="section-container py-12">
+      <div className="border-b border-subtle">
+        <div className="section-container py-16">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div>
-              <h3 className="font-grotesk font-bold text-2xl text-white mb-1">
-                Stay in the <span className="text-vanta-amber">fast lane.</span>
+              <h3 className="font-grotesk font-bold text-heading-1 text-text-primary mb-2">
+                Stay in the <span className="text-accent-orange">fast lane.</span>
               </h3>
-              <p className="text-white/40 text-[13px]">New arrivals, exclusive deals, and UAE driving tips — delivered monthly.</p>
+              <p className="text-text-secondary text-body-md">New arrivals, exclusive deals, and UAE driving tips — delivered monthly.</p>
             </div>
             <form onSubmit={handleNewsletter} className="flex gap-2">
               <input
@@ -47,16 +47,16 @@ const Footer: React.FC = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="your@email.com"
                 required
-                className="flex-1 bg-white/6 border border-white/15 rounded-xl px-4 py-3 text-white text-[14px] font-sans placeholder:text-white/25 focus:outline-none focus:border-vanta-amber transition-colors"
+                className="flex-1 bg-surface-glass border border-subtle rounded-xl px-5 py-4 text-text-primary text-body-md font-sans placeholder:text-text-subtle focus:outline-none focus:border-accent-orange transition-colors"
                 aria-label="Email for newsletter"
               />
               <motion.button
                 type="submit"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
-                className="bg-vanta-amber text-white px-5 py-3 rounded-xl font-grotesk font-semibold text-[13px] flex items-center gap-2 hover:bg-vanta-amber-light transition-colors whitespace-nowrap"
+                className="bg-accent-orange text-white px-8 py-4 rounded-xl font-grotesk font-semibold text-body-md flex items-center gap-2 hover:bg-orange-400 transition-colors whitespace-nowrap shadow-amber-sm hover:shadow-amber-glow"
               >
-                {submitted ? 'Subscribed ✓' : (<>Subscribe <ArrowRight size={13} /></>)}
+                {submitted ? 'Subscribed ✓' : (<>Subscribe <ArrowRight size={16} /></>)}
               </motion.button>
             </form>
           </div>
@@ -64,37 +64,37 @@ const Footer: React.FC = () => {
       </div>
 
       {/* Main Footer */}
-      <div className="section-container py-16">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-10 mb-16">
+      <div className="section-container py-24">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-12 mb-20">
           {/* Brand */}
           <div className="col-span-2 md:col-span-3 lg:col-span-1">
-            <a href="#top" className="flex items-center gap-2 mb-4">
+            <a href="#top" className="flex items-center gap-2 mb-6">
               <img
                 src={falconLogo}
                 alt="Falcon View Car Rentals"
                 className="h-16 w-auto object-contain rounded-lg"
               />
             </a>
-            <p className="text-white/40 text-[12px] leading-relaxed mb-3">
+            <p className="text-text-secondary text-body-sm leading-relaxed mb-3">
               Falcon View Car Rentals L.L.C
             </p>
-            <p className="text-white/25 text-[12px] leading-relaxed mb-2 font-sans" dir="rtl">
+            <p className="text-text-subtle text-body-sm leading-relaxed mb-3 font-sans" dir="rtl">
               فالكون فيو لتأجير السيارات ش.ذ.م.م
             </p>
-            <p className="text-white/25 text-[11px] leading-relaxed mb-6">
+            <p className="text-text-subtle text-caption leading-relaxed mb-8">
               M01-0362, Unique Business World,<br />
               Al Karama, Dubai. PO Box 9040
             </p>
             {/* Social + WhatsApp */}
-            <div className="flex gap-2.5">
+            <div className="flex gap-3">
               <motion.button
                 onClick={handleWhatsApp}
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-green-500/10 border border-green-500/30 text-green-400 text-[12px] font-medium hover:bg-green-500/20 transition-colors"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-green-500/10 border border-green-500/30 text-green-400 text-body-sm font-medium hover:bg-green-500/20 transition-colors"
                 aria-label="WhatsApp"
               >
-                <MessageCircle size={13} />
+                <MessageCircle size={16} />
                 WhatsApp
               </motion.button>
               <a
@@ -102,18 +102,18 @@ const Footer: React.FC = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
-                className="w-9 h-9 rounded-lg border border-white/10 flex items-center justify-center text-white/30 hover:text-vanta-amber hover:border-vanta-amber/40 transition-all"
+                className="w-10 h-10 rounded-lg border border-subtle flex items-center justify-center text-text-subtle hover:text-accent-orange hover:border-accent-orange/40 transition-all"
               >
-                <Globe size={14} />
+                <Globe size={16} />
               </a>
               <a
                 href="https://wa.me/971500999733"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Website"
-                className="w-9 h-9 rounded-lg border border-white/10 flex items-center justify-center text-white/30 hover:text-vanta-amber hover:border-vanta-amber/40 transition-all"
+                className="w-10 h-10 rounded-lg border border-subtle flex items-center justify-center text-text-subtle hover:text-accent-orange hover:border-accent-orange/40 transition-all"
               >
-                <Globe size={14} />
+                <Globe size={16} />
               </a>
             </div>
           </div>
@@ -121,14 +121,14 @@ const Footer: React.FC = () => {
           {/* Link columns */}
           {Object.entries(FOOTER_LINKS).map(([heading, links]) => (
             <div key={heading}>
-              <h4 className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/30 mb-5">{heading}</h4>
-              <ul className="flex flex-col gap-3">
+              <h4 className="font-mono text-label uppercase text-text-subtle mb-6">{heading}</h4>
+              <ul className="flex flex-col gap-4">
                 {links.map((link) => (
                   <li key={link}>
                     <a
                       href="#"
                       onClick={(e) => e.preventDefault()}
-                      className="text-white/45 text-[13px] hover:text-vanta-amber transition-colors font-sans"
+                      className="text-text-secondary text-body-sm hover:text-accent-orange transition-colors font-sans"
                     >
                       {link}
                     </a>
@@ -140,25 +140,25 @@ const Footer: React.FC = () => {
         </div>
 
         {/* Contact + Legal */}
-        <div className="border-t border-white/8 pt-8 flex flex-col md:flex-row justify-between gap-6 items-start md:items-center">
-          <div className="flex flex-wrap gap-6">
+        <div className="border-t border-subtle pt-10 flex flex-col md:flex-row justify-between gap-8 items-start md:items-center">
+          <div className="flex flex-wrap gap-8">
             {[
               { icon: MapPin, text: 'Al Karama, Dubai, PO Box 9040' },
               { icon: Phone, text: '+971 50 099 9733' },
               { icon: Mail,  text: 'sales@falconviewcarrentals.com' },
               { icon: Globe, text: 'www.falconviewcarrentals.com' },
             ].map(({ icon: Icon, text }) => (
-              <div key={text} className="flex items-center gap-2 text-white/35 text-[12px]">
-                <Icon size={12} className="text-vanta-amber shrink-0" />
+              <div key={text} className="flex items-center gap-2 text-text-subtle text-caption">
+                <Icon size={14} className="text-accent-orange shrink-0" />
                 <span>{text}</span>
               </div>
             ))}
           </div>
 
-          <div className="flex flex-wrap gap-5 text-white/25 text-[11px] font-mono">
-            <a href="#" className="hover:text-white/60 transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-white/60 transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-white/60 transition-colors">Cookie Policy</a>
+          <div className="flex flex-wrap gap-6 text-text-subtle text-caption font-mono">
+            <a href="#" className="hover:text-text-primary transition-colors">Privacy Policy</a>
+            <a href="#" className="hover:text-text-primary transition-colors">Terms of Service</a>
+            <a href="#" className="hover:text-text-primary transition-colors">Cookie Policy</a>
             <span>© 2026 Falcon View Car Rentals L.L.C</span>
           </div>
         </div>

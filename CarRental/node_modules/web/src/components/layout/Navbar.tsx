@@ -53,8 +53,8 @@ const Navbar: React.FC = () => {
       >
         <div
           className={cn(
-            'flex items-center justify-between pl-2 pr-4 py-2 rounded-full transition-all duration-500 w-[680px] md:w-[860px] lg:w-[1000px] max-w-[95vw] border border-white/10 bg-black',
-            isScrolled ? 'shadow-[0_8px_32px_rgba(0,0,0,0.5)]' : ''
+            'flex items-center justify-between pl-3 pr-4 py-3 rounded-full transition-all duration-500 w-[680px] md:w-[860px] lg:w-[1000px] max-w-[95vw] border border-subtle bg-surface-glass backdrop-blur-[24px] saturate-[180%]',
+            isScrolled ? 'shadow-card-md' : 'shadow-none'
           )}
         >
           {/* ── Logo Only (Wings cropped) ── */}
@@ -75,23 +75,23 @@ const Navbar: React.FC = () => {
           </motion.a>
 
           {/* ── Desktop nav ── */}
-          <nav className="hidden md:flex items-center gap-1 mx-4" role="navigation">
+          <nav className="hidden md:flex items-center gap-2 mx-4" role="navigation">
             {NAV_LINKS.map((link) => (
               <button
                 key={link.href}
                 onClick={() => handleNavClick(link.href)}
                 className={cn(
-                  'relative px-4 py-2 font-grotesk text-[14px] font-medium rounded-full transition-all duration-200',
+                  'relative px-5 py-2.5 font-grotesk text-body-sm tracking-wide font-medium rounded-full transition-all duration-300',
                   linkColor,
-                  activeLink === link.href && 'font-semibold'
+                  activeLink === link.href && 'text-white'
                 )}
               >
-                {link.label}
+                <span className="relative z-10">{link.label}</span>
                 {activeLink === link.href && (
                   <motion.span
                     layoutId="pill-indicator"
-                    className="absolute inset-0 rounded-full bg-orange-500/10"
-                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                    className="absolute inset-0 rounded-full bg-accent-orange/15"
+                    transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                   />
                 )}
               </button>
@@ -102,25 +102,25 @@ const Navbar: React.FC = () => {
           <div className="hidden md:flex items-center gap-1.5">
             <button
               onClick={() => setCmdkOpen(true)}
-              className={cn('w-9 h-9 rounded-full border flex items-center justify-center transition-all duration-200', iconColor)}
+              className={cn('w-10 h-10 rounded-full border flex items-center justify-center transition-all duration-300', iconColor)}
               aria-label="Search"
             >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
               </svg>
             </button>
 
             <button
               onClick={() => setCompareOpen(true)}
-              className={cn('relative w-9 h-9 rounded-full border flex items-center justify-center transition-all duration-200', iconColor)}
+              className={cn('relative w-10 h-10 rounded-full border flex items-center justify-center transition-all duration-300', iconColor)}
               aria-label={`Compare (${compareList.length})`}
             >
-              <BarChart2 size={14} />
+              <BarChart2 size={16} />
               <AnimatePresence>
                 {compareList.length > 0 && (
                   <motion.span
                     initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
-                    className="absolute -top-1 -right-1 w-4 h-4 bg-orange-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center"
+                    className="absolute -top-1 -right-1 w-4 h-4 bg-accent-orange text-white text-[9px] font-bold rounded-full flex items-center justify-center shadow-amber-glow"
                   >
                     {compareList.length}
                   </motion.span>
@@ -129,17 +129,17 @@ const Navbar: React.FC = () => {
             </button>
 
             <button
-              className={cn('w-9 h-9 rounded-full border flex items-center justify-center transition-all duration-200', iconColor)}
+              className={cn('w-10 h-10 rounded-full border flex items-center justify-center transition-all duration-300', iconColor)}
               aria-label="Account"
             >
-              <User size={14} />
+              <User size={16} />
             </button>
 
             <motion.button
-              whileHover={{ scale: 1.03, y: -1 }}
-              whileTap={{ scale: 0.97 }}
+              whileHover={{ scale: 1.02, y: -2 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => handleNavClick('#fleet')}
-              className="bg-orange-500 hover:bg-orange-400 text-white font-grotesk font-semibold text-[13px] px-5 py-2.5 rounded-full transition-colors shadow-sm ml-1"
+              className="bg-accent-orange hover:bg-orange-400 text-white font-grotesk font-semibold text-body-sm px-6 py-3 rounded-full transition-colors shadow-amber-sm hover:shadow-amber-glow ml-2"
             >
               Book now
             </motion.button>

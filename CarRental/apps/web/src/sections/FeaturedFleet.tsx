@@ -1,6 +1,7 @@
-import React, { useRef } from 'react';
+import React, { useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Heart, ArrowRight, Zap, Gauge, Users } from 'lucide-react';
+import { Heart, ArrowRight, Zap, Gauge, Users, ChevronLeft, ChevronRight } from 'lucide-react';
+import useEmblaCarousel from 'embla-carousel-react';
 import { FLEET_DATA } from '../data/fleet';
 
 const FEATURED_FLEET = FLEET_DATA.filter(v => v.featured);
@@ -23,7 +24,21 @@ const FeaturedFleet: React.FC = () => {
   const { wishlist, toggleWishlist, toggleCompare, compareList } = useAppStore();
   const { addToast } = useToastStore();
   const { setSelectedVehicle } = useBookingStore();
-  const scrollRef = useRef<HTMLDivElement>(null);
+  
+  const [emblaRef, emblaApi] = useEmblaCarousel({ 
+    loop: true, 
+    align: 'start',
+    skipSnaps: false,
+    dragFree: true
+  });
+
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev();
+  }, [emblaApi]);
+
+  const scrollNext = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext();
+  }, [emblaApi]);
 
   const handleWishlist = (id: number, name: string) => {
     toggleWishlist(id);
@@ -77,56 +92,55 @@ const FeaturedFleet: React.FC = () => {
               Every vehicle inspected, detailed, and calibrated before it reaches you.
             </motion.p>
           </div>
-          <motion.a
-            href="#fleet-explorer"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
-            className="btn-ghost text-sm flex items-center gap-2 shrink-0"
-            onClick={(e) => {
-              e.preventDefault();
-              document.getElementById('fleet-explorer')?.scrollIntoView({ behavior: 'smooth' });
-            }}
-          >
-            Browse All Vehicles <ArrowRight size={14} />
-          </motion.a>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 shrink-0 mt-4 md:mt-0">
+            <motion.a
+              href="#fleet-explorer"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.3 }}
+              className="btn-ghost text-sm flex items-center gap-2"
+              onClick={(e) => {
+                e.preventDefault();
+                document.getElementById('fleet-explorer')?.scrollIntoView({ behavior: 'smooth' });
+              }}
+            >
+              Browse All Vehicles <ArrowRight size={14} />
+            </motion.a>
+          </div>
         </div>
       </div>
 
-      {/* Horizontal Scroll Carousel */}
-      <div
-        ref={scrollRef}
-        className="flex gap-6 overflow-x-auto no-scrollbar px-6 md:px-10 lg:px-16 pb-4 snap-x snap-mandatory"
-        role="list"
-        aria-label="Featured fleet vehicles"
-      >
-        {FEATURED_FLEET.map((vehicle: typeof FEATURED_FLEET[0], i: number) => (
-          <motion.article
-            key={vehicle.id}
-            initial={{ opacity: 0, x: 40 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: '-60px' }}
-            transition={{ duration: duration.slow, ease: ease.elegant, delay: i * 0.08 }}
-            className={cn(
-              'shimmer-card snap-start shrink-0 w-[300px] sm:w-[340px] bg-vanta-panel rounded-2xl overflow-hidden flex flex-col',
-              'focus-within:border-vanta-amber'
-            )}
-            role="listitem"
-          >
+      {/* Infinite Scroll Carousel */}
+      <div className="relative group mt-8">
+        <div className="overflow-hidden pl-6 md:pl-10 lg:pl-16 py-4" ref={emblaRef}>
+          <div className="flex gap-6 pb-6" style={{ backfaceVisibility: 'hidden', touchAction: 'pan-y' }}>
+          {FEATURED_FLEET.map((vehicle: typeof FEATURED_FLEET[0], i: number) => (
+            <div key={`${vehicle.id}-${i}`} className="flex-none w-[300px] sm:w-[340px] relative">
+              <motion.article
+                initial={{ opacity: 0, x: 40 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: '-60px' }}
+                transition={{ duration: duration.slow, ease: ease.elegant, delay: i * 0.08 }}
+                className={cn(
+                  'shimmer-card w-full h-full bg-surface-primary rounded-2xl overflow-hidden flex flex-col',
+                  'focus-within:border-accent-orange cursor-grab active:cursor-grabbing'
+                )}
+                role="listitem"
+              >
             {/* Image */}
             <div className="relative h-52 overflow-hidden bg-vanta-paper-soft">
               <motion.img
                 src={vehicle.images.thumbnail}
                 alt={`${vehicle.name} — ${vehicle.tagline}`}
-                className="w-full h-full object-cover"
+                className="gsap-reveal-image w-full h-full object-cover origin-center"
                 whileHover={{ scale: 1.05 }}
                 transition={{ duration: 0.5, ease: ease.elegant }}
                 loading="lazy"
               />
               {/* Badge */}
               {vehicle.badge && (
-                <span className="absolute top-3 left-3 bg-vanta-amber text-white font-mono text-[9px] uppercase tracking-[0.15em] px-2.5 py-1 rounded-full">
+                <span className="absolute top-3 left-3 bg-vanta-amber text-white font-mono text-[9px] uppercase tracking-[0.15em] px-2.5 py-1 rounded-full z-10">
                   {vehicle.badge}
                 </span>
               )}
@@ -149,8 +163,8 @@ const FeaturedFleet: React.FC = () => {
             <div className="p-5 flex flex-col gap-4 flex-1">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <h3 className="font-grotesk font-bold text-lg text-vanta-ink leading-tight">{vehicle.name}</h3>
-                  <p className="text-vanta-ink-subtle text-[12px] mt-0.5">{vehicle.tagline}</p>
+                  <h3 className="font-grotesk font-bold text-lg text-text-primary leading-tight">{vehicle.name}</h3>
+                  <p className="text-text-secondary text-[12px] mt-0.5">{vehicle.tagline}</p>
                 </div>
                 <span className={cn('font-mono text-[9px] uppercase tracking-[0.12em] px-2 py-1 rounded-full shrink-0', CATEGORY_COLORS[vehicle.category] || 'bg-gray-100 text-gray-600')}>
                   {vehicle.category}
@@ -160,25 +174,25 @@ const FeaturedFleet: React.FC = () => {
               {/* Specs Pills */}
               <div className="flex flex-wrap gap-1.5">
                 {vehicle.specs.power && (
-                  <span className="inline-flex items-center gap-1 font-mono text-[10px] text-vanta-ink-muted border border-vanta-border px-2 py-0.5 rounded-md">
+                  <span className="inline-flex items-center gap-1 font-mono text-[10px] text-text-secondary border border-subtle px-2 py-0.5 rounded-md">
                     <Zap size={8} />{vehicle.specs.power}
                   </span>
                 )}
                 {vehicle.specs.zeroToSixty && (
-                  <span className="inline-flex items-center gap-1 font-mono text-[10px] text-vanta-ink-muted border border-vanta-border px-2 py-0.5 rounded-md">
+                  <span className="inline-flex items-center gap-1 font-mono text-[10px] text-text-secondary border border-subtle px-2 py-0.5 rounded-md">
                     <Gauge size={8} />{vehicle.specs.zeroToSixty} 0–60
                   </span>
                 )}
-                <span className="inline-flex items-center gap-1 font-mono text-[10px] text-vanta-ink-muted border border-vanta-border px-2 py-0.5 rounded-md">
+                <span className="inline-flex items-center gap-1 font-mono text-[10px] text-text-secondary border border-subtle px-2 py-0.5 rounded-md">
                   <Users size={8} />{vehicle.specs.seats} seats
                 </span>
               </div>
 
               {/* Price + Actions */}
-              <div className="flex items-center justify-between mt-auto pt-2 border-t border-vanta-border">
+              <div className="flex items-center justify-between mt-auto pt-2 border-t border-subtle">
                 <div>
-                  <span className="font-grotesk font-bold text-xl text-vanta-ink">{formatAED(vehicle.pricePerDay)}</span>
-                  <span className="text-vanta-ink-subtle text-[11px]">/day</span>
+                  <span className="font-grotesk font-bold text-xl text-text-primary">{formatAED(vehicle.pricePerDay)}</span>
+                  <span className="text-text-secondary text-[11px]">/day</span>
                 </div>
                 <motion.button
                   whileHover={{ scale: 1.03, y: -1 }}
@@ -190,21 +204,39 @@ const FeaturedFleet: React.FC = () => {
                 </motion.button>
               </div>
 
-              {/* Compare */}
-              <label className="flex items-center gap-2 font-mono text-[10px] text-vanta-ink-muted cursor-pointer hover:text-vanta-ink transition-colors">
-                <input
-                  type="checkbox"
-                  checked={compareList.includes(vehicle.id)}
-                  onChange={() => handleCompare(vehicle.id, vehicle.name)}
-                  className="accent-vanta-amber rounded"
-                  aria-label={`Add ${vehicle.name} to compare`}
-                />
-                Add to compare
-              </label>
-            </div>
-          </motion.article>
+                <label className="flex items-center gap-2 font-mono text-[10px] text-text-secondary cursor-pointer hover:text-text-primary transition-colors">
+                  <input
+                    type="checkbox"
+                    checked={compareList.includes(vehicle.id)}
+                    onChange={() => handleCompare(vehicle.id, vehicle.name)}
+                    className="accent-accent-orange rounded"
+                    aria-label={`Add ${vehicle.name} to compare`}
+                  />
+                  Add to compare
+                </label>
+              </div>
+            </motion.article>
+          </div>
         ))}
       </div>
+    </div>
+      
+    {/* Floating Side Arrows */}
+      <button 
+        onClick={scrollPrev} 
+        className="absolute left-4 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-surface-primary/95 backdrop-blur border border-subtle flex items-center justify-center text-text-primary shadow-card-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-105 hover:text-accent-orange hover:border-accent-orange z-10"
+        aria-label="Previous vehicle"
+      >
+        <ChevronLeft size={28} />
+      </button>
+      <button 
+        onClick={scrollNext} 
+        className="absolute right-4 top-1/2 -translate-y-1/2 w-14 h-14 rounded-full bg-surface-primary/95 backdrop-blur border border-subtle flex items-center justify-center text-text-primary shadow-card-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-105 hover:text-accent-orange hover:border-accent-orange z-10"
+        aria-label="Next vehicle"
+      >
+        <ChevronRight size={28} />
+      </button>
+    </div>
     </section>
   );
 };

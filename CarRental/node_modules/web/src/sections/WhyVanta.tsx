@@ -40,12 +40,12 @@ const DIFFERENTIATORS = [
 
 const WhyVanta: React.FC = () => {
   return (
-    <section id="experience" className="py-24 bg-vanta-paper-soft overflow-hidden">
+    <section id="experience" className="py-32 bg-surface-secondary overflow-hidden">
       <div className="section-container">
         {/* Header */}
         <div className="max-w-2xl mb-16">
           <motion.div
-            className="eyebrow mb-3"
+            className="eyebrow mb-6 text-accent-orange"
             initial={{ opacity: 0, x: -16 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true }}
@@ -54,17 +54,17 @@ const WhyVanta: React.FC = () => {
             Why Falcon View
           </motion.div>
           <motion.h2
-            className="font-display text-display-lg text-vanta-ink"
+            className="font-display text-display-lg text-text-primary mb-6"
             initial={{ opacity: 0, y: 24 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: duration.slow, ease: ease.elegant, delay: 0.1 }}
           >
             Built for people who{' '}
-            <span className="italic font-light text-vanta-amber">notice the difference.</span>
+            <span className="italic font-light text-accent-orange">notice the difference.</span>
           </motion.h2>
           <motion.p
-            className="text-vanta-ink-muted mt-4 text-[15px] leading-relaxed"
+            className="text-text-secondary text-body-lg"
             initial={{ opacity: 0, y: 16 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -85,23 +85,23 @@ const WhyVanta: React.FC = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-60px' }}
                 transition={{ duration: duration.slow, ease: ease.elegant, delay: i * 0.1 }}
-                className="shimmer-card bg-vanta-panel rounded-2xl p-8 flex flex-col gap-6"
+                className="shimmer-card bg-surface-primary rounded-2xl p-10 flex flex-col gap-6"
               >
-                <div className="flex items-start gap-4">
-                  <div className="w-11 h-11 rounded-xl bg-vanta-amber-pale border border-vanta-amber/20 flex items-center justify-center shrink-0">
-                    <Icon size={20} className="text-vanta-amber" />
+                <div className="flex items-start gap-5">
+                  <div className="w-12 h-12 rounded-xl bg-accent-orange/10 border border-accent-orange/20 flex items-center justify-center shrink-0">
+                    <Icon size={22} className="text-accent-orange" />
                   </div>
                   <div>
-                    <h3 className="font-grotesk font-bold text-xl text-vanta-ink leading-tight">{item.headline}</h3>
-                    <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-vanta-amber mt-0.5">{item.sub}</p>
+                    <h3 className="font-grotesk font-bold text-heading-2 text-text-primary leading-tight">{item.headline}</h3>
+                    <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-accent-orange mt-1">{item.sub}</p>
                   </div>
                 </div>
-                <p className="text-vanta-ink-muted text-[14px] leading-relaxed">{item.body}</p>
+                <p className="text-text-secondary text-body-md">{item.body}</p>
 
                 {/* Stat callout */}
-                <div className="flex items-end gap-3 pt-2 border-t border-vanta-border">
-                  <span className="font-grotesk font-bold text-3xl text-vanta-ink">{item.stat}</span>
-                  <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-vanta-ink-muted pb-1">{item.statLabel}</span>
+                <div className="flex items-end gap-3 pt-4 mt-auto border-t border-subtle">
+                  <span className="font-grotesk font-bold text-heading-1 text-text-primary">{item.stat}</span>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-text-subtle pb-1.5">{item.statLabel}</span>
                 </div>
               </motion.div>
             );
@@ -114,16 +114,16 @@ const WhyVanta: React.FC = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: duration.slow, ease: ease.elegant, delay: 0.4 }}
-          className="mt-12 flex flex-wrap gap-8 items-center justify-center py-8 px-10 rounded-2xl bg-vanta-panel border border-vanta-border"
+          className="mt-16 flex flex-wrap gap-8 items-center justify-center py-8 px-10 rounded-2xl bg-surface-primary border border-subtle shadow-card-sm"
         >
           {[
             { icon: Star, text: '4.9/5 average rating · 18,000+ reviews' },
             { icon: Headphones, text: '24/7 UAE concierge line' },
             { icon: Shield, text: 'Zero hidden fees — ever' },
           ].map(({ icon: Icon, text }) => (
-            <div key={text} className="flex items-center gap-2.5 text-vanta-ink-muted">
-              <Icon size={16} className="text-vanta-amber shrink-0" />
-              <span className="font-grotesk text-[13px] font-medium text-vanta-ink">{text}</span>
+            <div key={text} className="flex items-center gap-3 text-text-secondary">
+              <Icon size={18} className="text-accent-orange shrink-0" />
+              <span className="font-grotesk text-body-sm font-medium text-text-primary">{text}</span>
             </div>
           ))}
         </motion.div>

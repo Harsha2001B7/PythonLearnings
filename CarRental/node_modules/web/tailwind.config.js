@@ -7,39 +7,45 @@ export default {
   theme: {
     extend: {
       colors: {
-        // ── Falcon View Dark Surface ──────────────────────────────
+        // ── Semantic Luxury Tokens ──────────────────────────────
+        surface: {
+          primary: 'var(--vanta-paper)',
+          secondary: 'var(--vanta-paper-soft)',
+          panel: 'var(--vanta-panel)',
+          glass: 'rgba(10, 10, 10, 0.75)',
+        },
+        text: {
+          primary: 'var(--vanta-ink)',
+          secondary: 'var(--vanta-ink-muted)',
+          subtle: 'var(--vanta-ink-subtle)',
+        },
+        accent: {
+          gold: '#C5A059',
+          orange: 'var(--vanta-amber)',
+          'orange-glow': 'rgba(255,107,0,0.25)',
+        },
+        status: {
+          success: '#2D7A4F',
+          danger: '#C0392B',
+        },
+        // ── Backwards Compatibility (Vanta & Legacy) ─────────────
         'vanta-paper':      'var(--vanta-paper)',
         'vanta-paper-soft': 'var(--vanta-paper-soft)',
         'vanta-panel':      'var(--vanta-panel)',
         'vanta-border':     'var(--vanta-border)',
-        // ── Text (on dark) ───────────────────────────────────────
         'vanta-ink':        'var(--vanta-ink)',
         'vanta-ink-muted':  'var(--vanta-ink-muted)',
         'vanta-ink-subtle': 'var(--vanta-ink-subtle)',
-        // ── Falcon Orange Accent ─────────────────────────────────
         'vanta-amber':      'var(--vanta-amber)',
         'vanta-amber-light':'var(--vanta-amber-light)',
         'vanta-amber-pale': 'var(--vanta-amber-pale)',
-        'vanta-amber-glow': 'rgba(255,107,0,0.2)',
-        // ── Status ───────────────────────────────────────────────
-        'vanta-success':    '#2D7A4F',
-        'vanta-danger':     '#C0392B',
-        // ── Legacy aliases ───────────────────────────────────────
         background:         '#0D0D0D',
-        'background-soft':  '#141414',
         panel:              '#1A1A1A',
-        'panel-hover':      '#222222',
-        'panel-dim':        '#141414',
         border:             '#2A2A2A',
-        primary: {
-          DEFAULT:          '#FF6B00',
-          dim:              '#FF8C33',
-        },
-        'text-main':        '#FFFFFF',
-        'text-muted':       '#A0A0A0',
-        'text-heading':     '#FFFFFF',
-        success:            '#2D7A4F',
-        danger:             '#C0392B',
+      },
+      borderColor: {
+        DEFAULT: 'var(--vanta-border)',
+        subtle: 'rgba(255,255,255,0.08)',
       },
       fontFamily: {
         display:  ['Fraunces', 'Space Grotesk', 'serif'],
@@ -48,10 +54,18 @@ export default {
         mono:     ['JetBrains Mono', 'monospace'],
       },
       fontSize: {
-        'display-2xl': ['clamp(4rem, 9vw, 8rem)',    { lineHeight: '0.92', letterSpacing: '-0.03em' }],
-        'display-xl':  ['clamp(3rem, 6vw, 5.5rem)',  { lineHeight: '0.95', letterSpacing: '-0.025em' }],
-        'display-lg':  ['clamp(2.25rem, 4vw, 3.5rem)', { lineHeight: '1.0', letterSpacing: '-0.02em' }],
-        'display-md':  ['clamp(1.75rem, 3vw, 2.5rem)', { lineHeight: '1.1', letterSpacing: '-0.015em' }],
+        'display-2xl': ['clamp(4.5rem, 10vw, 9.5rem)', { lineHeight: '0.9', letterSpacing: '-0.04em' }],
+        'display-xl':  ['clamp(3.5rem, 8vw, 7rem)',    { lineHeight: '0.92', letterSpacing: '-0.035em' }],
+        'display-lg':  ['clamp(2.5rem, 6vw, 5rem)',    { lineHeight: '0.95', letterSpacing: '-0.03em' }],
+        'display-md':  ['clamp(2rem, 4vw, 3.5rem)',    { lineHeight: '1.0', letterSpacing: '-0.02em' }],
+        'heading-1':   ['clamp(1.75rem, 3vw, 2.5rem)', { lineHeight: '1.1', letterSpacing: '-0.015em' }],
+        'heading-2':   ['clamp(1.5rem, 2.5vw, 2rem)',  { lineHeight: '1.15', letterSpacing: '-0.01em' }],
+        'heading-3':   ['1.25rem',                     { lineHeight: '1.2', letterSpacing: '0' }],
+        'body-lg':     ['1.125rem',                    { lineHeight: '1.6', letterSpacing: '0' }],
+        'body-md':     ['1rem',                        { lineHeight: '1.6', letterSpacing: '0' }],
+        'body-sm':     ['0.875rem',                    { lineHeight: '1.5', letterSpacing: '0' }],
+        'caption':     ['0.75rem',                     { lineHeight: '1.5', letterSpacing: '0.02em' }],
+        'label':       ['0.65rem',                     { lineHeight: '1.4', letterSpacing: '0.05em' }],
       },
       borderRadius: {
         xs:  '4px',
@@ -81,8 +95,10 @@ export default {
         '34': '8.5rem',
         '38': '9.5rem',
         '42': '10.5rem',
+        '120': '30rem',
         '128': '32rem',
         '144': '36rem',
+        '160': '40rem',
       },
       transitionTimingFunction: {
         'elegant': 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
