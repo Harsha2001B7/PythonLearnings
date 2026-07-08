@@ -2,7 +2,8 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Heart, BarChart2, ArrowRight, SlidersHorizontal, Star, Users, Fuel } from 'lucide-react';
-import { FLEET_DATA } from '../data/fleet';
+import { useQuery } from '@tanstack/react-query';
+import { vehicleService } from '../services/api/vehicles';
 import { useAppStore, useToastStore } from '../store';
 import { formatAED } from '../lib/formatters';
 import { ease, duration } from '../lib/easing';
@@ -37,7 +38,6 @@ const Chip: React.FC<{ label: string; active: boolean; onClick: () => void }> = 
   </motion.button>
 );
 
-// Store-free local filter state
 const FleetExplorer: React.FC = () => {
   const [category, setCategory] = React.useState<Category>('all');
   const [maxPrice, setMaxPrice] = React.useState(600);
@@ -47,10 +47,15 @@ const FleetExplorer: React.FC = () => {
   const { wishlist, toggleWishlist, compareList, toggleCompare, setCompareOpen } = useAppStore();
   const { addToast } = useToastStore();
 
+  const { data: fleetData = [], isLoading } = useQuery({
+    queryKey: ['vehicles', 'all'],
+    queryFn: () => vehicleService.getVehicles(),
+  });
+
   const resetFilters = () => { setCategory('all'); setMaxPrice(600); setSeats('all'); };
 
-  const filteredVehicles = FLEET_DATA.filter((v) => {
-    const priceMatch = v.pricing.daily <= maxPrice;
+  const filteredVehicles = fleetData.filter((v: any) => {
+    const priceMatch = v.pricePerDay <= maxPrice;
     const catMatch = category === 'all' || v.category === category;
     const seatsMatch = seats === 'all' ? true : seats === '7+' ? v.specs.seats >= 7 : v.specs.seats === parseInt(seats);
     return priceMatch && catMatch && seatsMatch;
@@ -194,7 +199,7 @@ const FleetExplorer: React.FC = () => {
                           </div>
                         </div>
                         <div className="text-right">
-                          <span className="font-grotesk font-bold text-vanta-amber text-[15px]">{formatAED(vehicle.pricing.daily)}</span>
+                          <span className="font-grotesk font-bold text-vanta-amber text-[15px]">{formatAED(vehicle.pricePerDay)}</span>
                           <span className="text-vanta-ink-subtle text-[10px] font-normal">/day</span>
                         </div>
                       </div>
@@ -235,7 +240,7 @@ const FleetExplorer: React.FC = () => {
                 onClick={() => navigate('/fleet')}
                 className="btn-amber flex items-center gap-2"
               >
-                Browse All {FLEET_DATA.length} Vehicles <ArrowRight size={14} />
+                Browse All {fleetData.length} Vehicles <ArrowRight size={14} />
               </motion.button>
             </div>
           )}

@@ -3,9 +3,8 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Heart, ArrowRight, Zap, Gauge, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 import useEmblaCarousel from 'embla-carousel-react';
-import { FLEET_DATA } from '../data/fleet';
-
-const FEATURED_FLEET = FLEET_DATA.filter(v => v.featured);
+import { useQuery } from '@tanstack/react-query';
+import { vehicleService } from '../services/api/vehicles';
 import { useAppStore, useToastStore, useBookingStore } from '../store';
 import { formatAED } from '../lib/formatters';
 import { ease, duration } from '../lib/easing';
@@ -27,6 +26,11 @@ const FeaturedFleet: React.FC = () => {
   const { addToast } = useToastStore();
   const { setSelectedVehicle } = useBookingStore();
   
+  const { data: featuredVehicles = [], isLoading } = useQuery({
+    queryKey: ['vehicles', 'featured'],
+    queryFn: () => vehicleService.getFeaturedVehicles(),
+  });
+
   const [emblaRef, emblaApi] = useEmblaCarousel({ 
     loop: true, 
     align: 'start',
@@ -117,7 +121,9 @@ const FeaturedFleet: React.FC = () => {
       <div className="relative group mt-8">
         <div className="overflow-hidden pl-6 md:pl-10 lg:pl-16 py-4" ref={emblaRef}>
           <div className="flex gap-6 pb-6" style={{ backfaceVisibility: 'hidden', touchAction: 'pan-y' }}>
-          {FEATURED_FLEET.map((vehicle: typeof FEATURED_FLEET[0], i: number) => (
+          {isLoading ? (
+            <div className="w-full flex justify-center p-10"><div className="w-8 h-8 rounded-full border-2 border-orange-500/30 border-t-orange-500 animate-spin" /></div>
+          ) : featuredVehicles.map((vehicle: any, i: number) => (
             <div key={`${vehicle.id}-${i}`} className="flex-none w-[300px] sm:w-[340px] relative">
               <motion.article
                 initial={{ opacity: 0, x: 40 }}

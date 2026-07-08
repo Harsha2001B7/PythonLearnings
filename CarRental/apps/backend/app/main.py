@@ -1,5 +1,7 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from app.api.v1.router import api_router
 from app.core.config import settings
 
@@ -20,6 +22,15 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # Ensure uploads directory exists
+    os.makedirs(settings.UPLOADS_DIR, exist_ok=True)
+    os.makedirs(os.path.join(settings.UPLOADS_DIR, "vehicles"), exist_ok=True)
+    os.makedirs(os.path.join(settings.UPLOADS_DIR, "brands"), exist_ok=True)
+    os.makedirs(os.path.join(settings.UPLOADS_DIR, "testimonials"), exist_ok=True)
+    os.makedirs(os.path.join(settings.UPLOADS_DIR, "memberships"), exist_ok=True)
+    
+    app.mount("/static", StaticFiles(directory=settings.UPLOADS_DIR), name="static")
 
     app.include_router(api_router, prefix=settings.API_V1_STR)
 

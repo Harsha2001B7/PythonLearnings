@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, Search } from 'lucide-react';
-import { FAQ_DATA } from '../data/faq';
+import { useQuery } from '@tanstack/react-query';
+import { faqService } from '../services/api/faqs';
 import type { FAQCategory } from '../types/index';
 import { ease, duration } from '../lib/easing';
 import { cn } from '../lib/cn';
@@ -16,11 +17,16 @@ const CATEGORIES: { value: string; label: string }[] = [
 ];
 
 const FaqSection: React.FC = () => {
-  const [activeCategory, setActiveCategory] = useState('all');
+  const [activeCategory, setActiveCategory] = useState<string>('all');
   const [openId, setOpenId] = useState<number | null>(null);
   const [search, setSearch] = useState('');
 
-  const filtered = FAQ_DATA.filter((faq) => {
+  const { data: faqData = [], isLoading } = useQuery({
+    queryKey: ['faqs'],
+    queryFn: () => faqService.getFaqs(),
+  });
+
+  const filtered = faqData.filter((faq: any) => {
     const matchCat = activeCategory === 'all' || faq.category === activeCategory;
     const matchSearch =
       search === '' ||
@@ -118,7 +124,7 @@ const FaqSection: React.FC = () => {
                 No questions match your search.
               </motion.p>
             ) : (
-              filtered.map((faq, i) => (
+              filtered.map((faq: any, i: number) => (
                 <motion.div
                   layout
                   key={faq.id}

@@ -6,7 +6,8 @@ import {
   Calendar, MapPin, Shield, Phone, MessageCircle, ChevronDown, CheckCircle2,
   Info, ArrowRight, Zap, Car,
 } from 'lucide-react';
-import { FLEET_DATA } from '../data/fleet';
+import { useQuery } from '@tanstack/react-query';
+import { vehicleService } from '../services/api/vehicles';
 import { formatAED } from '../lib/formatters';
 import { cn } from '../lib/cn';
 import { falconLogo } from '../components/layout/Navbar';
@@ -59,9 +60,9 @@ const FAQItem: React.FC<{ question: string; answer: string; index: number }> = (
 };
 
 // ─── Related Vehicle Card ─────────────────────────────────────────
-const RelatedCard: React.FC<{ slug: string }> = ({ slug }) => {
+const RelatedCard: React.FC<{ slug: string, fleetData: any[] }> = ({ slug, fleetData }) => {
   const navigate = useNavigate();
-  const vehicle = FLEET_DATA.find(v => v.slug === slug);
+  const vehicle = fleetData.find(v => v.slug === slug);
   if (!vehicle) return null;
   return (
     <motion.div
@@ -82,7 +83,7 @@ const RelatedCard: React.FC<{ slug: string }> = ({ slug }) => {
 };
 
 // ─── Sticky Booking Card ──────────────────────────────────────────
-const StickyBookingCard: React.FC<{ vehicle: (typeof FLEET_DATA)[0] }> = ({ vehicle }) => {
+const StickyBookingCard: React.FC<{ vehicle: any }> = ({ vehicle }) => {
   const [duration, setDuration] = useState<'daily' | 'weekly' | 'monthly'>('daily');
   const { pricing } = vehicle;
 
@@ -173,7 +174,20 @@ const VehicleDetailPage: React.FC = () => {
 
   useEffect(() => { window.scrollTo(0, 0); }, [slug]);
 
-  const vehicle = FLEET_DATA.find(v => v.slug === slug);
+  const { data: fleetData = [], isLoading } = useQuery({
+    queryKey: ['vehicles', 'all'],
+    queryFn: () => vehicleService.getVehicles(),
+  });
+
+  const vehicle = fleetData.find((v: any) => v.slug === slug);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#F7F7F5] flex flex-col items-center justify-center gap-6">
+        <div className="w-12 h-12 rounded-full border-2 border-orange-500/30 border-t-orange-500 animate-spin" />
+      </div>
+    );
+  }
 
   if (!vehicle) {
     return (
@@ -196,17 +210,17 @@ const VehicleDetailPage: React.FC = () => {
   );
 
   const specRows = [
-    { label: 'Engine', value: vehicle.specs.engine },
-    { label: 'Power', value: vehicle.specs.power },
-    { label: 'Torque', value: vehicle.specs.torque },
-    { label: 'Transmission', value: vehicle.specs.transmission === 'auto' ? 'Automatic' : 'Manual' },
-    { label: 'Fuel Type', value: vehicle.specs.fuel.charAt(0).toUpperCase() + vehicle.specs.fuel.slice(1) },
-    { label: 'Seats', value: `${vehicle.specs.seats} passengers` },
-    { label: 'Doors', value: vehicle.specs.doors ? `${vehicle.specs.doors} doors` : undefined },
-    { label: 'Boot Space', value: vehicle.specs.luggage ? `${vehicle.specs.luggage} litres` : undefined },
-    { label: 'Year', value: vehicle.specs.year?.toString() },
-    { label: '0-100 km/h', value: vehicle.specs.zeroToSixty },
-    { label: 'Top Speed', value: vehicle.specs.topSpeed },
+    { label: 'Engine', value: vehicle.specs?.engine },
+    { label: 'Power', value: vehicle.specs?.power },
+    { label: 'Torque', value: vehicle.specs?.torque },
+    { label: 'Transmission', value: vehicle.specs?.transmission ? (vehicle.specs.transmission === 'auto' ? 'Automatic' : 'Manual') : undefined },
+    { label: 'Fuel Type', value: vehicle.specs?.fuel ? (vehicle.specs.fuel.charAt(0).toUpperCase() + vehicle.specs.fuel.slice(1)) : undefined },
+    { label: 'Seats', value: vehicle.specs?.seats ? `${vehicle.specs.seats} passengers` : undefined },
+    { label: 'Doors', value: vehicle.specs?.doors ? `${vehicle.specs.doors} doors` : undefined },
+    { label: 'Boot Space', value: vehicle.specs?.luggage ? `${vehicle.specs.luggage} litres` : undefined },
+    { label: 'Year', value: vehicle.specs?.year?.toString() },
+    { label: '0-100 km/h', value: vehicle.specs?.zeroToSixty },
+    { label: 'Top Speed', value: vehicle.specs?.topSpeed },
   ].filter(r => r.value) as { label: string; value: string }[];
 
   return (
@@ -427,8 +441,8 @@ const VehicleDetailPage: React.FC = () => {
                   </Link>
                 </div>
                 <div className="flex gap-4 overflow-x-auto pb-2">
-                  {vehicle.relatedVehicles.map(s => (
-                    <RelatedCard key={s} slug={s} />
+                  {vehicle.relatedVehicles.map((s: string) => (
+                    <RelatedCard key={s} slug={s} fleetData={fleetData} />
                   ))}
                 </div>
               </div>

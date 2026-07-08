@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X } from 'lucide-react';
-import { MEMBERSHIP_TIERS } from '../data/membership';
+import { useQuery } from '@tanstack/react-query';
+import { membershipService } from '../services/api/memberships';
 import { useBookingStore } from '../store';
 import { formatAED } from '../lib/formatters';
 import { ease, duration } from '../lib/easing';
 import { cn } from '../lib/cn';
 
 const MembershipSection: React.FC = () => {
-  const [billing, setBilling] = useState<'monthly' | 'annual'>('monthly');
+  const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
   const { setSelectedVehicle } = useBookingStore();
+  const { data: tiers = [], isLoading } = useQuery({
+    queryKey: ['memberships'],
+    queryFn: () => membershipService.getMemberships(),
+  });
 
   return (
     <section id="membership" className="py-24 bg-vanta-paper">
@@ -44,7 +49,7 @@ const MembershipSection: React.FC = () => {
             transition={{ delay: 0.2 }}
             className="inline-flex items-center gap-1 mt-8 bg-vanta-paper-soft border border-vanta-border rounded-full p-1"
           >
-            {(['monthly', 'annual'] as const).map((b) => (
+            {(['monthly', 'yearly'] as const).map((b) => (
               <button
                 key={b}
                 onClick={() => setBilling(b)}
@@ -60,7 +65,7 @@ const MembershipSection: React.FC = () => {
                     transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                   />
                 )}
-                <span className="relative z-10">{b === 'annual' ? 'Annual (save 17%)' : 'Monthly'}</span>
+                <span className="relative z-10">{b === 'yearly' ? 'Annual (save 17%)' : 'Monthly'}</span>
               </button>
             ))}
           </motion.div>
@@ -68,10 +73,9 @@ const MembershipSection: React.FC = () => {
 
         {/* Tiers Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {MEMBERSHIP_TIERS.map((tier, i) => {
-            const monthlyPrice = billing === 'annual' && tier.pricePerYear
-              ? Math.round(tier.pricePerYear / 12)
-              : tier.pricePerMonth;
+          {tiers.map((tier, i) => {
+            const isAnnual = billing === 'yearly' && tier.pricePerYear;
+            const price = isAnnual ? tier.pricePerYear! / 12 : tier.pricePerMonth;
 
             return (
               <motion.div
@@ -120,10 +124,10 @@ const MembershipSection: React.FC = () => {
                         transition={{ duration: 0.25 }}
                         className="font-grotesk font-bold text-4xl text-vanta-ink"
                       >
-                        {monthlyPrice === 0 ? 'Free' : formatAED(monthlyPrice)}
+                        {price === 0 ? 'Free' : formatAED(price)}
                       </motion.span>
                     </AnimatePresence>
-                    {monthlyPrice > 0 && (
+                    {price > 0 && (
                       <span className="text-vanta-ink-muted text-[13px] pb-1.5">/month</span>
                     )}
                   </div>

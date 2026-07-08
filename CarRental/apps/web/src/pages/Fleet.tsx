@@ -5,7 +5,8 @@ import {
   Search, SlidersHorizontal, X, Heart, ChevronDown, RotateCcw,
   MapPin, Users, Fuel, Gauge, Star, ArrowLeft, MessageCircle,
 } from 'lucide-react';
-import { FLEET_DATA } from '../data/fleet';
+import { useQuery } from '@tanstack/react-query';
+import { vehicleService } from '../services/api/vehicles';
 import { formatAED } from '../lib/formatters';
 import { cn } from '../lib/cn';
 import { useAppStore, useToastStore } from '../store';
@@ -41,7 +42,7 @@ const CATEGORY_BADGE_COLORS: Record<string, string> = {
 
 // ─── Vehicle Card ─────────────────────────────────────────────────
 const VehicleCard: React.FC<{
-  vehicle: (typeof FLEET_DATA)[0];
+  vehicle: any;
   index: number;
 }> = ({ vehicle, index }) => {
   const navigate = useNavigate();
@@ -56,7 +57,7 @@ const VehicleCard: React.FC<{
   };
 
   const whatsappMsg = encodeURIComponent(
-    `Hi Falcon View! I'm interested in the ${vehicle.name} (AED ${vehicle.pricing.daily}/day). Please send availability and pricing.`
+    `Hi Falcon View! I'm interested in the ${vehicle.name} (AED ${vehicle.pricePerDay}/day). Please send availability and pricing.`
   );
 
   return (
@@ -151,10 +152,10 @@ const VehicleCard: React.FC<{
         <div className="flex items-end justify-between gap-3 pt-3 border-t border-gray-100 mt-auto">
           <div>
             <div className="flex items-baseline gap-1">
-              <span className="font-grotesk font-bold text-2xl text-gray-900">{formatAED(vehicle.pricing.daily)}</span>
+              <span className="font-grotesk font-bold text-2xl text-gray-900">{formatAED(vehicle.pricePerDay)}</span>
               <span className="text-gray-400 text-[12px]">/day</span>
             </div>
-            <p className="text-[11px] text-gray-400">{formatAED(vehicle.pricing.monthly)}/mo · {formatAED(vehicle.pricing.weekly)}/day (weekly)</p>
+            <p className="text-[11px] text-gray-400">{formatAED(vehicle.pricePerDay * 30)}/mo · {formatAED(vehicle.pricePerWeek)}/week (weekly)</p>
           </div>
           <a
             href={`https://wa.me/971500999733?text=${whatsappMsg}`}
@@ -204,18 +205,23 @@ const FleetPage: React.FC = () => {
     window.scrollTo(0, 0);
   }, []);
 
+  const { data: fleetData = [], isLoading } = useQuery({
+    queryKey: ['vehicles', 'all'],
+    queryFn: () => vehicleService.getVehicles(),
+  });
+
   const filteredVehicles = useMemo(() => {
-    let results = FLEET_DATA.filter((v) => {
+    let results = fleetData.filter((v: any) => {
       const searchLower = search.toLowerCase();
       const matchSearch = !search ||
         v.name.toLowerCase().includes(searchLower) ||
         v.brand.toLowerCase().includes(searchLower) ||
         v.model.toLowerCase().includes(searchLower) ||
         v.category.toLowerCase().includes(searchLower) ||
-        v.tagline.toLowerCase().includes(searchLower) ||
-        v.keywords.some(k => k.toLowerCase().includes(searchLower));
+        (v.tagline && v.tagline.toLowerCase().includes(searchLower)) ||
+        (v.keywords && v.keywords.some((k: string) => k.toLowerCase().includes(searchLower)));
       const matchCategory = category === 'all' || v.category === category;
-      const matchPrice = v.pricing.daily <= maxPrice;
+      const matchPrice = v.pricePerDay <= maxPrice;
       const matchSeats = seats === 'all' || (seats === '7+' ? v.specs.seats >= 7 : v.specs.seats === parseInt(seats));
       const matchDelivery = !deliveryOnly || v.deliveryAvailable;
       return matchSearch && matchCategory && matchPrice && matchSeats && matchDelivery;
@@ -223,13 +229,21 @@ const FleetPage: React.FC = () => {
 
     // Sort
     switch (sortBy) {
-      case 'price_asc': results.sort((a, b) => a.pricing.daily - b.pricing.daily); break;
-      case 'price_desc': results.sort((a, b) => b.pricing.daily - a.pricing.daily); break;
-      case 'rating': results.sort((a, b) => b.rating - a.rating); break;
-      default: results.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0)); break;
+      case 'price_asc': results.sort((a: any, b: any) => a.pricePerDay - b.pricePerDay); break;
+      case 'price_desc': results.sort((a: any, b: any) => b.pricePerDay - a.pricePerDay); break;
+      case 'rating': results.sort((a: any, b: any) => b.rating - a.rating); break;
+      default: results.sort((a: any, b: any) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0)); break;
     }
     return results;
   }, [search, category, maxPrice, seats, deliveryOnly, sortBy]);
+
+  const filterProps = {
+    search, setSearch, category, setCategory,
+    maxPrice, setMaxPrice, seats, setSeats,
+    deliveryOnly, setDeliveryOnly, sortBy, setSortBy,
+    totalResults: filteredVehicles.length,
+    maxPossiblePrice: Math.max(...(fleetData.length ? fleetData.map((v: any) => v.pricePerDay) : [3000]))
+  };
 
   const resetFilters = () => {
     setSearch(''); setCategory('all'); setMaxPrice(600); setSeats('all');

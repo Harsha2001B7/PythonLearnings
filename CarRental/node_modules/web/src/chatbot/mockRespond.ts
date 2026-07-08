@@ -11,7 +11,7 @@
 //   const { reply } = await res.json();
 //   return reply;
 // ─────────────────────────────────────────────────────────────────
-import { FAQ_DATA } from '../data/faq';
+import { faqService } from '../services/api/faqs';
 
 // Keyword → category/response mapping
 const KEYWORD_RULES: { keywords: string[]; response: string }[] = [
@@ -81,18 +81,23 @@ export function mockRespond(userMessage: string): Promise<string> {
     }
 
     // Try FAQ data keyword match
-    const faqMatch = FAQ_DATA.find(
-      (f) =>
-        f.question.toLowerCase().split(' ').some((w: string) => w.length > 4 && lower.includes(w)) ||
-        lower.includes(f.category)
-    );
-    if (faqMatch) {
-      return setTimeout(() => resolve(faqMatch.answer), 1400 + Math.random() * 800);
-    }
+    faqService.getFaqs().then(faqs => {
+      const faqMatch = faqs.find(
+        (f: any) =>
+          f.question.toLowerCase().split(' ').some((w: string) => w.length > 4 && lower.includes(w))
+      );
+      if (faqMatch) {
+        return setTimeout(() => resolve(faqMatch.answer), 1400 + Math.random() * 800);
+      }
 
-    // Fallback
-    const fallback = FALLBACK_RESPONSES[fallbackIndex % FALLBACK_RESPONSES.length];
-    fallbackIndex++;
-    setTimeout(() => resolve(fallback), 1200);
+      // Fallback
+      const fallback = FALLBACK_RESPONSES[fallbackIndex % FALLBACK_RESPONSES.length];
+      fallbackIndex++;
+      setTimeout(() => resolve(fallback), 1200);
+    }).catch(() => {
+      const fallback = FALLBACK_RESPONSES[fallbackIndex % FALLBACK_RESPONSES.length];
+      fallbackIndex++;
+      setTimeout(() => resolve(fallback), 1200);
+    });
   });
 }

@@ -1,8 +1,11 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
-import { TESTIMONIALS } from '../data/testimonials';
+import useEmblaCarousel from 'embla-carousel-react';
+import { useQuery } from '@tanstack/react-query';
+import { testimonialService } from '../services/api/testimonials';
 import { ease, duration } from '../lib/easing';
+import { cn } from '../lib/cn';
 
 // ── Initials Avatar ────────────────────────────────────────────
 const InitialsAvatar: React.FC<{
@@ -56,25 +59,48 @@ const Testimonials: React.FC = () => {
   const [direction, setDirection] = useState(1); // 1 = forward, -1 = backward
   const intervalRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const [emblaRef, emblaApi] = useEmblaCarousel({ 
+    loop: true,
+    align: 'center',
+    skipSnaps: false
+  });
+
+  const { data: testimonials = [], isLoading } = useQuery({
+    queryKey: ['testimonials'],
+    queryFn: () => testimonialService.getTestimonials(),
+  });
+
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev();
+  }, [emblaApi]);
+
+  const scrollNext = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext();
+  }, [emblaApi]);
+
   const goTo = useCallback((index: number, dir: number) => {
     setDirection(dir);
     setActiveIndex(index);
   }, []);
 
   const goNext = useCallback(() => {
-    goTo((activeIndex + 1) % TESTIMONIALS.length, 1);
-  }, [activeIndex, goTo]);
+    if (testimonials.length === 0) return;
+    goTo((activeIndex + 1) % testimonials.length, 1);
+    scrollNext();
+  }, [activeIndex, testimonials.length, goTo, scrollNext]);
 
   const goPrev = useCallback(() => {
-    goTo((activeIndex - 1 + TESTIMONIALS.length) % TESTIMONIALS.length, -1);
-  }, [activeIndex, goTo]);
+    if (testimonials.length === 0) return;
+    goTo((activeIndex - 1 + testimonials.length) % testimonials.length, -1);
+    scrollPrev();
+  }, [activeIndex, testimonials.length, goTo, scrollPrev]);
 
   // Auto-advance every 5s
   useEffect(() => {
-    if (isPaused) return;
+    if (isPaused || testimonials.length === 0) return;
     intervalRef.current = setTimeout(goNext, 5000);
     return () => { if (intervalRef.current) clearTimeout(intervalRef.current); };
-  }, [activeIndex, isPaused, goNext]);
+  }, [activeIndex, isPaused, goNext, testimonials.length]);
 
   const variants = {
     enter: (d: number) => ({ opacity: 0, x: d * 40, scale: 0.98 }),
@@ -82,7 +108,11 @@ const Testimonials: React.FC = () => {
     exit: (d: number) => ({ opacity: 0, x: d * -40, scale: 0.98 }),
   };
 
-  const active = TESTIMONIALS[activeIndex];
+  const active = testimonials[activeIndex];
+
+  if (!active) return null;
+
+  const getInitials = (name: string) => name.split(' ').map((n: string) => n[0]).join('').substring(0, 2);
 
   return (
     <section id="testimonials" className="py-24 bg-vanta-paper-soft overflow-hidden">
@@ -140,19 +170,22 @@ const Testimonials: React.FC = () => {
 
                 {/* Quote text */}
                 <blockquote className="font-display text-xl sm:text-2xl text-vanta-ink font-light leading-snug italic">
-                  "{active.text}"
+                  "{active.content}"
                 </blockquote>
 
                 {/* Author */}
                 <div className="flex items-center gap-3">
-                  <InitialsAvatar initials={active.authorInitials} color={active.avatarColor} />
+                  {active.image_url ? (
+                    <div className="w-11 h-11 rounded-full overflow-hidden border border-gray-100 shrink-0 shadow-sm">
+                      <img src={`http://localhost:8000${active.image_url}`} alt={active.name} className="w-full h-full object-cover" />
+                    </div>
+                  ) : (
+                    <InitialsAvatar initials={getInitials(active.name)} color="#C8873A" />
+                  )}
                   <div>
-                    <p className="font-grotesk font-semibold text-[14px] text-vanta-ink">{active.authorName}</p>
+                    <p className="font-grotesk font-semibold text-[14px] text-vanta-ink">{active.name}</p>
                     <p className="font-mono text-[10px] text-vanta-ink-muted uppercase tracking-[0.1em]">
-                      {active.role}{active.company ? ` · ${active.company}` : ''}
-                      {active.membershipTier && (
-                        <span className="ml-2 text-vanta-amber">{active.membershipTier} Member</span>
-                      )}
+                      {active.role}
                     </p>
                   </div>
                 </div>
@@ -182,7 +215,7 @@ const Testimonials: React.FC = () => {
 
             {/* Dots */}
             <div className="flex gap-1.5" role="tablist" aria-label="Testimonial navigation">
-              {TESTIMONIALS.map((_, i) => (
+              {testimonials.map((_: any, i: number) => (
                 <button
                   key={i}
                   onClick={() => goTo(i, i > activeIndex ? 1 : -1)}

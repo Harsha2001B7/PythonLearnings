@@ -17,7 +17,8 @@ import FaqSection from '../sections/FaqSection';
 import { useBookingStore, useAppStore, useToastStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, BarChart2, MessageCircle } from 'lucide-react';
-import { FLEET_DATA } from '../data/fleet';
+import { useQuery } from '@tanstack/react-query';
+import { vehicleService } from '../services/api/vehicles';
 import { formatAED } from '../lib/formatters';
 import { useGSAPReveal } from '../hooks/useGSAPReveal';
 
@@ -133,8 +134,14 @@ const BookingModal: React.FC = () => {
 // ── Compare Drawer ────────────────────────────────────────────────
 const CompareDrawer: React.FC = () => {
   const { compareList, isCompareOpen, setCompareOpen, clearCompare } = useAppStore();
+  const { data: fleetData = [] } = useQuery({
+    queryKey: ['vehicles', 'all'],
+    queryFn: () => vehicleService.getVehicles(),
+    enabled: isCompareOpen,
+  });
+
   if (!isCompareOpen) return null;
-  const vehicles = compareList.map((id) => FLEET_DATA.find((v) => v.id === id)).filter(Boolean);
+  const vehicles = compareList.map((id) => fleetData.find((v: any) => v.id === id)).filter(Boolean);
 
   return (
     <AnimatePresence>
