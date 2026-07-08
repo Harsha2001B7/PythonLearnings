@@ -293,10 +293,12 @@
 [data-theme="light"] .btn-ghost {
   border-color: #D1D5DB;
   color: #374151;
+  background-color: transparent;
 }
 [data-theme="light"] .btn-ghost:hover {
   border-color: #FF6B00;
   color: #FF6B00;
+  background-color: rgba(255, 107, 0, 0.05);
 }
 [data-theme="light"] input[type="date"]::-webkit-calendar-picker-indicator {
   filter: none;
