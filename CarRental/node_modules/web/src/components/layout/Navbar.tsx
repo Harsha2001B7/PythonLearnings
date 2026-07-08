@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate, Link } from 'react-router-dom';
 import { Menu, X, BarChart2, User } from 'lucide-react';
 import { useAppStore } from '../../store';
 import { ease, duration } from '../../lib/easing';
@@ -9,16 +10,17 @@ import falconLogo from '../../../assets/falconviewLogotrans.png';
 export { falconLogo };
 
 const NAV_LINKS = [
-  { label: 'Fleet',        href: '#fleet' },
-  { label: 'How it works', href: '#how-it-works' },
-  { label: 'FAQ',          href: '#faq' },
-  { label: 'Contact',      href: '#contact' },
+  { label: 'Fleet',        href: '/fleet',      isRoute: true  },
+  { label: 'How it works', href: '#how-it-works',isRoute: false },
+  { label: 'FAQ',          href: '#faq',        isRoute: false },
+  { label: 'Contact',      href: '#contact',    isRoute: false },
 ] as const;
 
 const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeLink, setActiveLink] = useState('');
   const [mobileOpen, setMobileOpen] = useState(false);
+  const navigate = useNavigate();
   const { compareList, setCompareOpen, setCmdkOpen } = useAppStore();
 
   useEffect(() => {
@@ -31,10 +33,14 @@ const Navbar: React.FC = () => {
     if (window.innerWidth >= 768) setMobileOpen(false);
   }, []);
 
-  const handleNavClick = (href: string) => {
+  const handleNavClick = (href: string, isRoute?: boolean) => {
     setActiveLink(href);
     setMobileOpen(false);
-    document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
+    if (isRoute) {
+      navigate(href);
+    } else {
+      document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   /* Text color is permanently dark theme styled (white on dark background) */
@@ -79,7 +85,7 @@ const Navbar: React.FC = () => {
             {NAV_LINKS.map((link) => (
               <button
                 key={link.href}
-                onClick={() => handleNavClick(link.href)}
+                onClick={() => handleNavClick(link.href, link.isRoute)}
                 className={cn(
                   'relative px-5 py-2.5 font-grotesk text-body-sm tracking-wide font-medium rounded-full transition-all duration-300',
                   linkColor,
@@ -138,7 +144,7 @@ const Navbar: React.FC = () => {
             <motion.button
               whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.98 }}
-              onClick={() => handleNavClick('#fleet')}
+              onClick={() => navigate('/fleet')}
               className="bg-accent-orange hover:bg-orange-400 text-white font-grotesk font-semibold text-body-sm px-6 py-3 rounded-full transition-colors shadow-amber-sm hover:shadow-amber-glow ml-2"
             >
               Book now

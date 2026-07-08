@@ -1,12 +1,14 @@
-import React, { useState, useRef } from 'react';
-import { motion, useScroll, useTransform } from 'framer-motion';
-import { MessageCircle } from 'lucide-react';
+import React, { useState, useRef, useCallback } from 'react';
+import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { MessageCircle, MapPin, Calendar, ChevronDown, X, CheckCircle2, AlertCircle, Info } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { useCountUp } from '../hooks/useCountUp';
 import { ease, duration } from '../lib/easing';
 import { falconLogo } from '../components/layout/Navbar';
 import { cn } from '../lib/cn';
+import { formatAED } from '../lib/formatters';
 
-// ─── Animated Stat ────────────────────────────────────────────────
+// â”€â”€â”€ Animated Stat â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const AnimatedStat: React.FC<{ value: number; suffix?: string; label: string; decimals?: number }> = ({
   value, suffix = '', label, decimals = 0,
 }) => {
@@ -21,7 +23,7 @@ const AnimatedStat: React.FC<{ value: number; suffix?: string; label: string; de
   );
 };
 
-// ─── Floating Logo Card ───────────────────────────────────────────
+// â”€â”€â”€ Floating Logo Card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const FloatingLogoCard: React.FC = () => (
   <motion.div
     className="relative flex flex-col items-center justify-center"
@@ -81,205 +83,424 @@ const FloatingLogoCard: React.FC = () => (
 // ─── Booking Tabs + Form ──────────────────────────────────────────
 type RentalTab = 'Daily' | 'Weekly' | 'Monthly' | 'With driver';
 
-const BookingCard: React.FC = () => {
-  const [tab, setTab] = useState<RentalTab>('Daily');
-  const [chips, setChips] = useState<string[]>([]);
-  const [delivery, setDelivery] = useState('');
-  const [carType, setCarType] = useState('');
-  const [driverAge, setDriverAge] = useState('25+');
-  const [licence, setLicence] = useState('UAE licence');
-  const [promo, setPromo] = useState('');
+const DELIVERY_LOCATIONS = [
+  'Marina, Dubai Marina',
+  'Business Bay',
+  'Downtown Dubai',
+  'Palm Jumeirah',
+  'Jumeirah Village Circle (JVC)',
+  'Jumeirah Lake Towers (JLT)',
+  'Dubai Hills Estate',
+  'DXB Airport — Terminal 1',
+  'DXB Airport — Terminal 2',
+  'DXB Airport — Terminal 3',
+  'Al Barsha',
+  'Al Karama',
+  'Deira',
+  'Bur Dubai',
+  'Dubai Silicon Oasis',
+  'DIFC',
+  'Jumeirah Beach Residence (JBR)',
+  'Mirdif',
+];
 
-  const toggleChip = (c: string) =>
-    setChips((prev) => prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]);
+const DRIVER_AGES = ['18â€“20', '21â€“24', '25+', '30+', '40+'];
+const LICENCES = ['UAE', 'GCC', 'International', 'UK', 'EU', 'US', 'India', 'Pakistan', 'Other'];
+const CAR_TYPES = ['Any', 'Economy', 'Sedan', 'Hatchback', 'SUV', '7 Seater', 'Coupe / Muscle'];
+const VALID_PROMOS: Record<string, string> = { 'FALCON10': '10% Off', 'WELCOME5': '5% Off', 'DUBAI2026': 'AED 50 Off' };
+const EXTRAS = ['Baby seat', 'Additional driver', 'Zero deposit', 'Airport pick-up', 'Unlimited km', 'Oman border pass'];
 
-  const handleGetRate = () => {
-    const msg = encodeURIComponent(
-      `Hi Falcon View! Rental type: ${tab}. Delivery: ${delivery || 'TBD'}. Car type: ${carType || 'Any'}. Driver age: ${driverAge}. Licence: ${licence}.${chips.length ? ' Extras: ' + chips.join(', ') + '.' : ''} Please send availability and pricing.`
-    );
-    window.open(`https://wa.me/971500999733?text=${msg}`, '_blank');
-  };
+// Rate calculation helper
+function calcBestRate(tab: RentalTab, pickupDate: string, returnDate: string) {
+  if (!pickupDate || !returnDate) return null;
+  const days = Math.max(1, Math.ceil((new Date(returnDate).getTime() - new Date(pickupDate).getTime()) / 86400000));
+  // Use approximate market average: daily 150, weekly 120, monthly 3500
+  // This gives approximate pricing. Vehicle-specific pricing is on detail pages.
+  const isWeekly = days >= 7 && days < 30;
+  const isMonthly = days >= 30;
+  const rateType = isMonthly ? 'Monthly' : isWeekly ? 'Weekly' : 'Daily';
+  const tabMultiplier = tab === 'Daily' ? 1 : tab === 'Weekly' ? 0.87 : tab === 'Monthly' ? 0.65 : 1.15;
+  const baseDaily = 150 * tabMultiplier;
+  const estimatedTotal = isMonthly ? baseDaily * 30 : baseDaily * days;
+  return { days, rateType, baseDaily: Math.round(baseDaily), estimatedTotal: Math.round(estimatedTotal), vat: Math.round(estimatedTotal * 0.05), deposit: 2000 };
+}
 
-  const CHIPS = ['Baby seat', 'Additional driver', 'Full insurance', 'Zero deposit', 'Airport pick-up', 'Unlimited km', 'Oman border pass'];
+// Premium SelectField
+const SelectField: React.FC<{
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: string[];
+  placeholder?: string;
+  icon?: React.ReactNode;
+}> = ({ label, value, onChange, options, placeholder, icon }) => (
+  <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 hover:border-orange-400 focus-within:border-orange-400 transition-colors">
+    <label className="block text-[10px] font-mono uppercase tracking-[0.16em] text-gray-400 mb-1">
+      {icon && <span className="inline-flex mr-1 opacity-60">{icon}</span>}{label}
+    </label>
+    <select
+      className="w-full bg-transparent text-gray-900 text-[13px] font-medium border-none focus:outline-none cursor-pointer"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+    >
+      {placeholder && <option value="">{placeholder}</option>}
+      {options.map(o => <option key={o} value={o}>{o}</option>)}
+    </select>
+  </div>
+);
+
+// DateField
+const DateField: React.FC<{ label: string; value: string; onChange: (v: string) => void; min?: string }> = ({ label, value, onChange, min }) => (
+  <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 hover:border-orange-400 focus-within:border-orange-400 transition-colors">
+    <label className="block text-[10px] font-mono uppercase tracking-[0.16em] text-gray-400 mb-1">{label}</label>
+    <input
+      type="date"
+      value={value}
+      min={min || new Date().toISOString().split('T')[0]}
+      onChange={(e) => onChange(e.target.value)}
+      className="w-full bg-transparent text-gray-900 text-[13px] font-medium border-none focus:outline-none"
+    />
+  </div>
+);
+
+// Summary Modal
+const SummaryModal: React.FC<{
+  open: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  data: { tab: RentalTab; delivery: string; carType: string; pickupDate: string; returnDate: string; driverAge: string; licence: string; promo: string; extras: string[] };
+}> = ({ open, onClose, onConfirm, data }) => {
+  const calc = calcBestRate(data.tab, data.pickupDate, data.returnDate);
+  const promoDiscount = VALID_PROMOS[data.promo.toUpperCase()];
 
   return (
-    <div className="bg-white rounded-2xl shadow-[0_8px_60px_rgba(0,0,0,0.25)] overflow-hidden border border-gray-100">
-      {/* ── Tabs ── */}
-      <div className="flex items-center gap-1 p-3 pb-2">
-        <div className="inline-flex items-center gap-1 p-1 bg-gray-100/80 rounded-full border border-gray-200/60">
-          {(['Daily', 'Weekly', 'Monthly', 'With driver'] as RentalTab[]).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              className={cn(
-                'px-5 py-2 rounded-full text-[13px] font-grotesk font-semibold transition-all duration-300',
-                tab === t
-                  ? 'bg-gray-900 text-white shadow-md'
-                  : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50'
-              )}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* ── Fields ── */}
-      <div className="p-4 pb-3">
-        {/* Row 1: Location + Dates */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-2">
-          {/* Delivery Location */}
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 hover:border-orange-400 transition-colors">
-            <label className="block text-[10px] font-mono uppercase tracking-[0.16em] text-gray-400 mb-1">Delivery Location</label>
-            <select
-              className="w-full bg-transparent text-gray-900 text-[14px] font-medium border-none focus:outline-none cursor-pointer"
-              value={delivery}
-              onChange={(e) => setDelivery(e.target.value)}
-            >
-              <option value="">Marina, Karama, DXB T3…</option>
-              <option value="Dubai Airport T1">Dubai Airport — DXB T1</option>
-              <option value="Dubai Airport T3">Dubai Airport — DXB T3</option>
-              <option value="Al Karama">Al Karama, Dubai</option>
-              <option value="Downtown Dubai">Downtown Dubai</option>
-              <option value="JBR Marina">JBR, Dubai Marina</option>
-            </select>
-          </div>
-
-          {/* Return Location */}
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 hover:border-orange-400 transition-colors">
-            <label className="block text-[10px] font-mono uppercase tracking-[0.16em] text-gray-400 mb-1">Return Location</label>
-            <select className="w-full bg-transparent text-gray-900 text-[14px] font-medium border-none focus:outline-none cursor-pointer">
-              <option>Same as delivery</option>
-              <option>Dubai Airport — DXB T1</option>
-              <option>Dubai Airport — DXB T3</option>
-              <option>Al Karama, Dubai</option>
-            </select>
-          </div>
-
-          {/* Pick-up */}
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 hover:border-orange-400 transition-colors">
-            <label className="block text-[10px] font-mono uppercase tracking-[0.16em] text-gray-400 mb-1">Pick-up</label>
-            <input
-              type="datetime-local"
-              className="w-full bg-transparent text-gray-900 text-[14px] font-medium border-none focus:outline-none"
-              aria-label="Pick-up date and time"
-            />
-          </div>
-
-          {/* Return */}
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 hover:border-orange-400 transition-colors">
-            <label className="block text-[10px] font-mono uppercase tracking-[0.16em] text-gray-400 mb-1">Return</label>
-            <input
-              type="datetime-local"
-              className="w-full bg-transparent text-gray-900 text-[14px] font-medium border-none focus:outline-none"
-              aria-label="Return date and time"
-            />
-          </div>
-        </div>
-
-        {/* Row 2: Car details */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-3">
-          {/* Car Type */}
-          <div className={cn(
-            'bg-gray-50 border rounded-xl p-3 hover:border-orange-400 transition-colors',
-            carType ? 'border-orange-400 bg-orange-50/30' : 'border-gray-200'
-          )}>
-            <label className="block text-[10px] font-mono uppercase tracking-[0.16em] text-gray-400 mb-1">Car Type</label>
-            <select
-              className="w-full bg-transparent text-gray-900 text-[14px] font-medium border-none focus:outline-none cursor-pointer"
-              value={carType}
-              onChange={(e) => setCarType(e.target.value)}
-            >
-              <option value="">Any — advise me</option>
-              <option value="Sedan">Sedan</option>
-              <option value="Hatchback">Hatchback</option>
-              <option value="SUV">SUV</option>
-              <option value="7 Seater">7 Seater</option>
-              <option value="Coupe">Coupe / Muscle</option>
-            </select>
-          </div>
-
-          {/* Driver Age */}
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 hover:border-orange-400 transition-colors">
-            <label className="block text-[10px] font-mono uppercase tracking-[0.16em] text-gray-400 mb-1">Driver Age</label>
-            <select
-              className="w-full bg-transparent text-gray-900 text-[14px] font-medium border-none focus:outline-none cursor-pointer"
-              value={driverAge}
-              onChange={(e) => setDriverAge(e.target.value)}
-            >
-              <option>21+</option>
-              <option>25+</option>
-              <option>30+</option>
-            </select>
-          </div>
-
-          {/* Licence */}
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 hover:border-orange-400 transition-colors">
-            <label className="block text-[10px] font-mono uppercase tracking-[0.16em] text-gray-400 mb-1">Licence</label>
-            <select
-              className="w-full bg-transparent text-gray-900 text-[14px] font-medium border-none focus:outline-none cursor-pointer"
-              value={licence}
-              onChange={(e) => setLicence(e.target.value)}
-            >
-              <option>UAE licence</option>
-              <option>International licence</option>
-              <option>GCC licence</option>
-            </select>
-          </div>
-
-          {/* Promo Code */}
-          <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 hover:border-orange-400 transition-colors">
-            <label className="block text-[10px] font-mono uppercase tracking-[0.16em] text-gray-400 mb-1">Promo Code</label>
-            <input
-              type="text"
-              placeholder="Optional"
-              value={promo}
-              onChange={(e) => setPromo(e.target.value)}
-              className="w-full bg-transparent text-gray-900 text-[14px] font-medium border-none focus:outline-none placeholder:text-gray-300"
-            />
-          </div>
-        </div>
-
-        {/* Chips */}
-        <div className="flex flex-wrap gap-2 mb-3">
-          {CHIPS.map((chip) => (
-            <button
-              key={chip}
-              type="button"
-              onClick={() => toggleChip(chip)}
-              className={cn(
-                'text-[12px] font-sans border rounded-full px-3.5 py-1.5 transition-all duration-200',
-                chips.includes(chip)
-                  ? 'bg-gray-900 text-white border-gray-900'
-                  : 'text-gray-500 border-gray-200 hover:border-gray-400 hover:text-gray-700'
-              )}
-            >
-              {chip}
-            </button>
-          ))}
-        </div>
-
-        {/* Bottom CTA */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2 border-t border-gray-100">
-          <span className="flex items-center gap-2 text-[12px] text-gray-400">
-            <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse shrink-0" />
-            Your request opens in WhatsApp — quote in minutes, no signup.
-          </span>
-          <motion.button
-            whileHover={{ scale: 1.03, y: -1 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={handleGetRate}
-            className="bg-gray-900 hover:bg-gray-800 text-white font-grotesk font-semibold text-[14px] px-7 py-3 rounded-full transition-colors whitespace-nowrap"
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[999] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={onClose}
+          role="dialog" aria-modal="true" aria-label="Booking summary"
+        >
+          <motion.div
+            initial={{ scale: 0.93, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.93, y: 20 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 28 }}
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden"
           >
-            Get my best rate →
-          </motion.button>
-        </div>
-      </div>
-    </div>
+            {/* Header */}
+            <div className="bg-gray-900 px-6 py-5 flex items-start justify-between">
+              <div>
+                <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-orange-400 mb-1">Booking Summary</p>
+                <h2 className="font-grotesk font-bold text-xl text-white">Your Best Rate</h2>
+              </div>
+              <button onClick={onClose} className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-white/60 hover:text-white transition-colors" aria-label="Close">
+                <X size={15} />
+              </button>
+            </div>
+
+            <div className="p-6 flex flex-col gap-5">
+              {/* Details */}
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  ['Rental Type', data.tab],
+                  ['Delivery To', data.delivery || 'Not selected'],
+                  ['Pick-up', data.pickupDate || 'â€”'],
+                  ['Return', data.returnDate || 'â€”'],
+                  ['Car Type', data.carType || 'Any'],
+                  ['Driver Age', data.driverAge],
+                  ['Licence', data.licence],
+                ].map(([k, v]) => (
+                  <div key={k}>
+                    <p className="font-mono text-[10px] uppercase tracking-wider text-gray-400">{k}</p>
+                    <p className="font-grotesk font-semibold text-[14px] text-gray-900 mt-0.5">{v}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Estimate */}
+              {calc && (
+                <div className="bg-orange-50 border border-orange-100 rounded-xl p-4">
+                  <p className="font-mono text-[10px] uppercase tracking-wider text-orange-600 mb-3">Estimated Price ({calc.days} day{calc.days > 1 ? 's' : ''})</p>
+                  <div className="space-y-2">
+                    {[
+                      [`Est. rental (${calc.rateType} rate)`, `~${formatAED(calc.estimatedTotal)}`],
+                      ['VAT (5%)', `~${formatAED(calc.vat)}`],
+                      ['Deposit (refundable)', formatAED(calc.deposit)],
+                    ].map(([k, v]) => (
+                      <div key={k} className="flex justify-between text-[13px]">
+                        <span className="text-gray-600">{k}</span>
+                        <span className="font-grotesk font-semibold text-gray-900">{v}</span>
+                      </div>
+                    ))}
+                    <div className="border-t border-orange-200 pt-2 flex justify-between text-[14px]">
+                      <span className="font-grotesk font-bold text-gray-900">Estimated Total</span>
+                      <span className="font-grotesk font-bold text-orange-500">~{formatAED(calc.estimatedTotal + calc.vat + calc.deposit)}</span>
+                    </div>
+                  </div>
+                  {promoDiscount && (
+                    <div className="mt-3 flex items-center gap-2 text-[12px] text-emerald-600 font-medium">
+                      <CheckCircle2 size={13} /> Promo "{data.promo.toUpperCase()}" applied: {promoDiscount}
+                    </div>
+                  )}
+                  <p className="text-[11px] text-gray-400 mt-2 flex items-center gap-1">
+                    <Info size={11} /> Estimates only. Final pricing varies by vehicle. Prices exclude VAT.
+                  </p>
+                </div>
+              )}
+
+              {data.extras.length > 0 && (
+                <div>
+                  <p className="font-mono text-[10px] uppercase tracking-wider text-gray-400 mb-2">Extras Requested</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {data.extras.map(e => <span key={e} className="text-[11px] bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full">{e}</span>)}
+                  </div>
+                </div>
+              )}
+
+              {/* CTAs */}
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={onConfirm}
+                  className="flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-800 text-white font-grotesk font-bold text-[14px] py-4 rounded-xl transition-colors"
+                >
+                  Browse Matching Fleet â†’
+                </button>
+                <a
+                  href={`https://wa.me/971500999733?text=${encodeURIComponent(`Hi Falcon View! Rental: ${data.tab}, ${calc?.days || '?'} days. Delivery to: ${data.delivery || 'TBD'}. Car type: ${data.carType || 'Any'}. Driver age: ${data.driverAge}. Licence: ${data.licence}.${data.extras.length ? ' Extras: ' + data.extras.join(', ') : ''}${data.promo ? '. Promo: ' + data.promo : ''}`)}`}
+                  target="_blank" rel="noopener noreferrer"
+                  onClick={onClose}
+                  className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-grotesk font-semibold text-[14px] py-3.5 rounded-xl transition-colors shadow-lg shadow-green-500/20"
+                >
+                  <MessageCircle size={15} /> Confirm via WhatsApp
+                </a>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 
-// ─── Hero ─────────────────────────────────────────────────────────
+const BookingCard: React.FC = () => {
+  const navigate = useNavigate();
+  const [tab, setTab] = useState<RentalTab>('Daily');
+  const [extras, setExtras] = useState<string[]>([]);
+  const [delivery, setDelivery] = useState('');
+  const [returnSame, setReturnSame] = useState(true);
+  const [returnLoc, setReturnLoc] = useState('');
+  const [pickupDate, setPickupDate] = useState('');
+  const [returnDate, setReturnDate] = useState('');
+  const [carType, setCarType] = useState('');
+  const [driverAge, setDriverAge] = useState('25+');
+  const [licence, setLicence] = useState('UAE');
+  const [promo, setPromo] = useState('');
+  const [promoStatus, setPromoStatus] = useState<'idle' | 'valid' | 'invalid'>('idle');
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [modalOpen, setModalOpen] = useState(false);
+
+  const toggleExtra = (c: string) =>
+    setExtras((prev) => prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]);
+
+  const validatePromo = () => {
+    if (!promo) { setPromoStatus('idle'); return; }
+    setPromoStatus(VALID_PROMOS[promo.toUpperCase()] ? 'valid' : 'invalid');
+  };
+
+  const validate = () => {
+    const e: Record<string, string> = {};
+    if (!delivery) e.delivery = 'Please select a delivery location';
+    if (!pickupDate) e.pickupDate = 'Pick-up date required';
+    if (!returnDate) e.returnDate = 'Return date required';
+    if (pickupDate && returnDate && new Date(returnDate) <= new Date(pickupDate)) e.returnDate = 'Return must be after pick-up';
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleGetRate = () => {
+    if (!validate()) return;
+    setModalOpen(true);
+  };
+
+  const handleConfirmBrowse = () => {
+    setModalOpen(false);
+    const params = new URLSearchParams();
+    if (carType && carType !== 'Any') {
+      const catMap: Record<string, string> = { 'Economy': 'sedan', 'Sedan': 'sedan', 'Hatchback': 'hatchback', 'SUV': 'suv', '7 Seater': '7seater', 'Coupe / Muscle': 'coupe' };
+      const cat = catMap[carType];
+      if (cat) params.set('category', cat);
+    }
+    navigate(`/fleet?${params.toString()}`);
+  };
+
+  const today = new Date().toISOString().split('T')[0];
+
+  return (
+    <>
+      <SummaryModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onConfirm={handleConfirmBrowse}
+        data={{ tab, delivery, carType, pickupDate, returnDate, driverAge, licence, promo, extras }}
+      />
+      <div className="bg-white rounded-2xl shadow-[0_8px_60px_rgba(0,0,0,0.25)] overflow-hidden border border-gray-100">
+        {/* ── Tabs ── */}
+        <div className="flex items-center gap-1 p-3 pb-2">
+          <div className="inline-flex items-center gap-1 p-1 bg-gray-100/80 rounded-full border border-gray-200/60">
+            {(['Daily', 'Weekly', 'Monthly', 'With driver'] as RentalTab[]).map((t) => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                className={cn(
+                  'px-4 py-2 rounded-full text-[12px] sm:text-[13px] font-grotesk font-semibold transition-all duration-300',
+                  tab === t ? 'bg-gray-900 text-white shadow-md' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-200/50'
+                )}
+                aria-pressed={tab === t}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Fields ── */}
+        <div className="p-4 pb-3">
+          {/* Row 1: Location + Dates */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-2">
+            {/* Delivery Location */}
+            <div className={cn('bg-gray-50 border rounded-xl p-3 transition-colors', errors.delivery ? 'border-red-400' : 'border-gray-200 hover:border-orange-400 focus-within:border-orange-400')}>
+              <label className="block text-[10px] font-mono uppercase tracking-[0.16em] text-gray-400 mb-1">Delivery Location</label>
+              <select
+                className="w-full bg-transparent text-gray-900 text-[13px] font-medium border-none focus:outline-none cursor-pointer"
+                value={delivery}
+                onChange={(e) => { setDelivery(e.target.value); setErrors(prev => ({ ...prev, delivery: '' })); }}
+                aria-invalid={!!errors.delivery}
+              >
+                <option value="">Select area…</option>
+                {DELIVERY_LOCATIONS.map(l => <option key={l} value={l}>{l}</option>)}
+              </select>
+              {errors.delivery && <p className="text-red-500 text-[10px] mt-0.5 flex items-center gap-1"><AlertCircle size={9} />{errors.delivery}</p>}
+            </div>
+
+            {/* Return Location */}
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 hover:border-orange-400 transition-colors">
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-[10px] font-mono uppercase tracking-[0.16em] text-gray-400">Return Location</label>
+                <button
+                  onClick={() => setReturnSame(v => !v)}
+                  className={cn('text-[9px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded transition-colors', returnSame ? 'bg-orange-100 text-orange-600' : 'bg-gray-200 text-gray-500')}
+                  aria-pressed={returnSame}
+                >
+                  {returnSame ? 'Same' : 'Custom'}
+                </button>
+              </div>
+              {returnSame ? (
+                <p className="text-[13px] font-medium text-gray-500 italic">Same as delivery</p>
+              ) : (
+                <select
+                  className="w-full bg-transparent text-gray-900 text-[13px] font-medium border-none focus:outline-none cursor-pointer"
+                  value={returnLoc} onChange={(e) => setReturnLoc(e.target.value)}
+                >
+                  <option value="">Select area…</option>
+                  {DELIVERY_LOCATIONS.map(l => <option key={l} value={l}>{l}</option>)}
+                </select>
+              )}
+            </div>
+
+            {/* Pick-up Date */}
+            <div className={cn('bg-gray-50 border rounded-xl p-3 transition-colors', errors.pickupDate ? 'border-red-400' : 'border-gray-200 hover:border-orange-400 focus-within:border-orange-400')}>
+              <label className="block text-[10px] font-mono uppercase tracking-[0.16em] text-gray-400 mb-1">Pick-up Date</label>
+              <input
+                type="date" value={pickupDate} min={today}
+                onChange={(e) => { setPickupDate(e.target.value); setErrors(prev => ({ ...prev, pickupDate: '' })); }}
+                className="w-full bg-transparent text-gray-900 text-[13px] font-medium border-none focus:outline-none"
+                aria-label="Pick-up date" aria-invalid={!!errors.pickupDate}
+              />
+              {errors.pickupDate && <p className="text-red-500 text-[10px] mt-0.5 flex items-center gap-1"><AlertCircle size={9} />{errors.pickupDate}</p>}
+            </div>
+
+            {/* Return Date */}
+            <div className={cn('bg-gray-50 border rounded-xl p-3 transition-colors', errors.returnDate ? 'border-red-400' : 'border-gray-200 hover:border-orange-400 focus-within:border-orange-400')}>
+              <label className="block text-[10px] font-mono uppercase tracking-[0.16em] text-gray-400 mb-1">Return Date</label>
+              <input
+                type="date" value={returnDate} min={pickupDate || today}
+                onChange={(e) => { setReturnDate(e.target.value); setErrors(prev => ({ ...prev, returnDate: '' })); }}
+                className="w-full bg-transparent text-gray-900 text-[13px] font-medium border-none focus:outline-none"
+                aria-label="Return date" aria-invalid={!!errors.returnDate}
+              />
+              {errors.returnDate && <p className="text-red-500 text-[10px] mt-0.5 flex items-center gap-1"><AlertCircle size={9} />{errors.returnDate}</p>}
+            </div>
+          </div>
+
+          {/* Row 2: Car details */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-3">
+            {/* Car Type */}
+            <SelectField label="Car Type" value={carType} onChange={setCarType} options={CAR_TYPES} placeholder="Any — advise me" />
+
+            {/* Driver Age */}
+            <SelectField label="Driver Age" value={driverAge} onChange={setDriverAge} options={DRIVER_AGES} />
+
+            {/* Licence */}
+            <SelectField label="Licence" value={licence} onChange={setLicence} options={LICENCES} />
+
+            {/* Promo Code */}
+            <div className={cn('bg-gray-50 border rounded-xl p-3 transition-colors', promoStatus === 'valid' ? 'border-emerald-400 bg-emerald-50/30' : promoStatus === 'invalid' ? 'border-red-400' : 'border-gray-200 hover:border-orange-400')}>
+              <label className="block text-[10px] font-mono uppercase tracking-[0.16em] text-gray-400 mb-1">Promo Code</label>
+              <div className="flex items-center gap-1">
+                <input
+                  type="text" placeholder="Optional" value={promo}
+                  onChange={(e) => { setPromo(e.target.value); setPromoStatus('idle'); }}
+                  onBlur={validatePromo}
+                  className="flex-1 bg-transparent text-gray-900 text-[13px] font-medium border-none focus:outline-none placeholder:text-gray-300 uppercase"
+                  aria-label="Promo code"
+                />
+                {promoStatus === 'valid' && <CheckCircle2 size={14} className="text-emerald-500 shrink-0" />}
+                {promoStatus === 'invalid' && <AlertCircle size={14} className="text-red-400 shrink-0" />}
+              </div>
+              {promoStatus === 'valid' && <p className="text-emerald-600 text-[10px] mt-0.5">{VALID_PROMOS[promo.toUpperCase()]} applied!</p>}
+              {promoStatus === 'invalid' && <p className="text-red-500 text-[10px] mt-0.5">Invalid promo code</p>}
+            </div>
+          </div>
+
+          {/* Extras Chips */}
+          <div className="flex flex-wrap gap-2 mb-3">
+            {EXTRAS.map((chip) => (
+              <button
+                key={chip} type="button" onClick={() => toggleExtra(chip)}
+                className={cn(
+                  'text-[12px] font-sans border rounded-full px-3.5 py-1.5 transition-all duration-200',
+                  extras.includes(chip) ? 'bg-gray-900 text-white border-gray-900' : 'text-gray-500 border-gray-200 hover:border-gray-400 hover:text-gray-700'
+                )}
+                aria-pressed={extras.includes(chip)}
+              >
+                {chip}
+              </button>
+            ))}
+          </div>
+
+          {/* Bottom CTA */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-2 border-t border-gray-100">
+            <span className="flex items-center gap-2 text-[12px] text-gray-400">
+              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse shrink-0" />
+              Instant quote · No card required · WhatsApp confirmation
+            </span>
+            <motion.button
+              whileHover={{ scale: 1.03, y: -1 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={handleGetRate}
+              className="bg-gray-900 hover:bg-gray-800 text-white font-grotesk font-semibold text-[14px] px-7 py-3 rounded-full transition-colors whitespace-nowrap"
+            >
+              Get my best rate →
+            </motion.button>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+// â”€â”€â”€ Hero â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const Hero: React.FC = () => {
   const heroRef = useRef<HTMLElement>(null);
   const { scrollY } = useScroll();
@@ -295,7 +516,7 @@ const Hero: React.FC = () => {
       ref={heroRef}
       className="relative overflow-hidden"
       style={{ background: '#0D0D0D' }}
-      aria-label="Falcon View — Drive Dubai, delivered to you"
+      aria-label="Falcon View â€” Drive Dubai, delivered to you"
     >
       <div className="relative w-full">
         {/* Background Image & Overlay */}
@@ -317,7 +538,7 @@ const Hero: React.FC = () => {
           <div style={{ background: 'radial-gradient(ellipse at 20% 85%, rgba(255,107,0,0.06) 0%, transparent 50%)' }} className="absolute inset-0" />
         </div>
 
-        {/* ── Top section: Headline + Logo card ── */}
+        {/* â”€â”€ Top section: Headline + Logo card â”€â”€ */}
         <motion.div
           style={{ y: textY }}
           className="relative z-10 section-container pt-32 pb-12 flex flex-col lg:flex-row items-center gap-12"
@@ -333,7 +554,7 @@ const Hero: React.FC = () => {
           >
             <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
             <span className="font-sans text-[13px] text-white/60 border border-white/10 bg-white/5 px-4 py-1.5 rounded-full">
-              Available today · Free delivery across Dubai
+              Available today Â· Free delivery across Dubai
             </span>
           </motion.div>
 
@@ -369,7 +590,7 @@ const Hero: React.FC = () => {
             className="text-white/55 text-[16px] leading-relaxed max-w-lg"
             initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease: ease.elegant, delay: 0.65 }}>
-            Sedans, SUVs and 7-seaters on daily, weekly or monthly plans. Pick your car, drop a pin — we bring the keys anywhere in Dubai.
+            Sedans, SUVs and 7-seaters on daily, weekly or monthly plans. Pick your car, drop a pin â€” we bring the keys anywhere in Dubai.
           </motion.p>
 
           {/* CTAs */}
@@ -412,7 +633,7 @@ const Hero: React.FC = () => {
         </motion.div>
       </div>
 
-      {/* ── Booking Form Card — white, at bottom of dark hero ── */}
+      {/* â”€â”€ Booking Form Card â€” white, at bottom of dark hero â”€â”€ */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}

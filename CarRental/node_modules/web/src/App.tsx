@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import Lenis from 'lenis';
 import gsap from 'gsap';
@@ -6,6 +6,15 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Home from './pages/Home';
 
 gsap.registerPlugin(ScrollTrigger);
+
+const FleetPage = lazy(() => import('./pages/Fleet'));
+const VehicleDetailPage = lazy(() => import('./pages/VehicleDetail'));
+
+const PageLoader = () => (
+  <div className="fixed inset-0 bg-[#0D0D0D] flex items-center justify-center z-50">
+    <div className="w-12 h-12 rounded-full border-2 border-orange-500/30 border-t-orange-500 animate-spin" />
+  </div>
+);
 
 function App() {
   useEffect(() => {
@@ -34,9 +43,13 @@ function App() {
   }, []);
 
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-    </Routes>
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/fleet" element={<FleetPage />} />
+        <Route path="/vehicles/:slug" element={<VehicleDetailPage />} />
+      </Routes>
+    </Suspense>
   );
 }
 

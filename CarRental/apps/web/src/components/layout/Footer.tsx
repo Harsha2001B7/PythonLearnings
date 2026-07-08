@@ -1,20 +1,15 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, MapPin, Phone, Mail, Globe, MessageCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRight, MapPin, Phone, Mail, Globe, MessageCircle, ExternalLink } from 'lucide-react';
 import { useToastStore } from '../../store';
 import { falconLogo } from './Navbar';
-
-const FOOTER_LINKS = {
-  Fleet: ['Sedans', 'Hatchbacks', 'Compact SUVs', '7-Seaters', 'Muscle Cars'],
-  Services: ['Daily Rental', 'Weekly Rental', 'Monthly Rental', 'With Driver', 'Airport Pick-up'],
-  Company: ['About Falcon View', 'Careers', 'Press & Media', 'Partner with Us', 'Oman Border Pass'],
-  Support: ['WhatsApp Us', 'Booking FAQ', 'Insurance Info', 'Contact', 'T&Cs'],
-};
 
 const Footer: React.FC = () => {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const { addToast } = useToastStore();
+  const navigate = useNavigate();
 
   const handleNewsletter = (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,6 +21,41 @@ const Footer: React.FC = () => {
 
   const handleWhatsApp = () => {
     window.open('https://wa.me/971500999733?text=Hi%20Falcon%20View%2C%20I%20have%20a%20question', '_blank');
+  };
+
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const FOOTER_LINKS = {
+    Fleet: [
+      { label: 'Sedans', action: () => navigate('/fleet?category=sedan') },
+      { label: 'Hatchbacks', action: () => navigate('/fleet?category=hatchback') },
+      { label: 'Compact SUVs', action: () => navigate('/fleet?category=suv') },
+      { label: '7-Seaters', action: () => navigate('/fleet?category=7seater') },
+      { label: 'Muscle Cars', action: () => navigate('/fleet?category=coupe') },
+    ],
+    Services: [
+      { label: 'Daily Rental', action: () => navigate('/fleet') },
+      { label: 'Weekly Rental', action: () => navigate('/fleet') },
+      { label: 'Monthly Rental', action: () => navigate('/fleet') },
+      { label: 'Airport Pick-up', action: () => handleWhatsApp() },
+      { label: 'Free Delivery', action: () => scrollTo('how-it-works') },
+    ],
+    Company: [
+      { label: 'About Falcon View', action: () => scrollTo('why') },
+      { label: 'Oman Border Pass', action: () => handleWhatsApp() },
+      { label: 'Partner with Us', action: () => window.open('mailto:sales@falconviewcarrentals.com', '_blank') },
+      { label: 'Press & Media', action: () => window.open('mailto:sales@falconviewcarrentals.com', '_blank') },
+    ],
+    Support: [
+      { label: 'WhatsApp Us', action: () => handleWhatsApp() },
+      { label: 'Booking FAQ', action: () => scrollTo('faq') },
+      { label: 'Insurance Info', action: () => scrollTo('faq') },
+      { label: 'Contact', action: () => scrollTo('contact') },
+      { label: 'T&Cs', action: () => handleWhatsApp() },
+    ],
   };
 
   return (
@@ -68,13 +98,9 @@ const Footer: React.FC = () => {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-12 mb-20">
           {/* Brand */}
           <div className="col-span-2 md:col-span-3 lg:col-span-1">
-            <a href="#top" className="flex items-center gap-2 mb-6">
-              <img
-                src={falconLogo}
-                alt="Falcon View Car Rentals"
-                className="h-16 w-auto object-contain rounded-lg"
-              />
-            </a>
+            <button onClick={() => navigate('/')} className="flex items-center gap-2 mb-6">
+              <img src={falconLogo} alt="Falcon View Car Rentals" className="h-16 w-auto object-contain rounded-lg" />
+            </button>
             <p className="text-text-secondary text-body-sm leading-relaxed mb-3">
               Falcon View Car Rentals L.L.C
             </p>
@@ -98,16 +124,16 @@ const Footer: React.FC = () => {
                 WhatsApp
               </motion.button>
               <a
-                href="https://instagram.com"
+                href="https://instagram.com/falconviewcarrentals"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
                 className="w-10 h-10 rounded-lg border border-subtle flex items-center justify-center text-text-subtle hover:text-accent-orange hover:border-accent-orange/40 transition-all"
               >
-                <Globe size={16} />
+                <ExternalLink size={16} />
               </a>
               <a
-                href="https://wa.me/971500999733"
+                href="https://www.falconviewcarrentals.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Website"
@@ -124,14 +150,13 @@ const Footer: React.FC = () => {
               <h4 className="font-mono text-label uppercase text-text-subtle mb-6">{heading}</h4>
               <ul className="flex flex-col gap-4">
                 {links.map((link) => (
-                  <li key={link}>
-                    <a
-                      href="#"
-                      onClick={(e) => e.preventDefault()}
-                      className="text-text-secondary text-body-sm hover:text-accent-orange transition-colors font-sans"
+                  <li key={link.label}>
+                    <button
+                      onClick={link.action}
+                      className="text-text-secondary text-body-sm hover:text-accent-orange transition-colors font-sans text-left"
                     >
-                      {link}
-                    </a>
+                      {link.label}
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -143,22 +168,22 @@ const Footer: React.FC = () => {
         <div className="border-t border-subtle pt-10 flex flex-col md:flex-row justify-between gap-8 items-start md:items-center">
           <div className="flex flex-wrap gap-8">
             {[
-              { icon: MapPin, text: 'Al Karama, Dubai, PO Box 9040' },
-              { icon: Phone, text: '+971 50 099 9733' },
-              { icon: Mail,  text: 'sales@falconviewcarrentals.com' },
-              { icon: Globe, text: 'www.falconviewcarrentals.com' },
-            ].map(({ icon: Icon, text }) => (
-              <div key={text} className="flex items-center gap-2 text-text-subtle text-caption">
+              { icon: MapPin, text: 'Al Karama, Dubai, PO Box 9040', href: 'https://maps.google.com/?q=Al+Karama+Dubai' },
+              { icon: Phone, text: '+971 50 099 9733', href: 'tel:+971500999733' },
+              { icon: Mail, text: 'sales@falconviewcarrentals.com', href: 'mailto:sales@falconviewcarrentals.com' },
+              { icon: Globe, text: 'www.falconviewcarrentals.com', href: 'https://www.falconviewcarrentals.com' },
+            ].map(({ icon: Icon, text, href }) => (
+              <a key={text} href={href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-text-subtle text-caption hover:text-accent-orange transition-colors">
                 <Icon size={14} className="text-accent-orange shrink-0" />
                 <span>{text}</span>
-              </div>
+              </a>
             ))}
           </div>
 
           <div className="flex flex-wrap gap-6 text-text-subtle text-caption font-mono">
-            <a href="#" className="hover:text-text-primary transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-text-primary transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-text-primary transition-colors">Cookie Policy</a>
+            <button onClick={() => handleWhatsApp()} className="hover:text-text-primary transition-colors">Privacy Policy</button>
+            <button onClick={() => handleWhatsApp()} className="hover:text-text-primary transition-colors">Terms of Service</button>
+            <button onClick={() => handleWhatsApp()} className="hover:text-text-primary transition-colors">Cookie Policy</button>
             <span>© 2026 Falcon View Car Rentals L.L.C</span>
           </div>
         </div>

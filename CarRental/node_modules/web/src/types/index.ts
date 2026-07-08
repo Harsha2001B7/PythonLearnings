@@ -1,8 +1,5 @@
 // ─────────────────────────────────────────────────────────────────
-// VANTA — Shared TypeScript Interfaces
-// Structured as if they came from an API — swapping in real
-// endpoints later is a single-file change in src/data/*.ts.
-// All types are named exports — no default export.
+// Falcon View Car Rentals — Shared TypeScript Interfaces
 // ─────────────────────────────────────────────────────────────────
 
 export type VehicleCategory = 'coupe' | 'sedan' | 'suv' | 'ev' | 'van' | 'roadster' | 'hatchback' | '7seater';
@@ -13,37 +10,87 @@ export interface VehicleSpecs {
   engine?: string;
   power?: string;
   torque?: string;
-  range?: string;         // EV range in km
-  zeroToSixty?: string;   // 0–60 mph in seconds
+  range?: string;
+  zeroToSixty?: string;
   topSpeed?: string;
   seats: number;
+  doors?: number;
+  luggage?: number; // litres
   transmission: TransmissionType;
   fuel: FuelType;
   year?: number;
-  doors?: number;
+}
+
+export interface VehiclePricing {
+  daily: number;        // AED — 1-6 days
+  weekly: number;       // AED — 7-29 days
+  monthly: number;      // AED — 30+ days
+  excessPerKm: number;  // AED per km over limit
+  kmsDaily: number;     // km allowed per day rental
+  kmsWeekly: number;    // km allowed per week rental
+  kmsMonthly: number;   // km allowed per month rental
+  deposit?: number;     // AED refundable deposit
+  salikSurcharge: number; // AED per toll
+  vatRate: number;      // percentage e.g. 5
+  deliveryFee?: number; // AED per delivery, 0 = free
 }
 
 export interface VehicleImages {
-  exterior: string[];   // Array of image URLs (CDN)
+  exterior: string[];
   interior: string[];
-  thumbnail: string;    // Hero card image
+  thumbnail: string;
+}
+
+export interface VehicleColor {
+  name: string;
+  hex: string;
+}
+
+export interface RentalInclude {
+  icon: string;
+  label: string;
+}
+
+export interface VehicleFAQ {
+  question: string;
+  answer: string;
 }
 
 export interface Vehicle {
   id: number;
   slug: string;
   name: string;
+  brand: string;
+  model: string;
   tagline: string;
+  description: string;
   category: VehicleCategory;
-  pricePerDay: number;    // in AED
-  pricePerWeek?: number;
+  year?: number;
   specs: VehicleSpecs;
+  pricing: VehiclePricing;
   images: VehicleImages;
   colors: VehicleColor[];
-  features: string[];     // short feature list for cards
+  features: string[];
+  rentalIncludes: string[];
+  faqs?: VehicleFAQ[];
   featured: boolean;
+  isNewArrival?: boolean;
+  isPopular?: boolean;
   available: boolean;
-  badge?: string;         // e.g. "New Arrival", "Most Popular", "Editor's Pick"
+  badge?: string;
+  rating: number;
+  reviewCount: number;
+  minDriverAge: number;
+  licenceRequired: string[];
+  deliveryAvailable: boolean;
+  relatedVehicles?: string[]; // slugs
+  seoTitle: string;
+  seoDescription: string;
+  keywords: string[];
+
+  // Computed convenience fields (pricePerDay === pricing.daily)
+  pricePerDay: number;
+  pricePerWeek: number;
 
   // Legacy flat fields — kept so existing components don't break
   /** @deprecated use category */ cat: VehicleCategory;
@@ -53,11 +100,6 @@ export interface Vehicle {
   /** @deprecated use pricePerDay */ price: number;
   /** @deprecated use images.thumbnail */ img: string;
   /** @deprecated use features */ specs_legacy: string[];
-}
-
-export interface VehicleColor {
-  name: string;
-  hex: string;
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -73,10 +115,10 @@ export interface MembershipTier {
   id: number;
   name: MembershipTierName;
   tagline: string;
-  pricePerMonth: number;     // AED — 0 for free tiers
+  pricePerMonth: number;
   pricePerYear?: number;
   features: MembershipFeature[];
-  highlighted: boolean;      // "featured" card
+  highlighted: boolean;
   badge?: string;
   ctaLabel: string;
   accentColor?: string;
@@ -87,13 +129,13 @@ export interface MembershipTier {
 export interface Testimonial {
   id: number;
   authorName: string;
-  authorInitials: string;   // 1-2 chars for initials avatar
-  avatarColor: string;      // hex — unique per author
+  authorInitials: string;
+  avatarColor: string;
   role: string;
   company?: string;
-  rating: number;           // 1–5
+  rating: number;
   text: string;
-  date: string;             // ISO date string
+  date: string;
   membershipTier?: MembershipTierName;
 }
 
@@ -112,13 +154,17 @@ export interface FAQItem {
 // Booking & UI State
 // ─────────────────────────────────────────────────────────────────
 
-export interface BookingState {
-  pickup: string;
-  dropoff: string;
-  pickupDate: string;       // ISO date string
-  returnDate: string;
-  vehicleCategory: string;
-  selectedVehicleName: string | null;
+export interface BookingFormState {
+  deliveryLocation: string;
+  returnLocation: string;
+  returnLocationSame: boolean;
+  pickupDate: Date | null;
+  returnDate: Date | null;
+  carType: string;
+  driverAge: string;
+  licence: string;
+  promoCode: string;
+  extras: string[];
 }
 
 export type ChatRole = 'user' | 'assistant';
@@ -128,7 +174,7 @@ export interface ChatMessage {
   role: ChatRole;
   text: string;
   timestamp: number;
-  isTyping?: boolean;       // true = show typing indicator instead of text
+  isTyping?: boolean;
 }
 
 export interface ToastItem {
@@ -143,9 +189,20 @@ export interface FilterState {
   transmission: string;
   fuel: string;
   seats: string;
+  search: string;
+  deliveryOnly: boolean;
+  sortBy: 'price_asc' | 'price_desc' | 'name' | 'featured';
 }
 
-// ─────────────────────────────────────────────────────────────────
-// Legacy alias (keeps src/types.ts consumers working)
-// ─────────────────────────────────────────────────────────────────
+// Legacy alias
 export interface Toast extends ToastItem {}
+
+// Booking store type
+export interface BookingState {
+  pickup: string;
+  dropoff: string;
+  pickupDate: string;
+  returnDate: string;
+  vehicleCategory: string;
+  selectedVehicleName: string | null;
+}

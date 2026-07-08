@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { Heart, ArrowRight, Zap, Gauge, Users, ChevronLeft, ChevronRight } from 'lucide-react';
 import useEmblaCarousel from 'embla-carousel-react';
 import { FLEET_DATA } from '../data/fleet';
@@ -21,6 +22,7 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 const FeaturedFleet: React.FC = () => {
+  const navigate = useNavigate();
   const { wishlist, toggleWishlist, toggleCompare, compareList } = useAppStore();
   const { addToast } = useToastStore();
   const { setSelectedVehicle } = useBookingStore();
@@ -124,9 +126,10 @@ const FeaturedFleet: React.FC = () => {
                 transition={{ duration: duration.slow, ease: ease.elegant, delay: i * 0.08 }}
                 className={cn(
                   'shimmer-card w-full h-full bg-surface-primary rounded-2xl overflow-hidden flex flex-col',
-                  'focus-within:border-accent-orange cursor-grab active:cursor-grabbing'
+                  'focus-within:border-accent-orange cursor-pointer'
                 )}
                 role="listitem"
+                onClick={() => navigate(`/vehicles/${vehicle.slug}`)}
               >
             {/* Image */}
             <div className="relative h-52 overflow-hidden bg-vanta-paper-soft">
@@ -197,10 +200,10 @@ const FeaturedFleet: React.FC = () => {
                 <motion.button
                   whileHover={{ scale: 1.03, y: -1 }}
                   whileTap={{ scale: 0.97 }}
-                  onClick={() => setSelectedVehicle(vehicle.name)}
+                  onClick={(e) => { e.stopPropagation(); navigate(`/vehicles/${vehicle.slug}`); }}
                   className="btn-amber text-[12px] py-2 px-4"
                 >
-                  Book Now
+                  View &amp; Book
                 </motion.button>
               </div>
 

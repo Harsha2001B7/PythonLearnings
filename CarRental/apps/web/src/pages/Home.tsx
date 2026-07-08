@@ -242,14 +242,20 @@ const FloatingCompareBtn: React.FC = () => {
 
 // ── Home Page ─────────────────────────────────────────────────────
 const Home: React.FC = () => {
-  const [preloaderDone, setPreloaderDone] = useState(false);
+  const [preloaderDone, setPreloaderDone] = useState(() => {
+    return sessionStorage.getItem('falcon_preloader_done') === 'true';
+  });
   
   useGSAPReveal();
 
   useEffect(() => {
-    const t = setTimeout(() => setPreloaderDone(true), 1800);
+    if (preloaderDone) return;
+    const t = setTimeout(() => {
+      setPreloaderDone(true);
+      sessionStorage.setItem('falcon_preloader_done', 'true');
+    }, 1800);
     return () => clearTimeout(t);
-  }, []);
+  }, [preloaderDone]);
 
   return (
     <>
