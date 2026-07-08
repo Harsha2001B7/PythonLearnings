@@ -19,13 +19,20 @@ const transformVehicle = (v: any): Vehicle => ({
     vatRate: v.pricing.vat_rate,
     deliveryFee: v.pricing.delivery_fee,
   } : null,
-  images: {
-    thumbnail: v.images?.find((img: any) => img.image_type === 'thumbnail')?.image_url 
-      ? `http://localhost:8000${v.images.find((img: any) => img.image_type === 'thumbnail').image_url}`
-      : '',
-    exterior: v.images?.filter((img: any) => img.image_type === 'exterior').map((img: any) => `http://localhost:8000${img.image_url}`) || [],
-    interior: v.images?.filter((img: any) => img.image_type === 'interior').map((img: any) => `http://localhost:8000${img.image_url}`) || [],
-  },
+  images: (() => {
+    const getFullUrl = (url: string) => {
+      if (!url) return '';
+      if (url.startsWith('http://') || url.startsWith('https://')) return url;
+      return `http://localhost:8000${url}`;
+    };
+    const explicitThumbnail = v.images?.find((img: any) => img.image_type === 'thumbnail')?.image_url;
+    const fallbackImage = explicitThumbnail || v.images?.[0]?.image_url || '';
+    return {
+      thumbnail: getFullUrl(fallbackImage),
+      exterior: v.images?.filter((img: any) => img.image_type === 'exterior').map((img: any) => getFullUrl(img.image_url)) || [],
+      interior: v.images?.filter((img: any) => img.image_type === 'interior').map((img: any) => getFullUrl(img.image_url)) || [],
+    };
+  })(),
   specs: {
     ...v.specifications,
     zeroToSixty: v.specifications?.zero_to_sixty,

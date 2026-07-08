@@ -107,12 +107,13 @@ class VehicleBase(BaseModel):
     seo_description: Optional[str] = None
 
 class VehicleCreate(VehicleBase):
-    pass
+    pricing: Optional[VehiclePricingBase] = None
+    specifications: Optional[VehicleSpecificationBase] = None
 
 class Vehicle(VehicleBase, ORMModel):
     id: int
-    brand_rel: Brand
-    category_rel: Category
+    brand_rel: Optional[Brand] = None
+    category_rel: Optional[Category] = None
     images: List[VehicleImage] = []
     pricing: Optional[VehiclePricing] = None
     specifications: Optional[VehicleSpecification] = None
@@ -120,6 +121,7 @@ class Vehicle(VehicleBase, ORMModel):
     colors: List[VehicleColor] = []
 
 class FAQBase(BaseModel):
+    category: Optional[str] = None
     question: str
     answer: str
     vehicle_id: Optional[int] = None
@@ -242,4 +244,22 @@ class ActivityLogBase(BaseModel):
 class ActivityLog(ActivityLogBase, ORMModel):
     id: int
     user_id: Optional[int] = None
+    created_at: datetime
+
+class BookingCreate(BaseModel):
+    vehicle_id: int
+    start_date: datetime
+    end_date: datetime
+    total_price: float
+    duration_type: Optional[str] = 'daily'  # daily | weekly | monthly
+    notes: Optional[str] = None
+
+class BookingResponse(ORMModel):
+    id: int
+    vehicle_id: int
+    user_id: Optional[int] = None
+    start_date: datetime
+    end_date: datetime
+    total_price: float
+    status: str
     created_at: datetime

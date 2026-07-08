@@ -9,14 +9,13 @@ import FeaturedFleet from '../sections/FeaturedFleet';
 import FleetExplorer from '../sections/FleetExplorer';
 import WhyVanta from '../sections/WhyVanta';
 import BookingProcess from '../sections/BookingProcess';
-import MembershipSection from '../sections/MembershipSection';
 import Testimonials from '../sections/Testimonials';
 import CorporateSection from '../sections/CorporateSection';
 import AppTeaser from '../sections/AppTeaser';
 import FaqSection from '../sections/FaqSection';
 import { useBookingStore, useAppStore, useToastStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, BarChart2, MessageCircle } from 'lucide-react';
+import { X, BarChart2, MessageCircle, Plus } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { vehicleService } from '../services/api/vehicles';
 import { formatAED } from '../lib/formatters';
@@ -133,7 +132,7 @@ const BookingModal: React.FC = () => {
 
 // ── Compare Drawer ────────────────────────────────────────────────
 const CompareDrawer: React.FC = () => {
-  const { compareList, isCompareOpen, setCompareOpen, clearCompare } = useAppStore();
+  const { compareList, isCompareOpen, setCompareOpen, clearCompare, toggleCompare } = useAppStore();
   const { data: fleetData = [] } = useQuery({
     queryKey: ['vehicles', 'all'],
     queryFn: () => vehicleService.getVehicles(),
@@ -161,7 +160,7 @@ const CompareDrawer: React.FC = () => {
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
                 <BarChart2 size={18} className="text-orange-500" />
-                <h2 className="font-grotesk font-bold text-xl text-gray-900">Comparing {vehicles.length} vehicles</h2>
+                <h2 className="font-grotesk font-bold text-xl text-gray-900">Comparing {vehicles.length} of 3 vehicles</h2>
               </div>
               <div className="flex gap-2">
                 <button onClick={clearCompare} className="border border-gray-200 text-gray-600 text-sm py-2 px-4 rounded-full hover:border-orange-400 hover:text-orange-500 transition-all">Clear</button>
@@ -170,32 +169,70 @@ const CompareDrawer: React.FC = () => {
                 </button>
               </div>
             </div>
-            {vehicles.length === 0 ? (
-              <p className="text-gray-400 text-center py-8">No vehicles selected.</p>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {vehicles.map((v) => v && (
-                  <div key={v.id} className="border border-gray-100 rounded-xl p-5 bg-gray-50">
-                    <img src={v.images.thumbnail} alt={v.name} className="w-full h-32 object-cover rounded-lg mb-4" />
-                    <h3 className="font-grotesk font-bold text-gray-900 text-lg">{v.name}</h3>
-                    <p className="text-orange-500 font-semibold">{formatAED(v.pricePerDay)}/day</p>
-                    <div className="mt-3 flex flex-col gap-1.5">
-                      {[
-                        ['Seats', `${v.specs.seats}`],
-                        ['Fuel', v.specs.fuel],
-                        ['Transmission', v.specs.transmission],
-                        v.specs.power ? ['Power', v.specs.power] : null,
-                      ].filter((x): x is [string, string] => x !== null).map(([k, val]) => (
-                        <div key={k} className="flex justify-between text-[12px]">
-                          <span className="text-gray-400 font-mono uppercase tracking-wider">{k}</span>
-                          <span className="text-gray-800 font-medium">{val}</span>
-                        </div>
-                      ))}
-                    </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Active Vehicles */}
+              {vehicles.map((v) => v && (
+                <div key={v.id} className="border border-gray-100 rounded-xl p-5 bg-gray-50 relative group">
+                  <button
+                    onClick={() => toggleCompare(v.id)}
+                    className="absolute top-3 right-3 w-6 h-6 rounded-full bg-white/90 border border-gray-100 shadow-sm flex items-center justify-center text-gray-400 hover:text-red-500 hover:border-red-100 transition-all z-10"
+                    title="Remove from compare"
+                  >
+                    <X size={10} />
+                  </button>
+                  <img src={v.images.thumbnail} alt={v.name} className="w-full h-32 object-cover rounded-lg mb-4" />
+                  <h3 className="font-grotesk font-bold text-gray-900 text-lg">{v.name}</h3>
+                  <p className="text-orange-500 font-semibold">{formatAED(v.pricePerDay)}/day</p>
+                  <div className="mt-3 flex flex-col gap-1.5">
+                    {[
+                      ['Seats', `${v.specs.seats}`],
+                      ['Fuel', v.specs.fuel],
+                      ['Transmission', v.specs.transmission],
+                      v.specs.power ? ['Power', v.specs.power] : null,
+                    ].filter((x): x is [string, string] => x !== null).map(([k, val]) => (
+                      <div key={k} className="flex justify-between text-[12px]">
+                        <span className="text-gray-400 font-mono uppercase tracking-wider">{k}</span>
+                        <span className="text-gray-800 font-medium">{val}</span>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
+                </div>
+              ))}
+
+              {/* Placeholders */}
+              {Array.from({ length: 3 - vehicles.length }).map((_, idx) => (
+                <div key={`empty-${idx}`} className="border border-dashed border-gray-200 hover:border-orange-500/50 rounded-xl p-5 bg-gray-50/50 hover:bg-gray-50 flex flex-col items-center justify-center min-h-[250px] transition-all relative group cursor-pointer">
+                  {/* Select Dropdown */}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center bg-white/95 rounded-xl p-4 gap-2.5 z-10">
+                    <span className="text-xs font-mono uppercase tracking-wider text-gray-500">Choose Vehicle:</span>
+                    <select 
+                      onChange={(e) => {
+                        const id = Number(e.target.value);
+                        if (id) {
+                          toggleCompare(id);
+                        }
+                      }}
+                      className="w-full bg-white border border-gray-200 rounded-lg p-2 text-xs text-gray-800 focus:outline-none focus:border-orange-500 cursor-pointer"
+                      defaultValue=""
+                    >
+                      <option value="" disabled>-- Select Vehicle --</option>
+                      {fleetData
+                        .filter((f: any) => !compareList.includes(f.id))
+                        .map((f: any) => (
+                          <option key={f.id} value={f.id}>
+                            {f.name} (AED {f.pricePerDay}/day)
+                          </option>
+                        ))
+                      }
+                    </select>
+                  </div>
+
+                  <Plus size={32} className="text-gray-300 group-hover:text-orange-500 transition-colors mb-2" />
+                  <span className="text-xs font-mono uppercase tracking-wider text-gray-400 group-hover:text-gray-600 transition-colors">Add to Compare</span>
+                </div>
+              ))}
+            </div>
           </div>
         </motion.aside>
       </motion.div>
@@ -282,7 +319,6 @@ const Home: React.FC = () => {
             <WhyVanta />
             <FleetExplorer />
             <BookingProcess />
-            <MembershipSection />
             <Testimonials />
             <CorporateSection />
             <AppTeaser />

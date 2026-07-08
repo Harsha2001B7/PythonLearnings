@@ -52,7 +52,9 @@ export const useAppStore = create<AppStore>((set) => ({
       if (state.compareList.includes(id)) {
         return { compareList: state.compareList.filter((x) => x !== id) };
       }
-      if (state.compareList.length >= 3) return state; // max 3
+      if (state.compareList.length >= 3) {
+        return { compareList: [...state.compareList.slice(1), id] };
+      }
       return { compareList: [...state.compareList, id] };
     }),
   clearCompare: () => set({ compareList: [] }),

@@ -47,3 +47,15 @@ def get_current_active_admin(current_user: User = Depends(get_current_user)) -> 
             detail="The user does not have enough privileges",
         )
     return current_user
+
+def get_optional_user(db: Session = Depends(get_db), token: str = Depends(oauth2_scheme)) -> User | None:
+    """Returns the current user or None (does not raise 401)."""
+    if not token:
+        return None
+    payload = verify_token(token)
+    if not payload:
+        return None
+    user_id = payload.get("sub")
+    if not user_id:
+        return None
+    return db.query(User).filter(User.id == int(user_id)).first()

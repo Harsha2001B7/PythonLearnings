@@ -13,7 +13,6 @@ const CATEGORIES: { value: string; label: string }[] = [
   { value: 'insurance', label: 'Insurance' },
   { value: 'delivery', label: 'Delivery' },
   { value: 'pricing', label: 'Pricing' },
-  { value: 'membership', label: 'Membership' },
 ];
 
 const FaqSection: React.FC = () => {

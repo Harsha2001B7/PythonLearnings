@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { Heart, BarChart2, ArrowRight, SlidersHorizontal, Star, Users, Fuel } from 'lucide-react';
+import { Heart, BarChart2, ArrowRight, SlidersHorizontal, Star, Users, Fuel, Search } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { vehicleService } from '../services/api/vehicles';
 import { useAppStore, useToastStore } from '../store';
@@ -42,6 +42,9 @@ const FleetExplorer: React.FC = () => {
   const [category, setCategory] = React.useState<Category>('all');
   const [maxPrice, setMaxPrice] = React.useState(600);
   const [seats, setSeats] = React.useState<SeatFilter>('all');
+  const [transmission, setTransmission] = React.useState<'all' | 'auto' | 'manual'>('all');
+  const [fuel, setFuel] = React.useState<'all' | 'petrol' | 'diesel' | 'electric'>('all');
+  const [searchQuery, setSearchQuery] = React.useState('');
   const navigate = useNavigate();
 
   const { wishlist, toggleWishlist, compareList, toggleCompare, setCompareOpen } = useAppStore();
@@ -52,13 +55,25 @@ const FleetExplorer: React.FC = () => {
     queryFn: () => vehicleService.getVehicles(),
   });
 
-  const resetFilters = () => { setCategory('all'); setMaxPrice(600); setSeats('all'); };
+  const resetFilters = () => {
+    setCategory('all');
+    setMaxPrice(600);
+    setSeats('all');
+    setTransmission('all');
+    setFuel('all');
+    setSearchQuery('');
+  };
 
   const filteredVehicles = fleetData.filter((v: any) => {
     const priceMatch = v.pricePerDay <= maxPrice;
     const catMatch = category === 'all' || v.category === category;
     const seatsMatch = seats === 'all' ? true : seats === '7+' ? v.specs.seats >= 7 : v.specs.seats === parseInt(seats);
-    return priceMatch && catMatch && seatsMatch;
+    const transMatch = transmission === 'all' || (v.specs?.transmission || '').toLowerCase() === transmission;
+    const fuelMatch = fuel === 'all' || (v.specs?.fuel || '').toLowerCase() === fuel;
+    const searchMatch = searchQuery === '' || 
+      v.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      v.brand.toLowerCase().includes(searchQuery.toLowerCase());
+    return priceMatch && catMatch && seatsMatch && transMatch && fuelMatch && searchMatch;
   });
 
   const handleWishlist = (id: number, name: string) => {
@@ -110,35 +125,85 @@ const FleetExplorer: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Category */}
-            <div className="flex flex-col gap-2">
-              <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-vanta-ink-subtle">Category</span>
-              <div className="flex flex-wrap gap-1.5">
-                {CATEGORIES.map((c) => (
-                  <Chip key={c} label={c} active={category === c} onClick={() => setCategory(c)} />
-                ))}
+            {/* Column 1: Search & Price */}
+            <div className="space-y-4">
+              <div className="flex flex-col gap-1.5">
+                <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-vanta-ink-subtle">Search Cars</span>
+                <div className="relative">
+                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-vanta-ink-subtle">
+                    <Search size={12} />
+                  </span>
+                  <input
+                    type="text"
+                    placeholder="Search brand or name..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2.5 pl-9 pr-3 text-xs text-white placeholder-vanta-ink-subtle focus:outline-none focus:border-vanta-amber transition-all"
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <div className="flex justify-between">
+                  <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-vanta-ink-subtle">Max Price</span>
+                  <span className="font-grotesk font-semibold text-[12px] text-vanta-amber">{formatAED(maxPrice)}/day</span>
+                </div>
+                <input type="range" min={65} max={600} step={5} value={maxPrice} onChange={(e) => setMaxPrice(parseInt(e.target.value))} className="w-full accent-vanta-amber" aria-label="Maximum price per day" />
+                <div className="flex justify-between text-[10px] text-vanta-ink-subtle font-mono">
+                  <span>AED 65</span><span>AED 600</span>
+                </div>
               </div>
             </div>
 
-            {/* Price */}
-            <div className="flex flex-col gap-2">
-              <div className="flex justify-between">
-                <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-vanta-ink-subtle">Max Price</span>
-                <span className="font-grotesk font-semibold text-[12px] text-vanta-amber">{formatAED(maxPrice)}/day</span>
+            {/* Column 2: Category & Seats */}
+            <div className="space-y-4">
+              <div className="flex flex-col gap-2">
+                <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-vanta-ink-subtle">Category</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {CATEGORIES.map((c) => (
+                    <Chip key={c} label={c} active={category === c} onClick={() => setCategory(c)} />
+                  ))}
+                </div>
               </div>
-              <input type="range" min={65} max={600} step={5} value={maxPrice} onChange={(e) => setMaxPrice(parseInt(e.target.value))} className="w-full accent-vanta-amber" aria-label="Maximum price per day" />
-              <div className="flex justify-between text-[10px] text-vanta-ink-subtle font-mono">
-                <span>AED 65</span><span>AED 600</span>
+
+              <div className="flex flex-col gap-2">
+                <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-vanta-ink-subtle">Seats</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {SEATS.map((s) => (
+                    <Chip key={s} label={s === 'all' ? 'All' : s} active={seats === s} onClick={() => setSeats(s)} />
+                  ))}
+                </div>
               </div>
             </div>
 
-            {/* Seats */}
-            <div className="flex flex-col gap-2">
-              <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-vanta-ink-subtle">Seats</span>
-              <div className="flex flex-wrap gap-1.5">
-                {SEATS.map((s) => (
-                  <Chip key={s} label={s === 'all' ? 'All' : s} active={seats === s} onClick={() => setSeats(s)} />
-                ))}
+            {/* Column 3: Transmission & Fuel */}
+            <div className="space-y-4">
+              <div className="flex flex-col gap-2">
+                <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-vanta-ink-subtle">Transmission</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {(['all', 'auto', 'manual'] as const).map((t) => (
+                    <Chip
+                      key={t}
+                      label={t === 'all' ? 'All' : t === 'auto' ? 'Automatic' : 'Manual'}
+                      active={transmission === t}
+                      onClick={() => setTransmission(t)}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <span className="font-mono text-[9px] uppercase tracking-[0.18em] text-vanta-ink-subtle">Fuel Type</span>
+                <div className="flex flex-wrap gap-1.5">
+                  {(['all', 'petrol', 'diesel', 'electric'] as const).map((f) => (
+                    <Chip
+                      key={f}
+                      label={f === 'all' ? 'All' : f === 'petrol' ? 'Petrol' : f === 'diesel' ? 'Diesel' : 'Electric'}
+                      active={fuel === f}
+                      onClick={() => setFuel(f)}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
           </div>

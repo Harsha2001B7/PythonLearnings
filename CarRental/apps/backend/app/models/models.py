@@ -206,6 +206,7 @@ class VehicleColor(Base):
 class FAQ(Base):
     __tablename__ = "faqs"
     id = Column(Integer, primary_key=True, index=True)
+    category = Column(String, nullable=True)
     question = Column(String, nullable=False)
     answer = Column(Text, nullable=False)
     vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=True) # If null, it's a general FAQ

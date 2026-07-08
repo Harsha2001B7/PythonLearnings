@@ -11,6 +11,7 @@ import { vehicleService } from '../services/api/vehicles';
 import { formatAED } from '../lib/formatters';
 import { cn } from '../lib/cn';
 import { falconLogo } from '../components/layout/Navbar';
+import api from '../services/api/axios';
 
 // ─── Helpers ──────────────────────────────────────────────────────
 const CATEGORY_LABEL: Record<string, string> = {
@@ -84,33 +85,81 @@ const RelatedCard: React.FC<{ slug: string, fleetData: any[] }> = ({ slug, fleet
 
 // ─── Sticky Booking Card ──────────────────────────────────────────
 const StickyBookingCard: React.FC<{ vehicle: any }> = ({ vehicle }) => {
+  const msPerDay = 86400000;
+  const toDateStr = (ms: number) => new Date(ms).toISOString().split('T')[0];
+
+  const getDurationDays = (d: 'daily' | 'weekly' | 'monthly') =>
+    d === 'daily' ? 1 : d === 'weekly' ? 7 : 30;
+
+  const today = toDateStr(Date.now());
+
   const [duration, setDuration] = useState<'daily' | 'weekly' | 'monthly'>('daily');
+  const [startDate, setStartDate] = useState(today);
+  const [endDate, setEndDate] = useState(toDateStr(Date.now() + getDurationDays('daily') * msPerDay));
+  const [isBooking, setIsBooking] = useState(false);
+  const [booked, setBooked] = useState(false);
   const { pricing } = vehicle;
 
-  const price = duration === 'daily' ? pricing.daily : duration === 'weekly' ? pricing.weekly : pricing.monthly;
-  const unit = duration === 'daily' ? '/day' : duration === 'weekly' ? '/day (weekly)' : '/month';
+  // Auto-adjust end date whenever duration type changes
+  const handleDurationChange = (d: 'daily' | 'weekly' | 'monthly') => {
+    setDuration(d);
+    setEndDate(toDateStr(new Date(startDate).getTime() + getDurationDays(d) * msPerDay));
+    setBooked(false);
+  };
 
-  const waMsg = encodeURIComponent(
-    `Hi Falcon View! I'd like to book the ${vehicle.name}. Rental type: ${duration}. Please send availability and pricing.`
-  );
+  // Auto-adjust end date whenever start date changes (keep same duration span)
+  const handleStartDateChange = (newStart: string) => {
+    setStartDate(newStart);
+    setEndDate(toDateStr(new Date(newStart).getTime() + getDurationDays(duration) * msPerDay));
+    setBooked(false);
+  };
+
+  // Compute totals
+  const diffDays = Math.max(1, Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / msPerDay));
+  const units = duration === 'daily' ? diffDays : duration === 'weekly' ? Math.ceil(diffDays / 7) : Math.ceil(diffDays / 30);
+  const ratePerUnit = (duration === 'daily' ? pricing?.daily : duration === 'weekly' ? pricing?.weekly : pricing?.monthly) || 0;
+  const totalPrice = parseFloat((ratePerUnit * units).toFixed(2));
+  const unit = duration === 'daily' ? '/day' : duration === 'weekly' ? '/wk' : '/mo';
+
+  const handleWhatsAppBook = async () => {
+    setIsBooking(true);
+    try {
+      await api.post('/bookings/', {
+        vehicle_id: vehicle.id,
+        start_date: new Date(startDate).toISOString(),
+        end_date: new Date(endDate).toISOString(),
+        total_price: totalPrice,
+        duration_type: duration,
+      });
+      setBooked(true);
+    } catch {
+      // Still open WhatsApp even if the API call fails
+    } finally {
+      setIsBooking(false);
+      const waMsg = encodeURIComponent(
+        `Hi Falcon View! I'd like to book the ${vehicle.name}.\nRental type: ${duration}.\nPickup: ${startDate}  Return: ${endDate}.\nEstimated total: AED ${totalPrice}. Please confirm availability.`
+      );
+      window.open(`https://wa.me/971500999733?text=${waMsg}`, '_blank', 'noopener,noreferrer');
+    }
+  };
 
   return (
     <div className="bg-white border border-gray-100 rounded-2xl shadow-xl p-6 sticky top-24">
       <div className="mb-4">
-        <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-gray-400 mb-1">Starting from</p>
+        <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-gray-400 mb-1">Estimated total</p>
         <div className="flex items-baseline gap-1">
-          <span className="font-grotesk font-bold text-3xl text-gray-900">{formatAED(price)}</span>
-          <span className="text-gray-400 text-[13px]">{unit}</span>
+          <span className="font-grotesk font-bold text-3xl text-gray-900">{formatAED(totalPrice)}</span>
+          <span className="text-gray-400 text-[13px]">for {units} {duration === 'daily' ? (units === 1 ? 'day' : 'days') : duration === 'weekly' ? (units === 1 ? 'week' : 'weeks') : (units === 1 ? 'month' : 'months')}</span>
         </div>
-        <p className="text-[11px] text-gray-400 mt-1">+5% VAT · Salik AED {pricing.salikSurcharge}/toll</p>
+        <p className="text-[11px] text-gray-400 mt-1">{formatAED(ratePerUnit)}{unit} · +5% VAT · Salik AED {pricing?.salikSurcharge || 0}/toll</p>
       </div>
 
       {/* Duration toggle */}
-      <div className="grid grid-cols-3 gap-1 bg-gray-50 p-1 rounded-xl mb-5">
+      <div className="grid grid-cols-3 gap-1 bg-gray-50 p-1 rounded-xl mb-4">
         {(['daily', 'weekly', 'monthly'] as const).map(d => (
           <button
             key={d}
-            onClick={() => setDuration(d)}
+            onClick={() => handleDurationChange(d)}
             className={cn('py-2 rounded-lg font-grotesk font-semibold text-[11px] capitalize transition-all',
               duration === d ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
             )}
@@ -120,23 +169,61 @@ const StickyBookingCard: React.FC<{ vehicle: any }> = ({ vehicle }) => {
         ))}
       </div>
 
+      {/* Date Pickers */}
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        <div>
+          <label className="block font-mono text-[9px] uppercase tracking-wider text-gray-400 mb-1">Pickup Date</label>
+          <input
+            type="date"
+            value={startDate}
+            min={today}
+            onChange={e => handleStartDateChange(e.target.value)}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-[13px] font-grotesk text-gray-800 focus:outline-none focus:border-orange-500 transition-colors"
+          />
+        </div>
+        <div>
+          <label className="block font-mono text-[9px] uppercase tracking-wider text-gray-400 mb-1">Return Date</label>
+          <input
+            type="date"
+            value={endDate}
+            min={startDate}
+            onChange={e => { setEndDate(e.target.value); setBooked(false); }}
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-[13px] font-grotesk text-gray-800 focus:outline-none focus:border-orange-500 transition-colors"
+          />
+        </div>
+      </div>
+
       {/* KM info */}
       <div className="bg-orange-50 border border-orange-100 rounded-xl p-3 mb-5 text-[12px] text-orange-700">
         <p className="font-semibold mb-0.5">Included kilometres</p>
-        <p>Daily: {pricing.kmsDaily} km · Weekly: {pricing.kmsWeekly} km/day · Monthly: {pricing.kmsMonthly} km</p>
-        <p className="mt-1 text-orange-600/70">Excess: AED {pricing.excessPerKm}/km</p>
+        <p>Daily: {pricing?.kmsDaily || '—'} km · Weekly: {pricing?.kmsWeekly || '—'} km/day · Monthly: {pricing?.kmsMonthly || '—'} km</p>
+        <p className="mt-1 text-orange-600/70">Excess: AED {pricing?.excessPerKm || 0}/km</p>
       </div>
 
       {/* CTAs */}
       <div className="flex flex-col gap-3">
-        <a
-          href={`https://wa.me/971500999733?text=${waMsg}`}
-          target="_blank" rel="noopener noreferrer"
-          className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 text-white font-grotesk font-bold text-[14px] py-4 rounded-xl transition-colors shadow-lg shadow-green-500/20"
+        {booked && (
+          <div className="flex items-center gap-2 bg-green-50 border border-green-100 rounded-xl px-4 py-3 text-[12px] text-green-700 font-grotesk">
+            <CheckCircle2 size={14} className="text-green-500 shrink-0" />
+            Booking recorded! Opening WhatsApp to confirm…
+          </div>
+        )}
+        <button
+          onClick={handleWhatsAppBook}
+          disabled={isBooking}
+          className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 disabled:opacity-60 text-white font-grotesk font-bold text-[14px] py-4 rounded-xl transition-colors shadow-lg shadow-green-500/20"
           aria-label="Book via WhatsApp"
         >
-          <MessageCircle size={16} /> Book via WhatsApp
-        </a>
+          {isBooking ? (
+            <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.4 0 0 5.4 0 12h4z" />
+            </svg>
+          ) : (
+            <MessageCircle size={16} />
+          )}
+          {isBooking ? 'Saving booking…' : 'Book via WhatsApp'}
+        </button>
         <a
           href="tel:+971500999733"
           className="flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-800 text-white font-grotesk font-semibold text-[14px] py-3.5 rounded-xl transition-colors"
@@ -159,11 +246,12 @@ const StickyBookingCard: React.FC<{ vehicle: any }> = ({ vehicle }) => {
       {/* Min age */}
       <div className="mt-3 flex items-center gap-2 text-[11px] text-gray-400">
         <Info size={11} className="shrink-0" />
-        Min. driver age: {vehicle.minDriverAge} years · {vehicle.licenceRequired.join(', ')} licence
+        Min. driver age: {vehicle.minDriverAge} years · {(vehicle.licenceRequired || []).join(', ')} licence
       </div>
     </div>
   );
 };
+
 
 // ─── Vehicle Detail Page ──────────────────────────────────────────
 const VehicleDetailPage: React.FC = () => {
@@ -201,9 +289,9 @@ const VehicleDetailPage: React.FC = () => {
     );
   }
 
-  const images = vehicle.images.exterior.length > 1
+  const images = (vehicle.images?.exterior?.length || 0) > 1
     ? vehicle.images.exterior
-    : [vehicle.images.thumbnail];
+    : [vehicle.images?.thumbnail || ''];
 
   const waMsg = encodeURIComponent(
     `Hi Falcon View! I'd like to get a quote for the ${vehicle.name}. Please send pricing and availability.`

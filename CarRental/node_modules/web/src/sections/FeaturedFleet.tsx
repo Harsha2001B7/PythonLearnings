@@ -213,7 +213,10 @@ const FeaturedFleet: React.FC = () => {
                 </motion.button>
               </div>
 
-                <label className="flex items-center gap-2 font-mono text-[10px] text-text-secondary cursor-pointer hover:text-text-primary transition-colors">
+                <label 
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex items-center gap-2 font-mono text-[10px] text-text-secondary cursor-pointer hover:text-text-primary transition-colors"
+                >
                   <input
                     type="checkbox"
                     checked={compareList.includes(vehicle.id)}

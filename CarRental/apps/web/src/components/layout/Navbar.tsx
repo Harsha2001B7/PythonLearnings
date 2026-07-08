@@ -68,8 +68,16 @@ const Navbar: React.FC = () => {
         >
           {/* ── Logo Only (Wings cropped) ── */}
           <motion.a
-            href="#top"
-            onClick={(e) => { e.preventDefault(); handleNavClick('#top'); }}
+            href="/"
+            onClick={(e) => {
+              e.preventDefault();
+              if (window.location.pathname === '/') {
+                document.querySelector('#top')?.scrollIntoView({ behavior: 'smooth' });
+                setActiveLink('#top');
+              } else {
+                navigate('/');
+              }
+            }}
             className="shrink-0 flex items-center justify-center"
             whileHover={{ scale: 1.08 }}
             aria-label="Falcon View home"

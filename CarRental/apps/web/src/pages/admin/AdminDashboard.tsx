@@ -69,6 +69,8 @@ const AdminDashboard: React.FC = () => {
   const [uploadingVehicleId, setUploadingVehicleId] = useState<number | null>(null);
   const [vehicleSearch, setVehicleSearch] = useState('');
   const [userSearch, setUserSearch] = useState('');
+  const [modalUploadType, setModalUploadType] = useState<'thumbnail' | 'exterior' | 'interior'>('thumbnail');
+  const [selectedFiles, setSelectedFiles] = useState<{file: File, previewUrl: string, type: 'thumbnail' | 'exterior' | 'interior'}[]>([]);
 
   // Form State
   const [vehicleForm, setVehicleForm] = useState<VehicleInput>({
@@ -78,6 +80,17 @@ const AdminDashboard: React.FC = () => {
     specifications: { engine: '1.5L', power: '100 hp', torque: '150 Nm', seats: 5, doors: 4, luggage: 350, transmission: 'auto', fuel: 'petrol', year: 2024 },
     featured: false, is_popular: false, is_new_arrival: false, available: true
   });
+
+  React.useEffect(() => {
+    if (vehicleModalOpen || uploadingVehicleId !== null) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [vehicleModalOpen, uploadingVehicleId]);
 
   // Query Stats
   const { data: stats = {} as any, isLoading: statsLoading } = useQuery({
@@ -160,25 +173,34 @@ const AdminDashboard: React.FC = () => {
 
   const saveVehicleMutation = useMutation({
     mutationFn: async () => {
+      let vehicleId = editingVehicleId;
       if (editingVehicleId) {
         const { data } = await api.put(`/vehicles/${editingVehicleId}`, vehicleForm);
-        return data;
+        vehicleId = data.id;
       } else {
         const { data } = await api.post('/vehicles/', vehicleForm);
-        return data;
+        vehicleId = data.id;
+      }
+      
+      // Upload selected files if any
+      if (selectedFiles.length > 0 && vehicleId) {
+        for (const item of selectedFiles) {
+          const formData = new FormData();
+          formData.append("file", item.file);
+          formData.append("image_type", item.type);
+          await api.post(`/vehicles/${vehicleId}/upload-image`, formData, {
+            headers: { "Content-Type": "multipart/form-data" }
+          });
+        }
       }
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-vehicles'] });
       queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
       setVehicleModalOpen(false);
       setEditingVehicleId(null);
+      setSelectedFiles([]);
       addToast(editingVehicleId ? "Vehicle updated successfully" : "Vehicle created successfully", "success");
-      
-      // If creating new vehicle, open upload state for it
-      if (!editingVehicleId && data.id) {
-        setUploadingVehicleId(data.id);
-      }
     },
     onError: (err: any) => {
       addToast(err.response?.data?.detail || "Failed to save vehicle", "error");
@@ -744,29 +766,42 @@ const AdminDashboard: React.FC = () => {
       <AnimatePresence>
         {vehicleModalOpen && (
           <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
-            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setVehicleModalOpen(false)} />
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" onClick={() => { setSelectedFiles([]); setVehicleModalOpen(false); }} />
             <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-vanta-panel border border-vanta-border w-full max-w-[800px] h-[90vh] overflow-y-auto rounded-2xl p-8 z-50 relative flex flex-col justify-between"
+              className="bg-vanta-panel border border-vanta-border w-full max-w-[800px] max-h-[85vh] rounded-2xl z-50 relative flex flex-col overflow-hidden"
             >
-              <div>
-                <h3 className="font-grotesk text-2xl font-bold text-white border-b border-vanta-border pb-3 mb-6">
+              {/* Modal Header */}
+              <div className="p-6 border-b border-vanta-border flex justify-between items-center bg-vanta-panel">
+                <h3 className="font-grotesk text-2xl font-bold text-white">
                   {editingVehicleId ? 'Update Vehicle specifications' : 'Add Vehicle to Fleet'}
                 </h3>
+                <button
+                  onClick={() => {
+                    setSelectedFiles([]);
+                    setVehicleModalOpen(false);
+                  }}
+                  className="text-vanta-ink-muted hover:text-white transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
 
+              {/* Modal Body (Scrollable) */}
+              <div data-lenis-prevent className="p-6 overflow-y-auto flex-1 space-y-6">
                 <div className="space-y-6">
                   {/* Row 1 */}
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Brand Name</label>
+                      <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Brand (Auto-assigned)</label>
                       <input
                         type="text"
                         value={vehicleForm.brand}
-                        onChange={(e) => setVehicleForm({ ...vehicleForm, brand: e.target.value })}
-                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
-                        placeholder="Aston Martin"
+                        readOnly
+                        className="w-full bg-vanta-paper-soft border border-vanta-border/50 rounded-xl py-2 px-3 text-xs text-vanta-ink-muted focus:outline-none"
+                        placeholder="Select Brand Name below"
                       />
                     </div>
                     <div>
@@ -775,7 +810,7 @@ const AdminDashboard: React.FC = () => {
                         type="text"
                         value={vehicleForm.model}
                         onChange={(e) => setVehicleForm({ ...vehicleForm, model: e.target.value })}
-                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
+                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2.5 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
                         placeholder="Vantage GT"
                       />
                     </div>
@@ -784,42 +819,60 @@ const AdminDashboard: React.FC = () => {
                       <input
                         type="text"
                         value={vehicleForm.name}
-                        onChange={(e) => setVehicleForm({ ...vehicleForm, name: e.target.value })}
-                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
+                        onChange={(e) => {
+                          const name = e.target.value;
+                          const slug = name
+                            .toLowerCase()
+                            .trim()
+                            .replace(/[^a-z0-9\s-]/g, '')
+                            .replace(/[\s_]+/g, '-')
+                            .replace(/-+/g, '-');
+                          setVehicleForm({ ...vehicleForm, name, slug });
+                        }}
+                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2.5 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
                         placeholder="Aston Martin Vantage GT"
                       />
                     </div>
                   </div>
 
                   {/* Row 2 */}
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Slug URL</label>
-                      <input
-                        type="text"
-                        value={vehicleForm.slug}
-                        onChange={(e) => setVehicleForm({ ...vehicleForm, slug: e.target.value })}
-                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
-                        placeholder="aston-martin-vantage"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Brand ID (1-13)</label>
-                      <input
-                        type="number"
+                      <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Brand Name</label>
+                      <select
                         value={vehicleForm.brand_id}
-                        onChange={(e) => setVehicleForm({ ...vehicleForm, brand_id: Number(e.target.value) })}
-                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
-                      />
+                        onChange={(e) => {
+                          const id = Number(e.target.value);
+                          setVehicleForm({
+                            ...vehicleForm,
+                            brand_id: id,
+                            brand: BRAND_NAMES[id] || ''
+                          });
+                        }}
+                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2.5 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
+                      >
+                        {Object.entries(BRAND_NAMES).map(([id, name]) => (
+                          <option key={id} value={id}>{name}</option>
+                        ))}
+                      </select>
                     </div>
                     <div>
-                      <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Category ID (1-5)</label>
-                      <input
-                        type="number"
+                      <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Category Type</label>
+                      <select
                         value={vehicleForm.category_id}
-                        onChange={(e) => setVehicleForm({ ...vehicleForm, category_id: Number(e.target.value) })}
-                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
-                      />
+                        onChange={(e) => {
+                          const id = Number(e.target.value);
+                          setVehicleForm({
+                            ...vehicleForm,
+                            category_id: id
+                          });
+                        }}
+                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2.5 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
+                      >
+                        {Object.entries(CATEGORY_NAMES).map(([id, name]) => (
+                          <option key={id} value={id}>{name}</option>
+                        ))}
+                      </select>
                     </div>
                   </div>
 
@@ -831,7 +884,7 @@ const AdminDashboard: React.FC = () => {
                         type="number"
                         value={vehicleForm.pricing.daily}
                         onChange={(e) => setVehicleForm({ ...vehicleForm, pricing: { ...vehicleForm.pricing, daily: Number(e.target.value) } })}
-                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
+                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2.5 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
                       />
                     </div>
                     <div>
@@ -840,7 +893,7 @@ const AdminDashboard: React.FC = () => {
                         type="number"
                         value={vehicleForm.pricing.weekly}
                         onChange={(e) => setVehicleForm({ ...vehicleForm, pricing: { ...vehicleForm.pricing, weekly: Number(e.target.value) } })}
-                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
+                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2.5 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
                       />
                     </div>
                     <div>
@@ -849,7 +902,7 @@ const AdminDashboard: React.FC = () => {
                         type="number"
                         value={vehicleForm.pricing.monthly}
                         onChange={(e) => setVehicleForm({ ...vehicleForm, pricing: { ...vehicleForm.pricing, monthly: Number(e.target.value) } })}
-                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
+                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2.5 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
                       />
                     </div>
                   </div>
@@ -862,7 +915,7 @@ const AdminDashboard: React.FC = () => {
                         type="text"
                         value={vehicleForm.specifications.engine}
                         onChange={(e) => setVehicleForm({ ...vehicleForm, specifications: { ...vehicleForm.specifications, engine: e.target.value } })}
-                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
+                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2.5 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
                       />
                     </div>
                     <div>
@@ -871,7 +924,7 @@ const AdminDashboard: React.FC = () => {
                         type="text"
                         value={vehicleForm.specifications.power}
                         onChange={(e) => setVehicleForm({ ...vehicleForm, specifications: { ...vehicleForm.specifications, power: e.target.value } })}
-                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
+                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2.5 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
                       />
                     </div>
                     <div>
@@ -879,7 +932,7 @@ const AdminDashboard: React.FC = () => {
                       <select
                         value={vehicleForm.specifications.transmission}
                         onChange={(e) => setVehicleForm({ ...vehicleForm, specifications: { ...vehicleForm.specifications, transmission: e.target.value } })}
-                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
+                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2.5 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
                       >
                         <option value="auto">Automatic</option>
                         <option value="manual">Manual</option>
@@ -891,7 +944,7 @@ const AdminDashboard: React.FC = () => {
                         type="number"
                         value={vehicleForm.specifications.seats}
                         onChange={(e) => setVehicleForm({ ...vehicleForm, specifications: { ...vehicleForm.specifications, seats: Number(e.target.value) } })}
-                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
+                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2.5 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
                       />
                     </div>
                   </div>
@@ -903,7 +956,7 @@ const AdminDashboard: React.FC = () => {
                       type="text"
                       value={vehicleForm.tagline}
                       onChange={(e) => setVehicleForm({ ...vehicleForm, tagline: e.target.value })}
-                      className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
+                      className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2.5 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
                     />
                   </div>
                   <div>
@@ -911,7 +964,7 @@ const AdminDashboard: React.FC = () => {
                     <textarea
                       value={vehicleForm.description}
                       onChange={(e) => setVehicleForm({ ...vehicleForm, description: e.target.value })}
-                      className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white h-24 focus:outline-none focus:border-vanta-amber"
+                      className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2.5 px-3 text-xs text-white h-24 focus:outline-none focus:border-vanta-amber"
                     />
                   </div>
 
@@ -945,13 +998,130 @@ const AdminDashboard: React.FC = () => {
                       <span className="text-xs font-mono uppercase text-vanta-ink-muted">Available lease</span>
                     </label>
                   </div>
+
+                  {/* Media / Images Section */}
+                  <div className="border-t border-vanta-border pt-6 mt-6">
+                    <h4 className="font-grotesk font-bold text-white text-sm mb-3">Vehicle Media / Images</h4>
+                    
+                    {/* Previews of existing or selected images */}
+                    <div className="grid grid-cols-4 gap-4 mb-4">
+                      {/* DB Previews (Existing images) */}
+                      {editingVehicleId && (() => {
+                        const currentEditingCar = fleet.find(v => v.id === editingVehicleId);
+                        return [
+                          ...(currentEditingCar?.images?.thumbnail 
+                            ? [{ url: currentEditingCar.images.thumbnail, type: 'thumbnail' }] 
+                            : []),
+                          ...(currentEditingCar?.images?.exterior?.map(url => ({ url, type: 'exterior' })) || []),
+                          ...(currentEditingCar?.images?.interior?.map(url => ({ url, type: 'interior' })) || []),
+                        ].map((item: any, idx: number) => (
+                          <div key={idx} className="relative aspect-[4/3] rounded-lg overflow-hidden border border-vanta-border bg-vanta-paper group">
+                            <img src={item.url} alt={item.type} className="w-full h-full object-cover" />
+                            <span className="absolute bottom-1 left-1 bg-black/70 text-[8px] font-mono uppercase text-vanta-amber px-1.5 py-0.5 rounded border border-white/10">
+                              {item.type}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={async () => {
+                                try {
+                                  const { data } = await api.get(`/vehicles/${editingVehicleId}`);
+                                  const rawImages = data.images || [];
+                                  const match = rawImages.find((img: any) => item.url.endsWith(img.image_url));
+                                  if (match) {
+                                    await api.delete(`/vehicles/images/${match.id}`);
+                                    queryClient.invalidateQueries({ queryKey: ['admin-vehicles'] });
+                                    addToast("Image deleted", "success");
+                                  } else {
+                                    addToast("Image reference not found in database", "error");
+                                  }
+                                } catch {
+                                  addToast("Failed to delete image", "error");
+                                }
+                              }}
+                              className="absolute top-1.5 right-1.5 p-1.5 rounded-md bg-black/60 hover:bg-red-500/80 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                              title="Delete Image"
+                            >
+                              <Trash2 size={10} />
+                            </button>
+                          </div>
+                        ));
+                      })()}
+
+                      {/* Local Previews (Queued local files) */}
+                      {selectedFiles.map((item, idx) => (
+                        <div key={`local-${idx}`} className="relative aspect-[4/3] rounded-lg overflow-hidden border border-vanta-border bg-vanta-paper group">
+                          <img src={item.previewUrl} alt={item.type} className="w-full h-full object-cover" />
+                          <span className="absolute bottom-1 left-1 bg-black/70 text-[8px] font-mono uppercase text-vanta-amber px-1.5 py-0.5 rounded border border-white/10">
+                            {item.type} (new)
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedFiles(selectedFiles.filter((_, i) => i !== idx));
+                            }}
+                            className="absolute top-1.5 right-1.5 p-1.5 rounded-md bg-black/60 hover:bg-red-500/80 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="Remove Image"
+                          >
+                            <X size={10} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Image Type Selector + Upload Input Area */}
+                    <div className="flex flex-col gap-3">
+                      <div className="flex items-center gap-3">
+                        <span className="font-mono text-[9px] uppercase tracking-wider text-vanta-ink-muted">Upload Category:</span>
+                        <div className="flex gap-2">
+                          {(['thumbnail', 'exterior', 'interior'] as const).map(type => (
+                            <button
+                              key={type}
+                              type="button"
+                              onClick={() => setModalUploadType(type)}
+                              className={`px-2.5 py-1 rounded text-[9px] font-mono uppercase border transition-all ${
+                                modalUploadType === type 
+                                  ? 'bg-vanta-amber border-vanta-amber text-white' 
+                                  : 'border-vanta-border text-vanta-ink-muted hover:border-vanta-amber/40 hover:text-white'
+                              }`}
+                            >
+                              {type}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="border border-dashed border-vanta-border hover:border-vanta-amber/50 rounded-xl p-6 text-center bg-vanta-paper-soft hover:bg-vanta-paper transition-all relative">
+                        <input
+                          type="file"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const previewUrl = URL.createObjectURL(file);
+                            setSelectedFiles([
+                              ...selectedFiles,
+                              { file, previewUrl, type: modalUploadType }
+                            ]);
+                            addToast(`Image queued as ${modalUploadType}`, "info");
+                          }}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          accept="image/*"
+                        />
+                        <Upload size={20} className="text-vanta-ink-subtle mx-auto mb-1.5" />
+                        <span className="block text-xs font-mono uppercase text-white/90">Add New Image ({modalUploadType})</span>
+                        <span className="block text-[9px] text-vanta-ink-subtle mt-0.5">PNG, JPG or WEBP format</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Actions Footer */}
-              <div className="flex gap-4 border-t border-vanta-border pt-6 mt-8">
+              {/* Modal Footer */}
+              <div className="p-6 border-t border-vanta-border flex gap-4 bg-vanta-panel justify-end">
                 <button
-                  onClick={() => setVehicleModalOpen(false)}
+                  onClick={() => {
+                    setSelectedFiles([]);
+                    setVehicleModalOpen(false);
+                  }}
                   className="px-6 py-3 border border-vanta-border hover:bg-white/5 rounded-xl font-grotesk font-semibold text-xs text-vanta-ink-muted hover:text-white transition-all uppercase tracking-wider"
                 >
                   Cancel

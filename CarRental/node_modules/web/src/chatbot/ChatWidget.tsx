@@ -97,7 +97,7 @@ export const ChatWidget: React.FC = () => {
       setTimeout(() => {
         addMessage({
           role: 'assistant',
-          text: "Hello! I'm SAFRA's AI concierge 👋\n\nAsk me anything — fleet availability, pricing, insurance, delivery options, or membership tiers. I'm here to help.",
+          text: "Hello! I'm Falcon View's AI concierge 👋\n\nAsk me anything — fleet availability, pricing, insurance, or delivery options. I'm here to help.",
         });
       }, 400);
     }
@@ -206,6 +206,7 @@ export const ChatWidget: React.FC = () => {
 
             {/* Messages */}
             <div
+              data-lenis-prevent
               className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 no-scrollbar"
               style={{ minHeight: 200, maxHeight: 380 }}
               role="log"

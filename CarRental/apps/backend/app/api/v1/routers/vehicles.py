@@ -64,8 +64,7 @@ def upload_vehicle_image(
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
         
-    ext = os.path.splitext(file.filename)[1]
-    filename = f"{uuid.uuid4()}{ext}"
+    filename = file.filename
     
     upload_path = os.path.join(settings.UPLOADS_DIR, "vehicles", filename)
     

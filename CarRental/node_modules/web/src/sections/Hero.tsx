@@ -617,7 +617,7 @@ const Hero: React.FC = () => {
           {/* Stats */}
           <motion.div className="flex flex-wrap gap-10 pt-4 border-t border-white/10"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.0 }}>
-            <AnimatedStat value={18} suffix="+" label="cars ready now" />
+            <AnimatedStat value={100} suffix="+" label="cars ready now" />
             <AnimatedStat value={60} suffix=" min" label="average delivery" />
             <AnimatedStat value={24} suffix="/7" label="human support" />
             <AnimatedStat value={0} label="hidden fees" />
@@ -634,14 +634,7 @@ const Hero: React.FC = () => {
       </div>
 
       {/* â”€â”€ Booking Form Card â€” white, at bottom of dark hero â”€â”€ */}
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: ease.elegant, delay: 1.1 }}
-        className="relative z-10 section-container pb-16"
-      >
-        <BookingCard />
-      </motion.div>
+
 
       {/* Scroll indicator */}
       <motion.div
