@@ -173,3 +173,73 @@ class MembershipTierBase(BaseModel):
 class MembershipTier(MembershipTierBase, ORMModel):
     id: int
     features: List[MembershipFeature] = []
+
+class RoleBase(BaseModel):
+    name: str
+
+class Role(RoleBase, ORMModel):
+    id: int
+
+class UserBase(BaseModel):
+    email: str
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
+    country: Optional[str] = None
+
+class UserCreate(UserBase):
+    password: str
+
+class UserUpdate(BaseModel):
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
+    country: Optional[str] = None
+    profile_image: Optional[str] = None
+
+class UserPasswordUpdate(BaseModel):
+    old_password: str
+    new_password: str
+
+class UserResponse(UserBase, ORMModel):
+    id: int
+    role_id: Optional[int] = None
+    profile_image: Optional[str] = None
+    status: str
+    is_verified: bool
+    created_at: datetime
+    updated_at: datetime
+    last_login: Optional[datetime] = None
+
+class UserStatusUpdate(BaseModel):
+    status: str # active, disabled
+
+class Token(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str
+
+class TokenPayload(BaseModel):
+    sub: Optional[str] = None # user_id
+    role: Optional[str] = None # role name
+    exp: Optional[int] = None
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
+
+class PasswordResetRequest(BaseModel):
+    email: str
+
+class PasswordResetConfirm(BaseModel):
+    token: str
+    new_password: str
+
+class ActivityLogBase(BaseModel):
+    action: str
+    details: Optional[str] = None
+    ip_address: Optional[str] = None
+
+class ActivityLog(ActivityLogBase, ORMModel):
+    id: int
+    user_id: Optional[int] = None
+    created_at: datetime

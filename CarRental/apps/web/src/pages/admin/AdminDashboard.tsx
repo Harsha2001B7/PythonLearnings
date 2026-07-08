@@ -1,0 +1,1024 @@
+import React, { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useNavigate, Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  LayoutDashboard, Car, Calendar, Users, Settings, FileText, 
+  ArrowLeft, Plus, Edit2, Trash2, Power, Check, X, ShieldAlert,
+  Loader2, Sparkles, Image as ImageIcon, Search, Upload, RefreshCw
+} from 'lucide-react';
+
+import { useAuthStore } from '../../store/authStore';
+import { useToastStore } from '../../store';
+import api from '../../services/api/axios';
+import { vehicleService } from '../../services/api/vehicles';
+import { ease, duration } from '../../lib/easing';
+import { formatAED } from '../../lib/formatters';
+import Navbar from '../../components/layout/Navbar';
+
+interface VehicleInput {
+  name: string;
+  brand: string;
+  model: string;
+  slug: string;
+  year: number;
+  tagline: string;
+  description: string;
+  category_id: number;
+  brand_id: number;
+  pricing: {
+    daily: number;
+    weekly: number;
+    monthly: number;
+  };
+  specifications: {
+    engine: string;
+    power: string;
+    torque: string;
+    seats: number;
+    doors: number;
+    luggage: number;
+    transmission: string;
+    fuel: string;
+    year: number;
+  };
+  featured: boolean;
+  is_popular: boolean;
+  is_new_arrival: boolean;
+  available: boolean;
+}
+
+const CATEGORY_NAMES: Record<number, string> = {
+  1: "Coupe", 2: "Sedan", 3: "SUV", 4: "Hatchback", 5: "7-Seater"
+};
+const BRAND_NAMES: Record<number, string> = {
+  1: "Aston Martin", 2: "Bentley", 3: "Honda", 4: "Hyundai", 5: "Kaiyi",
+  6: "Kia", 7: "MG", 8: "Mazda", 9: "Mitsubishi", 10: "Nissan", 11: "Suzuki", 12: "Toyota", 13: "Dodge"
+};
+
+const AdminDashboard: React.FC = () => {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { user } = useAuthStore();
+  const { addToast } = useToastStore();
+  const [activeTab, setActiveTab] = useState<'overview' | 'vehicles' | 'bookings' | 'users' | 'activity' | 'settings'>('overview');
+  
+  // Modals & Forms State
+  const [vehicleModalOpen, setVehicleModalOpen] = useState(false);
+  const [editingVehicleId, setEditingVehicleId] = useState<number | null>(null);
+  const [uploadingVehicleId, setUploadingVehicleId] = useState<number | null>(null);
+  const [vehicleSearch, setVehicleSearch] = useState('');
+  const [userSearch, setUserSearch] = useState('');
+
+  // Form State
+  const [vehicleForm, setVehicleForm] = useState<VehicleInput>({
+    name: '', brand: '', model: '', slug: '', year: 2024, tagline: '', description: '',
+    category_id: 2, brand_id: 10,
+    pricing: { daily: 150, weekly: 1000, monthly: 3500 },
+    specifications: { engine: '1.5L', power: '100 hp', torque: '150 Nm', seats: 5, doors: 4, luggage: 350, transmission: 'auto', fuel: 'petrol', year: 2024 },
+    featured: false, is_popular: false, is_new_arrival: false, available: true
+  });
+
+  // Query Stats
+  const { data: stats = {} as any, isLoading: statsLoading } = useQuery({
+    queryKey: ['admin-stats'],
+    queryFn: async () => {
+      const { data } = await api.get('/dashboard/stats');
+      return data;
+    }
+  });
+
+  // Query Activity Logs
+  const { data: logs = [], isLoading: logsLoading } = useQuery({
+    queryKey: ['admin-logs'],
+    queryFn: async () => {
+      const { data } = await api.get('/admin/activity-logs');
+      return data;
+    },
+    enabled: activeTab === 'activity' || activeTab === 'overview',
+  });
+
+  // Query Bookings
+  const { data: bookings = [], isLoading: bookingsLoading } = useQuery({
+    queryKey: ['admin-bookings'],
+    queryFn: async () => {
+      const { data } = await api.get('/admin/bookings');
+      return data;
+    },
+    enabled: activeTab === 'bookings' || activeTab === 'overview',
+  });
+
+  // Query Users
+  const { data: users = [], isLoading: usersLoading } = useQuery({
+    queryKey: ['admin-users'],
+    queryFn: async () => {
+      const { data } = await api.get('/admin/users');
+      return data;
+    },
+    enabled: activeTab === 'users',
+  });
+
+  // Query Vehicles (all)
+  const { data: fleet = [], isLoading: fleetLoading } = useQuery({
+    queryKey: ['admin-vehicles'],
+    queryFn: () => vehicleService.getVehicles(),
+    enabled: activeTab === 'vehicles' || activeTab === 'overview',
+  });
+
+  // Filtered lists
+  const filteredVehicles = fleet.filter(v => 
+    v.name.toLowerCase().includes(vehicleSearch.toLowerCase()) || 
+    v.brand.toLowerCase().includes(vehicleSearch.toLowerCase())
+  );
+  const filteredUsers = users.filter((u: any) => 
+    u.email.toLowerCase().includes(userSearch.toLowerCase()) ||
+    (u.first_name || '').toLowerCase().includes(userSearch.toLowerCase()) ||
+    (u.last_name || '').toLowerCase().includes(userSearch.toLowerCase())
+  );
+
+  // Mutations
+  const bookingMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      await api.put(`/admin/bookings/${id}/status`, { status });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+      addToast("Booking status updated", "success");
+    }
+  });
+
+  const userStatusMutation = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      await api.put(`/admin/users/${id}/status`, { status });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+      addToast("User status updated", "success");
+    }
+  });
+
+  const saveVehicleMutation = useMutation({
+    mutationFn: async () => {
+      if (editingVehicleId) {
+        const { data } = await api.put(`/vehicles/${editingVehicleId}`, vehicleForm);
+        return data;
+      } else {
+        const { data } = await api.post('/vehicles/', vehicleForm);
+        return data;
+      }
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-vehicles'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+      setVehicleModalOpen(false);
+      setEditingVehicleId(null);
+      addToast(editingVehicleId ? "Vehicle updated successfully" : "Vehicle created successfully", "success");
+      
+      // If creating new vehicle, open upload state for it
+      if (!editingVehicleId && data.id) {
+        setUploadingVehicleId(data.id);
+      }
+    },
+    onError: (err: any) => {
+      addToast(err.response?.data?.detail || "Failed to save vehicle", "error");
+    }
+  });
+
+  const deleteVehicleMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await api.delete(`/vehicles/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-vehicles'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+      addToast("Vehicle deleted successfully", "success");
+    }
+  });
+
+  const handleEditVehicle = (car: any) => {
+    setEditingVehicleId(car.id);
+    setVehicleForm({
+      name: car.name,
+      brand: car.brand,
+      model: car.model || '',
+      slug: car.slug,
+      year: car.year || 2024,
+      tagline: car.tagline || '',
+      description: car.description || '',
+      category_id: Object.keys(CATEGORY_NAMES).find(k => CATEGORY_NAMES[Number(k)] === car.category) ? Number(Object.keys(CATEGORY_NAMES).find(k => CATEGORY_NAMES[Number(k)] === car.category)) : 2,
+      brand_id: Object.keys(BRAND_NAMES).find(k => BRAND_NAMES[Number(k)] === car.brand) ? Number(Object.keys(BRAND_NAMES).find(k => BRAND_NAMES[Number(k)] === car.brand)) : 10,
+      pricing: {
+        daily: car.pricing?.daily || 150,
+        weekly: car.pricing?.weekly || 1000,
+        monthly: car.pricing?.monthly || 3500
+      },
+      specifications: {
+        engine: car.specs?.engine || '',
+        power: car.specs?.power || '',
+        torque: car.specs?.torque || '',
+        seats: car.specs?.seats || 5,
+        doors: car.specs?.doors || 4,
+        luggage: car.specs?.luggage || 350,
+        transmission: car.specs?.transmission || 'auto',
+        fuel: car.specs?.fuel || 'petrol',
+        year: car.specs?.year || car.year || 2024
+      },
+      featured: car.featured || false,
+      is_popular: car.isPopular || false,
+      is_new_arrival: car.isNewArrival || false,
+      available: car.available || true
+    });
+    setVehicleModalOpen(true);
+  };
+
+  const handleOpenAddVehicle = () => {
+    setEditingVehicleId(null);
+    setVehicleForm({
+      name: '', brand: '', model: '', slug: '', year: 2024, tagline: '', description: '',
+      category_id: 2, brand_id: 10,
+      pricing: { daily: 150, weekly: 1000, monthly: 3500 },
+      specifications: { engine: '1.5L', power: '100 hp', torque: '150 Nm', seats: 5, doors: 4, luggage: 350, transmission: 'auto', fuel: 'petrol', year: 2024 },
+      featured: false, is_popular: false, is_new_arrival: false, available: true
+    });
+    setVehicleModalOpen(true);
+  };
+
+  // Image Upload Action
+  const handleUploadImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !uploadingVehicleId) return;
+
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("image_type", "exterior"); // default
+
+    try {
+      addToast("Uploading image...", "info");
+      await api.post(`/vehicles/${uploadingVehicleId}/upload-image`, formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+      queryClient.invalidateQueries({ queryKey: ['admin-vehicles'] });
+      addToast("Image uploaded successfully", "success");
+    } catch {
+      addToast("Failed to upload image", "error");
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-vanta-paper text-vanta-ink">
+      <Navbar />
+
+      <div className="section-container pt-36 pb-24">
+        {/* Layout header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-vanta-border pb-8 mb-12">
+          <div>
+            <Link to="/" className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-vanta-amber hover:underline mb-3">
+              <ArrowLeft size={12} /> Public Portal
+            </Link>
+            <h1 className="font-grotesk text-4xl font-extrabold text-white flex items-center gap-3">
+              Admin Portal <span className="bg-vanta-amber/10 border border-vanta-amber/30 text-vanta-amber text-xs font-mono px-3 py-1 rounded-full uppercase tracking-wider">Vault Control</span>
+            </h1>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+          {/* Dashboard Sidebar */}
+          <div className="lg:col-span-1 flex flex-row lg:flex-col overflow-x-auto lg:overflow-visible gap-1.5 border-b lg:border-b-0 border-vanta-border pb-4 lg:pb-0">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl font-grotesk font-semibold text-xs uppercase tracking-wider transition-all whitespace-nowrap ${
+                activeTab === 'overview' ? 'bg-vanta-amber text-white shadow-amber-sm' : 'text-vanta-ink-muted hover:text-white hover:bg-vanta-panel'
+              }`}
+            >
+              <LayoutDashboard size={14} /> Overview
+            </button>
+            <button
+              onClick={() => setActiveTab('vehicles')}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl font-grotesk font-semibold text-xs uppercase tracking-wider transition-all whitespace-nowrap ${
+                activeTab === 'vehicles' ? 'bg-vanta-amber text-white shadow-amber-sm' : 'text-vanta-ink-muted hover:text-white hover:bg-vanta-panel'
+              }`}
+            >
+              <Car size={14} /> Vehicles
+            </button>
+            <button
+              onClick={() => setActiveTab('bookings')}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl font-grotesk font-semibold text-xs uppercase tracking-wider transition-all whitespace-nowrap ${
+                activeTab === 'bookings' ? 'bg-vanta-amber text-white shadow-amber-sm' : 'text-vanta-ink-muted hover:text-white hover:bg-vanta-panel'
+              }`}
+            >
+              <Calendar size={14} /> Bookings
+            </button>
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl font-grotesk font-semibold text-xs uppercase tracking-wider transition-all whitespace-nowrap ${
+                activeTab === 'users' ? 'bg-vanta-amber text-white shadow-amber-sm' : 'text-vanta-ink-muted hover:text-white hover:bg-vanta-panel'
+              }`}
+            >
+              <Users size={14} /> Users
+            </button>
+            <button
+              onClick={() => setActiveTab('activity')}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl font-grotesk font-semibold text-xs uppercase tracking-wider transition-all whitespace-nowrap ${
+                activeTab === 'activity' ? 'bg-vanta-amber text-white shadow-amber-sm' : 'text-vanta-ink-muted hover:text-white hover:bg-vanta-panel'
+              }`}
+            >
+              <FileText size={14} /> Logs
+            </button>
+            <button
+              onClick={() => setActiveTab('settings')}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl font-grotesk font-semibold text-xs uppercase tracking-wider transition-all whitespace-nowrap ${
+                activeTab === 'settings' ? 'bg-vanta-amber text-white shadow-amber-sm' : 'text-vanta-ink-muted hover:text-white hover:bg-vanta-panel'
+              }`}
+            >
+              <Settings size={14} /> Settings
+            </button>
+          </div>
+
+          {/* Main Dashboard Section */}
+          <div className="lg:col-span-4 bg-vanta-panel border border-vanta-border rounded-2xl p-8 relative overflow-hidden backdrop-blur-xl min-h-[600px]">
+            
+            {/* OVERVIEW PANEL */}
+            {activeTab === 'overview' && (
+              <div className="space-y-8">
+                <h3 className="font-grotesk text-xl font-bold text-white border-b border-vanta-border pb-3 flex items-center gap-2">
+                  <LayoutDashboard size={18} className="text-vanta-amber" /> Overview Analytics
+                </h3>
+                
+                {statsLoading ? (
+                  <div className="flex items-center justify-center py-20">
+                    <Loader2 className="w-8 h-8 text-vanta-amber animate-spin" />
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="border border-vanta-border rounded-xl p-5 bg-vanta-paper-soft">
+                      <span className="text-[10px] font-mono uppercase text-vanta-ink-muted block mb-1">Total Fleet</span>
+                      <span className="font-grotesk font-extrabold text-3xl text-white">{stats.totalVehicles}</span>
+                    </div>
+                    <div className="border border-vanta-border rounded-xl p-5 bg-vanta-paper-soft">
+                      <span className="text-[10px] font-mono uppercase text-vanta-amber block mb-1">Available Fleet</span>
+                      <span className="font-grotesk font-extrabold text-3xl text-white">{stats.availableVehicles}</span>
+                    </div>
+                    <div className="border border-vanta-border rounded-xl p-5 bg-vanta-paper-soft">
+                      <span className="text-[10px] font-mono uppercase text-vanta-ink-muted block mb-1">Booked Vehicles</span>
+                      <span className="font-grotesk font-extrabold text-3xl text-white">{stats.bookedVehicles}</span>
+                    </div>
+                    <div className="border border-vanta-border rounded-xl p-5 bg-vanta-paper-soft">
+                      <span className="text-[10px] font-mono uppercase text-vanta-ink-muted block mb-1">Total Revenue</span>
+                      <span className="font-grotesk font-extrabold text-2xl text-vanta-amber">{formatAED(stats.monthlyRevenue || 0)}</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Grid for Recent Bookings & Activities */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Recent Bookings */}
+                  <div className="border border-vanta-border rounded-xl p-6 bg-vanta-paper-soft">
+                    <h4 className="font-grotesk font-bold text-white mb-4 border-b border-vanta-border pb-2 text-sm uppercase tracking-wider">Recent Lease Bookings</h4>
+                    {bookingsLoading ? (
+                      <Loader2 className="w-5 h-5 animate-spin mx-auto text-vanta-amber" />
+                    ) : bookings.length === 0 ? (
+                      <p className="text-xs text-vanta-ink-subtle font-mono uppercase text-center py-8">No bookings on lease</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {bookings.slice(0, 4).map((b: any) => (
+                          <div key={b.id} className="flex justify-between items-center bg-vanta-paper p-3 rounded-lg border border-vanta-border">
+                            <div>
+                              <p className="font-grotesk font-bold text-white text-xs">{b.vehicle?.name}</p>
+                              <p className="text-[10px] text-vanta-ink-muted font-mono">{b.user?.email}</p>
+                            </div>
+                            <span className={`text-[9px] font-mono px-2 py-0.5 rounded uppercase border ${b.status === 'confirmed' ? 'text-green-400 border-green-500/20' : 'text-amber-400 border-amber-500/20'}`}>
+                              {b.status}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Recent Activity Log */}
+                  <div className="border border-vanta-border rounded-xl p-6 bg-vanta-paper-soft">
+                    <h4 className="font-grotesk font-bold text-white mb-4 border-b border-vanta-border pb-2 text-sm uppercase tracking-wider">Vault Log History</h4>
+                    {logsLoading ? (
+                      <Loader2 className="w-5 h-5 animate-spin mx-auto text-vanta-amber" />
+                    ) : logs.length === 0 ? (
+                      <p className="text-xs text-vanta-ink-subtle font-mono uppercase text-center py-8">Vault log is empty</p>
+                    ) : (
+                      <div className="space-y-3">
+                        {logs.slice(0, 4).map((log: any) => (
+                          <div key={log.id} className="bg-vanta-paper p-3 rounded-lg border border-vanta-border text-[11px]">
+                            <p className="font-mono text-vanta-amber font-bold">{log.action}</p>
+                            <p className="text-white/80 mt-0.5">{log.details}</p>
+                            <span className="text-[9px] text-vanta-ink-subtle font-mono mt-1 block">{log.created_at.replace('T', ' ').split('.')[0]}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* VEHICLES PANEL */}
+            {activeTab === 'vehicles' && (
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-vanta-border pb-4">
+                  <h3 className="font-grotesk text-xl font-bold text-white flex items-center gap-2">
+                    <Car size={18} className="text-vanta-amber" /> Fleet Inventory
+                  </h3>
+                  <button
+                    onClick={handleOpenAddVehicle}
+                    className="bg-vanta-amber hover:bg-orange-500 text-white font-grotesk font-semibold text-xs px-5 py-3 rounded-xl transition-all shadow-amber-sm flex items-center gap-2 self-start"
+                  >
+                    <Plus size={14} /> Add Luxury Car
+                  </button>
+                </div>
+
+                {/* Search */}
+                <div className="relative max-w-md">
+                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-vanta-ink-subtle">
+                    <Search size={14} />
+                  </span>
+                  <input
+                    type="text"
+                    placeholder="Search by brand or name..."
+                    value={vehicleSearch}
+                    onChange={(e) => setVehicleSearch(e.target.value)}
+                    className="w-full bg-vanta-paper-soft border border-vanta-border rounded-xl py-2.5 pl-9 pr-4 text-xs text-white focus:outline-none focus:border-vanta-amber transition-all"
+                  />
+                </div>
+
+                {fleetLoading ? (
+                  <div className="flex items-center justify-center py-20">
+                    <Loader2 className="w-8 h-8 text-vanta-amber animate-spin" />
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse text-left text-xs text-vanta-ink-muted">
+                      <thead>
+                        <tr className="border-b border-vanta-border font-mono text-[10px] uppercase tracking-wider">
+                          <th className="py-3 px-4">Car Details</th>
+                          <th className="py-3 px-4">Category</th>
+                          <th className="py-3 px-4">Daily pricing</th>
+                          <th className="py-3 px-4">Lease State</th>
+                          <th className="py-3 px-4 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-vanta-border">
+                        {filteredVehicles.map((car) => (
+                          <tr key={car.id} className="hover:bg-white/[0.02] transition-colors">
+                            <td className="py-4 px-4 flex items-center gap-3">
+                              <img src={car.images.thumbnail} alt={car.name} className="w-12 h-9 rounded object-cover bg-vanta-paper border border-vanta-border" />
+                              <div>
+                                <p className="font-grotesk font-bold text-white">{car.name}</p>
+                                <span className="text-[10px] text-vanta-amber font-mono">{car.brand}</span>
+                              </div>
+                            </td>
+                            <td className="py-4 px-4 font-mono uppercase text-[10px]">{car.category}</td>
+                            <td className="py-4 px-4 font-mono font-semibold text-white">{formatAED(car.pricePerDay)}</td>
+                            <td className="py-4 px-4">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
+                                car.available ? 'text-green-400 bg-green-500/10 border-green-500/20' : 'text-red-400 bg-red-500/10 border-red-500/20'
+                              }`}>
+                                {car.available ? 'AVAILABLE' : 'LEASED'}
+                              </span>
+                            </td>
+                            <td className="py-4 px-4 text-right space-x-1 whitespace-nowrap">
+                              <button
+                                onClick={() => setUploadingVehicleId(car.id)}
+                                className="p-2 border border-vanta-border rounded-lg bg-vanta-paper hover:border-vanta-amber text-vanta-ink hover:text-vanta-amber transition-all"
+                                title="Upload Images"
+                              >
+                                <ImageIcon size={12} />
+                              </button>
+                              <button
+                                onClick={() => handleEditVehicle(car)}
+                                className="p-2 border border-vanta-border rounded-lg bg-vanta-paper hover:border-vanta-amber text-vanta-ink hover:text-vanta-amber transition-all"
+                                title="Edit specs"
+                              >
+                                <Edit2 size={12} />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (window.confirm("Permanently delete this vehicle?")) {
+                                    deleteVehicleMutation.mutate(car.id);
+                                  }
+                                }}
+                                className="p-2 border border-vanta-border rounded-lg bg-vanta-paper hover:border-red-500/60 text-vanta-ink hover:text-red-400 transition-all"
+                                title="Delete"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* BOOKINGS PANEL */}
+            {activeTab === 'bookings' && (
+              <div className="space-y-6">
+                <h3 className="font-grotesk text-xl font-bold text-white border-b border-vanta-border pb-4 flex items-center gap-2">
+                  <Calendar size={18} className="text-vanta-amber" /> Lease Bookings
+                </h3>
+
+                {bookingsLoading ? (
+                  <div className="flex items-center justify-center py-20">
+                    <Loader2 className="w-8 h-8 text-vanta-amber animate-spin" />
+                  </div>
+                ) : bookings.length === 0 ? (
+                  <p className="text-xs text-vanta-ink-subtle font-mono uppercase text-center py-16">No lease orders placed</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse text-left text-xs text-vanta-ink-muted">
+                      <thead>
+                        <tr className="border-b border-vanta-border font-mono text-[10px] uppercase tracking-wider">
+                          <th className="py-3 px-4">Lease ID</th>
+                          <th className="py-3 px-4">User</th>
+                          <th className="py-3 px-4">Vehicle</th>
+                          <th className="py-3 px-4">Lease Dates</th>
+                          <th className="py-3 px-4">Total Fee</th>
+                          <th className="py-3 px-4">State</th>
+                          <th className="py-3 px-4 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-vanta-border">
+                        {bookings.map((b: any) => (
+                          <tr key={b.id} className="hover:bg-white/[0.02] transition-colors">
+                            <td className="py-4 px-4 font-mono text-white">#{b.id}</td>
+                            <td className="py-4 px-4">
+                              <p className="font-semibold text-white">{b.user?.firstName} {b.user?.lastName}</p>
+                              <span className="text-[10px] text-vanta-ink-subtle font-mono">{b.user?.email}</span>
+                            </td>
+                            <td className="py-4 px-4 font-semibold text-white">{b.vehicle?.name}</td>
+                            <td className="py-4 px-4 font-mono">
+                              {b.startDate.split('T')[0]} to {b.endDate.split('T')[0]}
+                            </td>
+                            <td className="py-4 px-4 font-mono font-semibold text-white">{formatAED(b.totalPrice)}</td>
+                            <td className="py-4 px-4">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
+                                b.status === 'confirmed' ? 'text-green-400 border-green-500/20 bg-green-500/5' : 
+                                b.status === 'pending' ? 'text-amber-400 border-amber-500/20 bg-amber-500/5' :
+                                'text-red-400 border-red-500/20 bg-red-500/5'
+                              }`}>
+                                {b.status}
+                              </span>
+                            </td>
+                            <td className="py-4 px-4 text-right whitespace-nowrap space-x-1">
+                              {b.status === 'pending' && (
+                                <>
+                                  <button
+                                    onClick={() => bookingMutation.mutate({ id: b.id, status: 'confirmed' })}
+                                    className="p-2 border border-vanta-border rounded-lg bg-vanta-paper hover:border-green-500 text-green-400 transition-all"
+                                    title="Approve Lease"
+                                  >
+                                    <Check size={12} />
+                                  </button>
+                                  <button
+                                    onClick={() => bookingMutation.mutate({ id: b.id, status: 'cancelled' })}
+                                    className="p-2 border border-vanta-border rounded-lg bg-vanta-paper hover:border-red-500 text-red-400 transition-all"
+                                    title="Reject Lease"
+                                  >
+                                    <X size={12} />
+                                  </button>
+                                </>
+                              )}
+                              {b.status === 'confirmed' && (
+                                <button
+                                  onClick={() => bookingMutation.mutate({ id: b.id, status: 'completed' })}
+                                  className="px-3 py-1.5 border border-vanta-border rounded-lg bg-vanta-paper hover:border-green-500 text-white/90 text-[10px] font-mono hover:text-green-400 transition-all"
+                                >
+                                  COMPLETE LEASE
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* USERS PANEL */}
+            {activeTab === 'users' && (
+              <div className="space-y-6">
+                <h3 className="font-grotesk text-xl font-bold text-white border-b border-vanta-border pb-4 flex items-center gap-2">
+                  <Users size={18} className="text-vanta-amber" /> Vault Users
+                </h3>
+
+                {/* Search */}
+                <div className="relative max-w-md">
+                  <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-vanta-ink-subtle">
+                    <Search size={14} />
+                  </span>
+                  <input
+                    type="text"
+                    placeholder="Search users..."
+                    value={userSearch}
+                    onChange={(e) => setUserSearch(e.target.value)}
+                    className="w-full bg-vanta-paper-soft border border-vanta-border rounded-xl py-2.5 pl-9 pr-4 text-xs text-white focus:outline-none focus:border-vanta-amber transition-all"
+                  />
+                </div>
+
+                {usersLoading ? (
+                  <div className="flex items-center justify-center py-20">
+                    <Loader2 className="w-8 h-8 text-vanta-amber animate-spin" />
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse text-left text-xs text-vanta-ink-muted">
+                      <thead>
+                        <tr className="border-b border-vanta-border font-mono text-[10px] uppercase tracking-wider">
+                          <th className="py-3 px-4">User Details</th>
+                          <th className="py-3 px-4">Phone</th>
+                          <th className="py-3 px-4">Role</th>
+                          <th className="py-3 px-4">State</th>
+                          <th className="py-3 px-4 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-vanta-border">
+                        {filteredUsers.map((u: any) => (
+                          <tr key={u.id} className="hover:bg-white/[0.02] transition-colors">
+                            <td className="py-4 px-4">
+                              <p className="font-semibold text-white">{u.first_name} {u.last_name}</p>
+                              <span className="text-[10px] text-vanta-ink-subtle font-mono">{u.email}</span>
+                            </td>
+                            <td className="py-4 px-4 font-mono">{u.phone || 'N/A'}</td>
+                            <td className="py-4 px-4 font-mono text-[10px] uppercase">{u.role_id === 1 ? 'ADMIN' : 'USER'}</td>
+                            <td className="py-4 px-4">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
+                                u.status === 'active' ? 'text-green-400 bg-green-500/10 border-green-500/20' : 'text-red-400 bg-red-500/10 border-red-500/20'
+                              }`}>
+                                {u.status.toUpperCase()}
+                              </span>
+                            </td>
+                            <td className="py-4 px-4 text-right">
+                              {u.id !== user?.id && (
+                                <button
+                                  onClick={() => userStatusMutation.mutate({ id: u.id, status: u.status === 'active' ? 'disabled' : 'active' })}
+                                  className={`px-3 py-1.5 border border-vanta-border rounded-lg bg-vanta-paper text-[10px] font-mono transition-all ${
+                                    u.status === 'active' ? 'hover:border-red-500 text-red-400' : 'hover:border-green-500 text-green-400'
+                                  }`}
+                                >
+                                  {u.status === 'active' ? 'DISABLE' : 'ENABLE'}
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* LOGS PANEL */}
+            {activeTab === 'activity' && (
+              <div className="space-y-6">
+                <h3 className="font-grotesk text-xl font-bold text-white border-b border-vanta-border pb-4 flex items-center gap-2">
+                  <FileText size={18} className="text-vanta-amber" /> Vault Activity Logs
+                </h3>
+
+                {logsLoading ? (
+                  <div className="flex items-center justify-center py-20">
+                    <Loader2 className="w-8 h-8 text-vanta-amber animate-spin" />
+                  </div>
+                ) : logs.length === 0 ? (
+                  <p className="text-xs text-vanta-ink-subtle font-mono uppercase text-center py-16">Log history is empty</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse text-left text-xs text-vanta-ink-muted">
+                      <thead>
+                        <tr className="border-b border-vanta-border font-mono text-[10px] uppercase tracking-wider">
+                          <th className="py-3 px-4">Timestamp</th>
+                          <th className="py-3 px-4">Action</th>
+                          <th className="py-3 px-4">Details</th>
+                          <th className="py-3 px-4">IP Address</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-vanta-border">
+                        {logs.map((log: any) => (
+                          <tr key={log.id} className="hover:bg-white/[0.02] transition-colors">
+                            <td className="py-4 px-4 font-mono">{log.created_at.replace('T', ' ').split('.')[0]}</td>
+                            <td className="py-4 px-4 font-bold text-white">{log.action}</td>
+                            <td className="py-4 px-4">{log.details}</td>
+                            <td className="py-4 px-4 font-mono">{log.ip_address || 'N/A'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* SETTINGS PANEL */}
+            {activeTab === 'settings' && (
+              <div className="space-y-6">
+                <h3 className="font-grotesk text-xl font-bold text-white border-b border-vanta-border pb-4 flex items-center gap-2">
+                  <Settings size={18} className="text-vanta-amber" /> Vault Global Settings
+                </h3>
+
+                <div className="border border-vanta-border rounded-xl p-6 bg-vanta-paper-soft text-center max-w-md mx-auto space-y-4 my-8">
+                  <ShieldAlert size={36} className="text-vanta-amber mx-auto" />
+                  <h4 className="font-grotesk font-bold text-white">System Settings Access</h4>
+                  <p className="text-xs text-vanta-ink-muted leading-relaxed">
+                    Adjustments to FAQ collections, Testimonials, Categories, and Landing Banner configurations are linked directly to DB schemas. Use the vehicle database manager or database tools to modify collections directly.
+                  </p>
+                </div>
+              </div>
+            )}
+
+          </div>
+        </div>
+      </div>
+
+      {/* ── VEHICLE ADD/EDIT MODAL ── */}
+      <AnimatePresence>
+        {vehicleModalOpen && (
+          <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setVehicleModalOpen(false)} />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-vanta-panel border border-vanta-border w-full max-w-[800px] h-[90vh] overflow-y-auto rounded-2xl p-8 z-50 relative flex flex-col justify-between"
+            >
+              <div>
+                <h3 className="font-grotesk text-2xl font-bold text-white border-b border-vanta-border pb-3 mb-6">
+                  {editingVehicleId ? 'Update Vehicle specifications' : 'Add Vehicle to Fleet'}
+                </h3>
+
+                <div className="space-y-6">
+                  {/* Row 1 */}
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Brand Name</label>
+                      <input
+                        type="text"
+                        value={vehicleForm.brand}
+                        onChange={(e) => setVehicleForm({ ...vehicleForm, brand: e.target.value })}
+                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
+                        placeholder="Aston Martin"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Model / Class</label>
+                      <input
+                        type="text"
+                        value={vehicleForm.model}
+                        onChange={(e) => setVehicleForm({ ...vehicleForm, model: e.target.value })}
+                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
+                        placeholder="Vantage GT"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Display Name</label>
+                      <input
+                        type="text"
+                        value={vehicleForm.name}
+                        onChange={(e) => setVehicleForm({ ...vehicleForm, name: e.target.value })}
+                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
+                        placeholder="Aston Martin Vantage GT"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Row 2 */}
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Slug URL</label>
+                      <input
+                        type="text"
+                        value={vehicleForm.slug}
+                        onChange={(e) => setVehicleForm({ ...vehicleForm, slug: e.target.value })}
+                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
+                        placeholder="aston-martin-vantage"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Brand ID (1-13)</label>
+                      <input
+                        type="number"
+                        value={vehicleForm.brand_id}
+                        onChange={(e) => setVehicleForm({ ...vehicleForm, brand_id: Number(e.target.value) })}
+                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Category ID (1-5)</label>
+                      <input
+                        type="number"
+                        value={vehicleForm.category_id}
+                        onChange={(e) => setVehicleForm({ ...vehicleForm, category_id: Number(e.target.value) })}
+                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Row 3 */}
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Daily rate (AED)</label>
+                      <input
+                        type="number"
+                        value={vehicleForm.pricing.daily}
+                        onChange={(e) => setVehicleForm({ ...vehicleForm, pricing: { ...vehicleForm.pricing, daily: Number(e.target.value) } })}
+                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Weekly rate (AED)</label>
+                      <input
+                        type="number"
+                        value={vehicleForm.pricing.weekly}
+                        onChange={(e) => setVehicleForm({ ...vehicleForm, pricing: { ...vehicleForm.pricing, weekly: Number(e.target.value) } })}
+                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Monthly rate (AED)</label>
+                      <input
+                        type="number"
+                        value={vehicleForm.pricing.monthly}
+                        onChange={(e) => setVehicleForm({ ...vehicleForm, pricing: { ...vehicleForm.pricing, monthly: Number(e.target.value) } })}
+                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Specs */}
+                  <div className="grid grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Engine specs</label>
+                      <input
+                        type="text"
+                        value={vehicleForm.specifications.engine}
+                        onChange={(e) => setVehicleForm({ ...vehicleForm, specifications: { ...vehicleForm.specifications, engine: e.target.value } })}
+                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Power specs</label>
+                      <input
+                        type="text"
+                        value={vehicleForm.specifications.power}
+                        onChange={(e) => setVehicleForm({ ...vehicleForm, specifications: { ...vehicleForm.specifications, power: e.target.value } })}
+                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Transmission type</label>
+                      <select
+                        value={vehicleForm.specifications.transmission}
+                        onChange={(e) => setVehicleForm({ ...vehicleForm, specifications: { ...vehicleForm.specifications, transmission: e.target.value } })}
+                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
+                      >
+                        <option value="auto">Automatic</option>
+                        <option value="manual">Manual</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Seats count</label>
+                      <input
+                        type="number"
+                        value={vehicleForm.specifications.seats}
+                        onChange={(e) => setVehicleForm({ ...vehicleForm, specifications: { ...vehicleForm.specifications, seats: Number(e.target.value) } })}
+                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Tagline</label>
+                    <input
+                      type="text"
+                      value={vehicleForm.tagline}
+                      onChange={(e) => setVehicleForm({ ...vehicleForm, tagline: e.target.value })}
+                      className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-vanta-amber"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Description text</label>
+                    <textarea
+                      value={vehicleForm.description}
+                      onChange={(e) => setVehicleForm({ ...vehicleForm, description: e.target.value })}
+                      className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2 px-3 text-xs text-white h-24 focus:outline-none focus:border-vanta-amber"
+                    />
+                  </div>
+
+                  {/* Toggles */}
+                  <div className="flex gap-6 pt-2">
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={vehicleForm.featured}
+                        onChange={(e) => setVehicleForm({ ...vehicleForm, featured: e.target.checked })}
+                        className="h-4 w-4 bg-vanta-paper border border-vanta-border text-vanta-amber focus:ring-vanta-amber rounded"
+                      />
+                      <span className="text-xs font-mono uppercase text-vanta-ink-muted">Featured Card</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={vehicleForm.is_popular}
+                        onChange={(e) => setVehicleForm({ ...vehicleForm, is_popular: e.target.checked })}
+                        className="h-4 w-4 bg-vanta-paper border border-vanta-border text-vanta-amber focus:ring-vanta-amber rounded"
+                      />
+                      <span className="text-xs font-mono uppercase text-vanta-ink-muted">Popular Car</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={vehicleForm.available}
+                        onChange={(e) => setVehicleForm({ ...vehicleForm, available: e.target.checked })}
+                        className="h-4 w-4 bg-vanta-paper border border-vanta-border text-vanta-amber focus:ring-vanta-amber rounded"
+                      />
+                      <span className="text-xs font-mono uppercase text-vanta-ink-muted">Available lease</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions Footer */}
+              <div className="flex gap-4 border-t border-vanta-border pt-6 mt-8">
+                <button
+                  onClick={() => setVehicleModalOpen(false)}
+                  className="px-6 py-3 border border-vanta-border hover:bg-white/5 rounded-xl font-grotesk font-semibold text-xs text-vanta-ink-muted hover:text-white transition-all uppercase tracking-wider"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => saveVehicleMutation.mutate()}
+                  disabled={saveVehicleMutation.isPending}
+                  className="bg-vanta-amber hover:bg-orange-500 text-white font-grotesk font-semibold text-xs px-6 py-3 rounded-xl transition-all shadow-amber-sm flex items-center gap-2 uppercase tracking-wider"
+                >
+                  {saveVehicleMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus size={12} />}
+                  Save Specifications
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ── IMAGE UPLOAD MODAL ── */}
+      <AnimatePresence>
+        {uploadingVehicleId !== null && (
+          <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+            <div className="fixed inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setUploadingVehicleId(null)} />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="bg-vanta-panel border border-vanta-border w-full max-w-[550px] rounded-2xl p-8 z-50 relative space-y-6"
+            >
+              <div>
+                <h3 className="font-grotesk text-2xl font-bold text-white border-b border-vanta-border pb-3 mb-4">
+                  Manage Car Media
+                </h3>
+                <p className="text-xs text-vanta-ink-muted">
+                  Add high-resolution luxury exterior or interior images. These are stored on the server and updated in the SQLite index.
+                </p>
+              </div>
+
+              {/* Upload Input Area */}
+              <div className="border-2 border-dashed border-vanta-border hover:border-vanta-amber/50 rounded-xl p-8 text-center bg-vanta-paper-soft hover:bg-vanta-paper transition-all relative">
+                <input
+                  type="file"
+                  onChange={handleUploadImage}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  accept="image/*"
+                />
+                <Upload size={32} className="text-vanta-ink-subtle mx-auto mb-2" />
+                <span className="block text-xs font-mono uppercase text-white/90">Select Media file</span>
+                <span className="block text-[10px] text-vanta-ink-subtle mt-1">PNG, JPG or WEBP formats</span>
+              </div>
+
+              {/* Footer Actions */}
+              <div className="flex justify-end gap-3 border-t border-vanta-border pt-4">
+                <button
+                  onClick={() => setUploadingVehicleId(null)}
+                  className="px-6 py-2.5 bg-vanta-amber text-white font-grotesk font-semibold text-xs rounded-xl hover:bg-orange-500 transition-colors shadow-amber-sm"
+                >
+                  Done
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+    </div>
+  );
+};
+
+export default AdminDashboard;

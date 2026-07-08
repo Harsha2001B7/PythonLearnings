@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import { Menu, X, BarChart2, User } from 'lucide-react';
 import { useAppStore } from '../../store';
+import { useAuthStore } from '../../store/authStore';
 import { ease, duration } from '../../lib/easing';
 import { cn } from '../../lib/cn';
 
@@ -20,8 +21,10 @@ const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeLink, setActiveLink] = useState('');
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const navigate = useNavigate();
   const { compareList, setCompareOpen, setCmdkOpen } = useAppStore();
+  const { isAuthenticated, user, logout } = useAuthStore();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 60);
@@ -134,12 +137,72 @@ const Navbar: React.FC = () => {
               </AnimatePresence>
             </button>
 
-            <button
-              className={cn('w-10 h-10 rounded-full border flex items-center justify-center transition-all duration-300', iconColor)}
-              aria-label="Account"
-            >
-              <User size={16} />
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => {
+                  if (isAuthenticated) {
+                    setProfileOpen(!profileOpen);
+                  } else {
+                    navigate('/login');
+                  }
+                }}
+                className={cn('w-10 h-10 rounded-full border flex items-center justify-center transition-all duration-300 relative', iconColor)}
+                aria-label="Account"
+              >
+                {isAuthenticated && user?.profile_image ? (
+                  <img src={user.profile_image} alt="User profile" className="w-full h-full rounded-full object-cover" />
+                ) : (
+                  <User size={16} />
+                )}
+              </button>
+
+              {/* Account Dropdown */}
+              <AnimatePresence>
+                {isAuthenticated && profileOpen && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setProfileOpen(false)} />
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                      transition={{ duration: 0.15 }}
+                      className="absolute right-0 mt-2 w-48 bg-[#141414] border border-white/10 rounded-xl py-2 shadow-2xl z-50 text-left"
+                    >
+                      <div className="px-4 py-2 border-b border-white/5 mb-1">
+                        <p className="text-xs text-white/50 font-mono">Signed in as</p>
+                        <p className="text-sm font-semibold text-white truncate">{user?.first_name || 'User'}</p>
+                      </div>
+                      <Link
+                        to="/profile"
+                        onClick={() => setProfileOpen(false)}
+                        className="block w-full px-4 py-2 text-xs font-mono text-white/70 hover:text-white hover:bg-white/5 transition-all"
+                      >
+                        MY PROFILE
+                      </Link>
+                      {user?.role_id === 1 && (
+                        <Link
+                          to="/admin"
+                          onClick={() => setProfileOpen(false)}
+                          className="block w-full px-4 py-2 text-xs font-mono text-vanta-amber hover:text-amber-400 hover:bg-white/5 transition-all"
+                        >
+                          ADMIN PORTAL
+                        </Link>
+                      )}
+                      <button
+                        onClick={() => {
+                          setProfileOpen(false);
+                          logout();
+                          navigate('/');
+                        }}
+                        className="block w-full text-left px-4 py-2 text-xs font-mono text-red-400 hover:text-red-300 hover:bg-white/5 transition-all border-t border-white/5 mt-1"
+                      >
+                        LOGOUT
+                      </button>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
 
             <motion.button
               whileHover={{ scale: 1.02, y: -2 }}
