@@ -236,16 +236,27 @@ def login(request: Request, user_in: UserCreate, db: Session = Depends(get_db)):
 
 @router.post("/refresh", response_model=Token)
 def refresh(refresh_req: RefreshTokenRequest, db: Session = Depends(get_db)):
-    # Validate in database
     db_token = db.query(RefreshToken).filter(
-        RefreshToken.token == refresh_req.refresh_token,
-        RefreshToken.revoked_at == None
+        RefreshToken.token == refresh_req.refresh_token
     ).first()
     
-    if not db_token or db_token.expires_at < datetime.utcnow():
+    if not db_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired refresh token"
+            detail="Invalid refresh token"
+        )
+        
+    now = datetime.utcnow()
+    is_expired = db_token.expires_at < now
+    is_revoked_past_grace = (
+        db_token.revoked_at is not None 
+        and db_token.revoked_at < now - timedelta(seconds=10)
+    )
+    
+    if is_expired or is_revoked_past_grace:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Expired or revoked refresh token"
         )
     
     payload = verify_token(refresh_req.refresh_token)
@@ -263,8 +274,8 @@ def refresh(refresh_req: RefreshTokenRequest, db: Session = Depends(get_db)):
             detail="User not found or disabled"
         )
     
-    # Revoke current refresh token (rotation)
-    db_token.revoked_at = datetime.utcnow()
+    if db_token.revoked_at is None:
+        db_token.revoked_at = now
     
     # Issue new ones
     role_name = user.role_rel.name if user.role_rel else "User"

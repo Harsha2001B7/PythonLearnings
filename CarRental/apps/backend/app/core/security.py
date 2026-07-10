@@ -1,5 +1,6 @@
 import bcrypt
 import jwt
+import uuid
 from datetime import datetime, timedelta
 from typing import Any, Union
 
@@ -28,7 +29,7 @@ def create_refresh_token(subject: Union[str, Any], role: str, expires_delta: tim
         expire = datetime.utcnow() + expires_delta
     else:
         expire = datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
-    to_encode = {"exp": expire, "sub": str(subject), "role": role}
+    to_encode = {"exp": expire, "sub": str(subject), "role": role, "jti": str(uuid.uuid4())}
     encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
 

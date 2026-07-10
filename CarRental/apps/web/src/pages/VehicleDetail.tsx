@@ -119,8 +119,10 @@ const StickyBookingCard: React.FC<{ vehicle: any }> = ({ vehicle }) => {
   const diffDays = Math.max(1, Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / msPerDay));
   const units = duration === 'daily' ? diffDays : duration === 'weekly' ? Math.ceil(diffDays / 7) : Math.ceil(diffDays / 30);
   const ratePerUnit = (duration === 'daily' ? pricing?.daily : duration === 'weekly' ? pricing?.weekly : pricing?.monthly) || 0;
-  const totalPrice = parseFloat((ratePerUnit * units).toFixed(2));
-  const unit = duration === 'daily' ? '/day' : duration === 'weekly' ? '/wk' : '/mo';
+  
+  const multiplier = duration === 'monthly' ? units : diffDays;
+  const totalPrice = parseFloat((ratePerUnit * multiplier).toFixed(2));
+  const unit = duration === 'monthly' ? '/mo' : '/day';
 
   const handleWhatsAppBook = async () => {
     setIsBooking(true);
@@ -147,12 +149,16 @@ const StickyBookingCard: React.FC<{ vehicle: any }> = ({ vehicle }) => {
   return (
     <div className="bg-white border border-gray-100 rounded-2xl shadow-xl p-6 sticky top-24">
       <div className="mb-4">
-        <p className="font-mono text-[10px] uppercase tracking-[0.15em] text-gray-400 mb-1">Estimated total</p>
         <div className="flex items-baseline gap-1">
-          <span className="font-grotesk font-bold text-3xl text-gray-900">{formatAED(totalPrice)}</span>
-          <span className="text-gray-400 text-[13px]">for {units} {duration === 'daily' ? (units === 1 ? 'day' : 'days') : duration === 'weekly' ? (units === 1 ? 'week' : 'weeks') : (units === 1 ? 'month' : 'months')}</span>
+          <span className="font-grotesk font-bold text-3xl text-gray-900">{formatAED(ratePerUnit)}</span>
+          <span className="text-gray-400 text-[13px] font-medium">{unit}</span>
         </div>
-        <p className="text-[11px] text-gray-400 mt-1">{formatAED(ratePerUnit)}{unit} · +5% VAT · Salik AED {pricing?.salikSurcharge || 0}/toll</p>
+        <div className="flex items-center gap-1.5 mt-2 pt-2 border-t border-dashed border-gray-100 text-[12px]">
+          <span className="text-gray-500 font-medium">Estimated Total:</span>
+          <span className="font-bold text-orange-500">{formatAED(totalPrice)}</span>
+          <span className="text-gray-400">for {units} {duration === 'daily' ? (units === 1 ? 'day' : 'days') : duration === 'weekly' ? (units === 1 ? 'week' : 'weeks') : (units === 1 ? 'month' : 'months')}</span>
+        </div>
+        <p className="text-[10px] text-gray-400 mt-1.5">+5% VAT · Salik AED {pricing?.salikSurcharge || 0}/toll</p>
       </div>
 
       {/* Duration toggle */}

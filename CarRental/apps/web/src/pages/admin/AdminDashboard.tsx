@@ -12,8 +12,12 @@ import { useAuthStore } from '../../store/authStore';
 import { useToastStore } from '../../store';
 import api from '../../services/api/axios';
 import { vehicleService } from '../../services/api/vehicles';
+import { brandService } from '../../services/api/brands';
+import { categoryService } from '../../services/api/categories';
+import { Toggle } from '../../components/ui/Toggle';
 import { ease, duration } from '../../lib/easing';
 import { formatAED } from '../../lib/formatters';
+import { cn } from '../../lib/cn';
 import Navbar from '../../components/layout/Navbar';
 
 interface VehicleInput {
@@ -48,13 +52,6 @@ interface VehicleInput {
   available: boolean;
 }
 
-const CATEGORY_NAMES: Record<number, string> = {
-  1: "Coupe", 2: "Sedan", 3: "SUV", 4: "Hatchback", 5: "7-Seater"
-};
-const BRAND_NAMES: Record<number, string> = {
-  1: "Aston Martin", 2: "Bentley", 3: "Honda", 4: "Hyundai", 5: "Kaiyi",
-  6: "Kia", 7: "MG", 8: "Mazda", 9: "Mitsubishi", 10: "Nissan", 11: "Suzuki", 12: "Toyota", 13: "Dodge"
-};
 
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -62,11 +59,105 @@ const AdminDashboard: React.FC = () => {
   const { user } = useAuthStore();
   const { addToast } = useToastStore();
   const [activeTab, setActiveTab] = useState<'overview' | 'vehicles' | 'bookings' | 'users' | 'activity' | 'settings'>('overview');
+
+  // Dynamic Brands & Categories mapping
+  const { data: brandsList = [] } = useQuery({
+    queryKey: ['brands'],
+    queryFn: brandService.getBrands
+  });
   
+  const { data: categoriesList = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: categoryService.getCategories
+  });
+
+  const BRAND_NAMES = React.useMemo(() => {
+    const map: Record<number, string> = {};
+    brandsList.forEach((b: any) => {
+      map[b.id] = b.name;
+    });
+    return map;
+  }, [brandsList]);
+
+  const CATEGORY_NAMES = React.useMemo(() => {
+    const map: Record<number, string> = {};
+    categoriesList.forEach((c: any) => {
+      map[c.id] = c.name;
+    });
+    return map;
+  }, [categoriesList]);
+
+  // Soft-delete Status Toggle Mutation
+  const toggleStatusMutation = useMutation({
+    mutationFn: async ({ id, available }: { id: number, available: boolean }) => {
+      const { data: car } = await api.get(`/vehicles/${id}`);
+      const payload = {
+        slug: car.slug,
+        brand_id: car.brand_id,
+        category_id: car.category_id,
+        model: car.model,
+        name: car.name,
+        year: car.year,
+        tagline: car.tagline,
+        description: car.description,
+        featured: car.featured,
+        is_popular: car.is_popular,
+        is_new_arrival: car.is_new_arrival,
+        available: available,
+        badge: car.badge,
+        rating: car.rating,
+        review_count: car.review_count,
+        min_driver_age: car.min_driver_age,
+        delivery_available: car.delivery_available,
+        licence_required: car.licence_required,
+        related_vehicles: car.related_vehicles,
+        keywords: car.keywords,
+        rental_includes: car.rental_includes,
+        seo_title: car.seo_title,
+        seo_description: car.seo_description,
+        pricing: car.pricing ? {
+          daily: car.pricing.daily,
+          weekly: car.pricing.weekly,
+          monthly: car.pricing.monthly,
+          excess_per_km: car.pricing.excess_per_km || 0,
+          kms_daily: car.pricing.kms_daily || 300,
+          kms_weekly: car.pricing.kms_weekly || 200,
+          kms_monthly: car.pricing.kms_monthly || 4000,
+          deposit: car.pricing.deposit || 0,
+          salik_surcharge: car.pricing.salik_surcharge || 1,
+          vat_rate: car.pricing.vat_rate || 5,
+          delivery_fee: car.pricing.delivery_fee || 0
+        } : undefined,
+        specifications: car.specifications ? {
+          engine: car.specifications.engine,
+          power: car.specifications.power,
+          torque: car.specifications.torque,
+          seats: car.specifications.seats,
+          doors: car.specifications.doors,
+          luggage: car.specifications.luggage,
+          transmission: car.specifications.transmission,
+          fuel: car.specifications.fuel,
+          year: car.specifications.year
+        } : undefined
+      };
+      await api.put(`/vehicles/${id}`, payload);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-vehicles'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+      addToast("Vehicle status updated successfully", "success");
+    },
+    onError: () => {
+      addToast("Failed to update vehicle status", "error");
+    }
+  });
+
   // Modals & Forms State
   const [vehicleModalOpen, setVehicleModalOpen] = useState(false);
   const [editingVehicleId, setEditingVehicleId] = useState<number | null>(null);
   const [uploadingVehicleId, setUploadingVehicleId] = useState<number | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [vehicleToDeleteId, setVehicleToDeleteId] = useState<number | null>(null);
   const [vehicleSearch, setVehicleSearch] = useState('');
   const [userSearch, setUserSearch] = useState('');
   const [modalUploadType, setModalUploadType] = useState<'thumbnail' | 'exterior' | 'interior'>('thumbnail');
@@ -228,8 +319,8 @@ const AdminDashboard: React.FC = () => {
       year: car.year || 2024,
       tagline: car.tagline || '',
       description: car.description || '',
-      category_id: Object.keys(CATEGORY_NAMES).find(k => CATEGORY_NAMES[Number(k)] === car.category) ? Number(Object.keys(CATEGORY_NAMES).find(k => CATEGORY_NAMES[Number(k)] === car.category)) : 2,
-      brand_id: Object.keys(BRAND_NAMES).find(k => BRAND_NAMES[Number(k)] === car.brand) ? Number(Object.keys(BRAND_NAMES).find(k => BRAND_NAMES[Number(k)] === car.brand)) : 10,
+      category_id: car.category_id || 2,
+      brand_id: car.brand_id || 2,
       pricing: {
         daily: car.pricing?.daily || 150,
         weekly: car.pricing?.weekly || 1000,
@@ -502,17 +593,17 @@ const AdminDashboard: React.FC = () => {
                               <span className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
                                 car.available ? 'text-green-400 bg-green-500/10 border-green-500/20' : 'text-red-400 bg-red-500/10 border-red-500/20'
                               }`}>
-                                {car.available ? 'AVAILABLE' : 'LEASED'}
+                                {car.available ? 'ACTIVE' : 'INACTIVE'}
                               </span>
                             </td>
-                            <td className="py-4 px-4 text-right space-x-1 whitespace-nowrap">
-                              <button
-                                onClick={() => setUploadingVehicleId(car.id)}
-                                className="p-2 border border-vanta-border rounded-lg bg-vanta-paper hover:border-vanta-amber text-vanta-ink hover:text-vanta-amber transition-all"
-                                title="Upload Images"
-                              >
-                                <ImageIcon size={12} />
-                              </button>
+                            <td className="py-4 px-4 text-right space-x-2 whitespace-nowrap flex items-center justify-end">
+                              {/* Sliding Toggle Switch */}
+                              <Toggle
+                                isSelected={car.available}
+                                onChange={(selected) => toggleStatusMutation.mutate({ id: car.id, available: selected })}
+                                size="sm"
+                              />
+                              
                               <button
                                 onClick={() => handleEditVehicle(car)}
                                 className="p-2 border border-vanta-border rounded-lg bg-vanta-paper hover:border-vanta-amber text-vanta-ink hover:text-vanta-amber transition-all"
@@ -520,14 +611,14 @@ const AdminDashboard: React.FC = () => {
                               >
                                 <Edit2 size={12} />
                               </button>
+                              
                               <button
                                 onClick={() => {
-                                  if (window.confirm("Permanently delete this vehicle?")) {
-                                    deleteVehicleMutation.mutate(car.id);
-                                  }
+                                  setVehicleToDeleteId(car.id);
+                                  setDeleteConfirmOpen(true);
                                 }}
                                 className="p-2 border border-vanta-border rounded-lg bg-vanta-paper hover:border-red-500/60 text-vanta-ink hover:text-red-400 transition-all"
-                                title="Delete"
+                                title="Delete Vehicle"
                               >
                                 <Trash2 size={12} />
                               </button>
@@ -879,7 +970,7 @@ const AdminDashboard: React.FC = () => {
                   {/* Row 3 */}
                   <div className="grid grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Daily rate (AED)</label>
+                      <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Daily rate (AED / day)</label>
                       <input
                         type="number"
                         value={vehicleForm.pricing.daily}
@@ -888,7 +979,7 @@ const AdminDashboard: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Weekly rate (AED)</label>
+                      <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Weekly rate (AED / day)</label>
                       <input
                         type="number"
                         value={vehicleForm.pricing.weekly}
@@ -897,7 +988,7 @@ const AdminDashboard: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Monthly rate (AED)</label>
+                      <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Monthly rate (AED / month)</label>
                       <input
                         type="number"
                         value={vehicleForm.pricing.monthly}
@@ -1180,6 +1271,61 @@ const AdminDashboard: React.FC = () => {
                   className="px-6 py-2.5 bg-vanta-amber text-white font-grotesk font-semibold text-xs rounded-xl hover:bg-orange-500 transition-colors shadow-amber-sm"
                 >
                   Done
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* DELETE CONFIRMATION MODAL */}
+      <AnimatePresence>
+        {deleteConfirmOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              transition={{ ease: ease.out, duration: duration.normal }}
+              className="bg-vanta-panel border border-vanta-border rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center"
+            >
+              <div className="flex justify-center mb-4 text-red-500">
+                <ShieldAlert size={48} className="animate-pulse" />
+              </div>
+              <h3 className="font-grotesk font-bold text-lg text-white mb-2">Delete Vehicle?</h3>
+              <p className="text-[11px] text-vanta-ink-subtle mb-6 leading-relaxed">
+                Are you sure you want to delete this vehicle? You can choose to <strong>Deactivate</strong> it instead, which hides it from the public catalog while preserving all booking history and specifications data.
+              </p>
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      if (vehicleToDeleteId) {
+                        toggleStatusMutation.mutate({ id: vehicleToDeleteId, available: false });
+                      }
+                      setDeleteConfirmOpen(false);
+                    }}
+                    className="flex-1 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-[10px] uppercase tracking-wider text-white font-bold transition-all"
+                  >
+                    Deactivate
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (vehicleToDeleteId) {
+                        deleteVehicleMutation.mutate(vehicleToDeleteId);
+                      }
+                      setDeleteConfirmOpen(false);
+                    }}
+                    className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-[9px] uppercase tracking-wider text-white font-bold transition-all"
+                  >
+                    Permanently Delete
+                  </button>
+                </div>
+                <button
+                  onClick={() => setDeleteConfirmOpen(false)}
+                  className="w-full py-2.5 rounded-xl border border-vanta-border hover:bg-white/5 text-[10px] uppercase tracking-wider text-white font-bold transition-all"
+                >
+                  Cancel
                 </button>
               </div>
             </motion.div>

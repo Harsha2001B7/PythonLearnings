@@ -29,6 +29,7 @@ const FeaturedFleet: React.FC = () => {
   const { data: featuredVehicles = [], isLoading } = useQuery({
     queryKey: ['vehicles', 'featured'],
     queryFn: () => vehicleService.getFeaturedVehicles(),
+    select: (data) => data.filter((v: any) => v.available),
   });
 
   const [emblaRef, emblaApi] = useEmblaCarousel({ 

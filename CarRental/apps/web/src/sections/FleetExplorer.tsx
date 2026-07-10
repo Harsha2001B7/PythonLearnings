@@ -138,7 +138,7 @@ const FleetExplorer: React.FC = () => {
                     placeholder="Search brand or name..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2.5 pl-9 pr-3 text-xs text-white placeholder-vanta-ink-subtle focus:outline-none focus:border-vanta-amber transition-all"
+                    className="w-full bg-vanta-paper border border-vanta-border rounded-xl py-2.5 pl-9 pr-3 text-xs text-vanta-ink placeholder-vanta-ink-subtle focus:outline-none focus:border-vanta-amber transition-all"
                   />
                 </div>
               </div>

@@ -213,6 +213,7 @@ const FleetPage: React.FC = () => {
 
   const filteredVehicles = useMemo(() => {
     let results = fleetData.filter((v: any) => {
+      if (!v.available) return false;
       const searchLower = search.toLowerCase();
       const matchSearch = !search ||
         v.name.toLowerCase().includes(searchLower) ||

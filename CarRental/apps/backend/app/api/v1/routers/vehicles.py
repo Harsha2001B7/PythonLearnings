@@ -66,6 +66,22 @@ def upload_vehicle_image(
         
     filename = file.filename
     
+    # If this is a thumbnail, delete all existing thumbnails first to keep only one
+    if image_type == "thumbnail":
+        old_thumbnails = db.query(VehicleImage).filter(
+            VehicleImage.vehicle_id == vehicle_id,
+            VehicleImage.image_type == "thumbnail"
+        ).all()
+        for old_img in old_thumbnails:
+            old_filename = os.path.basename(old_img.image_url)
+            old_file_path = os.path.join(settings.UPLOADS_DIR, "vehicles", old_filename)
+            if os.path.exists(old_file_path):
+                try:
+                    os.remove(old_file_path)
+                except Exception:
+                    pass
+            db.delete(old_img)
+            
     upload_path = os.path.join(settings.UPLOADS_DIR, "vehicles", filename)
     
     try:
