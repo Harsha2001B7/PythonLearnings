@@ -18,6 +18,7 @@ const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboard'));
 
 import { ProtectedRoute, AdminRoute } from './components/layout/guards';
 import { useAuthStore } from './store/authStore';
+import { ToastContainer } from './components/Toast';
 
 const PageLoader = () => (
   <div className="fixed inset-0 bg-[#0D0D0D] flex items-center justify-center z-50">
@@ -90,6 +91,7 @@ function App() {
           </AdminRoute>
         } />
       </Routes>
+      <ToastContainer />
     </Suspense>
   );
 }

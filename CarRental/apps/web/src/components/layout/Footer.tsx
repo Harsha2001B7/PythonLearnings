@@ -4,6 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowRight, MapPin, Phone, Mail, Globe, MessageCircle, ExternalLink } from 'lucide-react';
 import { useToastStore } from '../../store';
 import { falconLogo } from './Navbar';
+import instagramLogo from '../../../assets/instagramlogo.svg';
+import whatsappLogo from '../../../assets/whatsapplogo.svg';
 
 const Footer: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -107,12 +109,23 @@ const Footer: React.FC = () => {
             <p className="text-text-subtle text-body-sm leading-relaxed mb-3 font-sans" dir="rtl">
               فالكون فيو لتأجير السيارات ش.ذ.م.م
             </p>
-            <p className="text-text-subtle text-caption leading-relaxed mb-8">
-              M01-0362, Unique Business World,<br />
-              Al Karama, Dubai. PO Box 9040
+            <p className="text-text-subtle text-caption leading-relaxed mb-4">
+              Ansar Gallery Building, Hamsah-A Building<br />
+              87556 3A St, Al Karama, Dubai, UAE
             </p>
+            <div className="w-full h-32 rounded-xl overflow-hidden border border-white/[0.08] mb-6">
+              <iframe
+                title="Office Location Map"
+                src="https://maps.google.com/maps?q=Ansar%20Gallery%20Building,%20Hamsah-A%20Building%20-%2087556%203A%20St%20-%20Al%20Karama%20-%20Dubai%20-%20United%20Arab%20Emirates&t=&z=14&ie=UTF8&iwloc=&output=embed"
+                width="100%"
+                height="100%"
+                style={{ border: 0, filter: 'grayscale(1) invert(0.9) contrast(1.2)' }}
+                allowFullScreen={false}
+                loading="lazy"
+              ></iframe>
+            </div>
             {/* Social + WhatsApp */}
-            <div className="flex gap-3">
+            <div className="flex items-center gap-4">
               <motion.button
                 onClick={handleWhatsApp}
                 whileHover={{ scale: 1.05 }}
@@ -120,7 +133,7 @@ const Footer: React.FC = () => {
                 className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-green-500/10 border border-green-500/30 text-green-400 text-body-sm font-medium hover:bg-green-500/20 transition-colors"
                 aria-label="WhatsApp"
               >
-                <MessageCircle size={16} />
+                <img src={whatsappLogo} className="w-4 h-4 object-contain" alt="" />
                 WhatsApp
               </motion.button>
               <a
@@ -128,18 +141,9 @@ const Footer: React.FC = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"
-                className="w-10 h-10 rounded-lg border border-subtle flex items-center justify-center text-text-subtle hover:text-accent-orange hover:border-accent-orange/40 transition-all"
+                className="flex items-center justify-center hover:opacity-80 transition-opacity"
               >
-                <ExternalLink size={16} />
-              </a>
-              <a
-                href="https://www.falconviewcarrentals.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Website"
-                className="w-10 h-10 rounded-lg border border-subtle flex items-center justify-center text-text-subtle hover:text-accent-orange hover:border-accent-orange/40 transition-all"
-              >
-                <Globe size={16} />
+                <img src={instagramLogo} className="w-6 h-6 object-contain" alt="" />
               </a>
             </div>
           </div>
@@ -168,7 +172,7 @@ const Footer: React.FC = () => {
         <div className="border-t border-subtle pt-10 flex flex-col md:flex-row justify-between gap-8 items-start md:items-center">
           <div className="flex flex-wrap gap-8">
             {[
-              { icon: MapPin, text: 'Al Karama, Dubai, PO Box 9040', href: 'https://maps.google.com/?q=Al+Karama+Dubai' },
+              { icon: MapPin, text: 'Ansar Gallery Building, Al Karama, Dubai', href: 'https://share.google/tlEqLM8WjwUwnpm1z' },
               { icon: Phone, text: '+971 50 099 9733', href: 'tel:+971500999733' },
               { icon: Mail, text: 'sales@falconviewcarrentals.com', href: 'mailto:sales@falconviewcarrentals.com' },
               { icon: Globe, text: 'www.falconviewcarrentals.com', href: 'https://www.falconviewcarrentals.com' },

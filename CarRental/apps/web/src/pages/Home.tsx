@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import SEO from '../components/seo/SEO';
 import Navbar, { falconLogo } from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
-import { ToastContainer } from '../components/Toast';
 import ChatWidget from '../chatbot/ChatWidget';
 import Hero from '../sections/Hero';
 import MarqueeTicker from '../sections/MarqueeTicker';
@@ -367,7 +366,6 @@ const Home: React.FC = () => {
         <BookingModal />
         <CompareDrawer />
         <ChatWidget />
-        <ToastContainer />
         {/* WhatsApp circle FAB — sits above the chat widget */}
         <WhatsAppFAB />
         <AnimatePresence>
