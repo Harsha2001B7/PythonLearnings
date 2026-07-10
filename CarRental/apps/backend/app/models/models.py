@@ -26,6 +26,9 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     last_login = Column(DateTime, nullable=True)
+    google_sub = Column(String(255), unique=True, index=True, nullable=True)
+    auth_provider = Column(String(50), default="LOCAL")
+    avatar_url = Column(String(512), nullable=True)
 
     # Relationships
     role_rel = relationship("Role", back_populates="users")

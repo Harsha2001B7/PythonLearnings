@@ -8,9 +8,9 @@ const api = axios.create({
   },
 });
 
-// Request Interceptor: Attach access token
+// Request Interceptor: Attach access token (checks sessionStorage first, then localStorage)
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('fv_access_token');
+  const token = sessionStorage.getItem('fv_access_token') || localStorage.getItem('fv_access_token');
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -65,22 +65,27 @@ api.interceptors.response.use((response) => {
     originalRequest._retry = true;
     isRefreshing = true;
 
-    const refreshToken = localStorage.getItem('fv_refresh_token');
+    const refreshToken = sessionStorage.getItem('fv_refresh_token') || localStorage.getItem('fv_refresh_token');
     if (!refreshToken) {
       useAuthStore.getState().logout();
       return Promise.reject(error);
     }
 
     try {
-      const { data } = await axios.post('http://localhost:8000/api/v1/auth/refresh', {
+      const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
+      const { data } = await axios.post(`${baseUrl}/auth/refresh`, {
         refresh_token: refreshToken
       });
 
       const newAccessToken = data.access_token;
       const newRefreshToken = data.refresh_token;
 
+      // Determine where the tokens were stored
+      const isLocal = !!localStorage.getItem('fv_refresh_token');
+      const storage = isLocal ? localStorage : sessionStorage;
+
       useAuthStore.getState().setAccessToken(newAccessToken);
-      localStorage.setItem('fv_refresh_token', newRefreshToken);
+      storage.setItem('fv_refresh_token', newRefreshToken);
 
       originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
 

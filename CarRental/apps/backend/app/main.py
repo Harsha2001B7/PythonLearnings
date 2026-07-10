@@ -34,6 +34,23 @@ def create_app() -> FastAPI:
 
     app.include_router(api_router, prefix=settings.API_V1_STR)
 
+    @app.on_event("startup")
+    def run_migrations():
+        import sqlite3
+        db_path = settings.DATABASE_URI.replace("sqlite:///", "")
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(users)")
+        columns = [row[1] for row in cursor.fetchall()]
+        if "google_sub" not in columns:
+            cursor.execute("ALTER TABLE users ADD COLUMN google_sub VARCHAR(255)")
+        if "auth_provider" not in columns:
+            cursor.execute("ALTER TABLE users ADD COLUMN auth_provider VARCHAR(50) DEFAULT 'LOCAL'")
+        if "avatar_url" not in columns:
+            cursor.execute("ALTER TABLE users ADD COLUMN avatar_url VARCHAR(512)")
+        conn.commit()
+        conn.close()
+
     @app.get("/health", tags=["health"])
     async def health_check():
         return {"status": "ok", "message": "Service is healthy"}

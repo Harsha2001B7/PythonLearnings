@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -31,6 +31,52 @@ const Login: React.FC = () => {
 
   const from = (location.state as any)?.from?.pathname || '/';
 
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      const g = (window as any).google;
+      if (g) {
+        g.accounts.id.initialize({
+          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '291772363929-25to6jat1j1puo3kmghrlf3aue5b3qvh.apps.googleusercontent.com',
+          callback: async (response: any) => {
+            setLoading(true);
+            try {
+              const res = await api.post('/auth/google', {
+                id_token: response.credential
+              });
+              const { access_token, refresh_token } = res.data;
+              const profileResponse = await api.get('/auth/me', {
+                headers: { Authorization: `Bearer ${access_token}` }
+              });
+              login(access_token, refresh_token, profileResponse.data, true);
+              addToast(`Welcome back, ${profileResponse.data.first_name || 'User'}!`, 'success');
+              if (profileResponse.data.role_id === 1) {
+                navigate('/admin');
+              } else {
+                navigate(from, { replace: true });
+              }
+            } catch (err: any) {
+              addToast(err.response?.data?.detail || 'Google Sign-In failed', 'error');
+            } finally {
+              setLoading(false);
+            }
+          }
+        });
+        g.accounts.id.renderButton(
+          document.getElementById('google-signin-btn'),
+          { theme: 'outline', size: 'large', width: 376, text: 'continue_with', logo_alignment: 'left' }
+        );
+      }
+    };
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, [navigate, login, addToast, from]);
+
   const {
     register,
     handleSubmit,
@@ -53,11 +99,11 @@ const Login: React.FC = () => {
       const { access_token, refresh_token } = response.data;
       
       // Get current user profile
-      const profileResponse = await api.get('/users/me', {
+      const profileResponse = await api.get('/auth/me', {
         headers: { Authorization: `Bearer ${access_token}` }
       });
 
-      login(access_token, refresh_token, profileResponse.data);
+      login(access_token, refresh_token, profileResponse.data, !!data.rememberMe);
       addToast(`Welcome back, ${profileResponse.data.first_name || 'User'}!`, 'success');
       
       if (profileResponse.data.role_id === 1) {
@@ -196,24 +242,13 @@ const Login: React.FC = () => {
             </motion.button>
           </form>
 
-          {/* Social Logins - Disabled */}
+          {/* Social Logins */}
           <div className="mt-8 pt-6 border-t border-vanta-border">
             <span className="block text-center text-[10px] font-mono uppercase tracking-[0.15em] text-vanta-ink-subtle mb-4">
               Secure single sign-on (SSO)
             </span>
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                disabled
-                className="flex items-center justify-center gap-2 border border-vanta-border bg-vanta-paper-soft py-2.5 rounded-lg text-xs font-mono text-vanta-ink-subtle opacity-50 cursor-not-allowed"
-              >
-                Google
-              </button>
-              <button
-                disabled
-                className="flex items-center justify-center gap-2 border border-vanta-border bg-vanta-paper-soft py-2.5 rounded-lg text-xs font-mono text-vanta-ink-subtle opacity-50 cursor-not-allowed"
-              >
-                Apple
-              </button>
+            <div className="w-full flex justify-center overflow-hidden rounded-xl">
+              <div id="google-signin-btn" className="w-full flex justify-center"></div>
             </div>
           </div>
         </div>

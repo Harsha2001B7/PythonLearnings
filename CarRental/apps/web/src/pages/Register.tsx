@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { Eye, EyeOff, User, Lock, Mail, Phone, Globe, ArrowRight } from 'lucide-react';
 
 import { useToastStore } from '../store';
+import { useAuthStore } from '../store/authStore';
 import api from '../services/api/axios';
 import { ease, duration } from '../lib/easing';
 import falconLogo from '../../assets/falconviewLogotrans.png';
@@ -33,6 +34,53 @@ const Register: React.FC = () => {
   const { addToast } = useToastStore();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { login } = useAuthStore();
+
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => {
+      const g = (window as any).google;
+      if (g) {
+        g.accounts.id.initialize({
+          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '291772363929-25to6jat1j1puo3kmghrlf3aue5b3qvh.apps.googleusercontent.com',
+          callback: async (response: any) => {
+            setLoading(true);
+            try {
+              const res = await api.post('/auth/google', {
+                id_token: response.credential
+              });
+              const { access_token, refresh_token } = res.data;
+              const profileResponse = await api.get('/auth/me', {
+                headers: { Authorization: `Bearer ${access_token}` }
+              });
+              login(access_token, refresh_token, profileResponse.data, true);
+              addToast(`Welcome, ${profileResponse.data.first_name || 'User'}!`, 'success');
+              if (profileResponse.data.role_id === 1) {
+                navigate('/admin');
+              } else {
+                navigate('/', { replace: true });
+              }
+            } catch (err: any) {
+              addToast(err.response?.data?.detail || 'Google Sign-In failed', 'error');
+            } finally {
+              setLoading(false);
+            }
+          }
+        });
+        g.accounts.id.renderButton(
+          document.getElementById('google-signup-btn'),
+          { theme: 'outline', size: 'large', width: 436, text: 'continue_with', logo_alignment: 'left' }
+        );
+      }
+    };
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, [navigate, login, addToast]);
 
   const {
     register,
@@ -294,6 +342,16 @@ const Register: React.FC = () => {
               )}
             </motion.button>
           </form>
+
+          {/* Social Logins */}
+          <div className="mt-6 pt-4 border-t border-vanta-border">
+            <span className="block text-center text-[10px] font-mono uppercase tracking-[0.15em] text-vanta-ink-subtle mb-3">
+              Or request access with SSO
+            </span>
+            <div className="w-full flex justify-center overflow-hidden rounded-xl">
+              <div id="google-signup-btn" className="w-full flex justify-center"></div>
+            </div>
+          </div>
         </div>
 
         {/* Footer Link */}

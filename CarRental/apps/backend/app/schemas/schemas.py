@@ -213,6 +213,24 @@ class UserResponse(UserBase, ORMModel):
     updated_at: datetime
     last_login: Optional[datetime] = None
 
+class UserMeResponse(BaseModel):
+    id: int
+    name: str
+    email: str
+    role: str
+    permissions: List[str]
+    avatar: Optional[str] = None
+    created_at: datetime
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    phone: Optional[str] = None
+    country: Optional[str] = None
+    status: Optional[str] = None
+    is_verified: Optional[bool] = None
+    role_id: Optional[int] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
 class UserStatusUpdate(BaseModel):
     status: str # active, disabled
 
@@ -263,3 +281,6 @@ class BookingResponse(ORMModel):
     total_price: float
     status: str
     created_at: datetime
+
+class GoogleLoginRequest(BaseModel):
+    id_token: str
