@@ -10,6 +10,7 @@ import { useToastStore } from '../store';
 import api from '../services/api/axios';
 import { ease, duration } from '../lib/easing';
 import falconLogo from '../../assets/falconviewLogotrans.png';
+import SEO from '../components/seo/SEO';
 
 const registerSchema = z.object({
   firstName: z.string().min(2, 'First name must be at least 2 characters'),
@@ -64,6 +65,8 @@ const Register: React.FC = () => {
   };
 
   return (
+    <>
+    <SEO title="Register | Falcon View Car Rentals" canonicalUrl="/register" />
     <div className="min-h-screen bg-vanta-paper text-vanta-ink flex items-center justify-center px-4 py-12 relative overflow-hidden">
       {/* Decorative Blur Orbs */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-vanta-amber/5 blur-[120px]" />
@@ -302,6 +305,7 @@ const Register: React.FC = () => {
         </p>
       </motion.div>
     </div>
+    </>
   );
 };
 

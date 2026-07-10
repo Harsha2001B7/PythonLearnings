@@ -11,6 +11,7 @@ import { useToastStore } from '../store';
 import api from '../services/api/axios';
 import { ease, duration } from '../lib/easing';
 import falconLogo from '../../assets/falconviewLogotrans.png';
+import SEO from '../components/seo/SEO';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
@@ -73,6 +74,8 @@ const Login: React.FC = () => {
   };
 
   return (
+    <>
+    <SEO title="Login | Falcon View Car Rentals" canonicalUrl="/login" />
     <div className="min-h-screen bg-vanta-paper text-vanta-ink flex items-center justify-center px-4 relative overflow-hidden">
       {/* Decorative Blur Orbs */}
       <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-vanta-amber/5 blur-[120px]" />
@@ -224,6 +227,7 @@ const Login: React.FC = () => {
         </p>
       </motion.div>
     </div>
+    </>
   );
 };
 

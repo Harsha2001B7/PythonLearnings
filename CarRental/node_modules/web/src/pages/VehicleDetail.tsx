@@ -12,6 +12,7 @@ import { formatAED } from '../lib/formatters';
 import { cn } from '../lib/cn';
 import { falconLogo } from '../components/layout/Navbar';
 import api from '../services/api/axios';
+import SEO from '../components/seo/SEO';
 
 // ─── Helpers ──────────────────────────────────────────────────────
 const CATEGORY_LABEL: Record<string, string> = {
@@ -311,9 +312,66 @@ const VehicleDetailPage: React.FC = () => {
     { label: 'Top Speed', value: vehicle.specs?.topSpeed },
   ].filter(r => r.value) as { label: string; value: string }[];
 
+  const vehicleJsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Car",
+      "name": vehicle.name,
+      "description": vehicle.description || vehicle.tagline,
+      "brand": {
+        "@type": "Brand",
+        "name": vehicle.brand
+      },
+      "model": vehicle.model,
+      "vehicleConfiguration": vehicle.category,
+      "vehicleSeatingCapacity": vehicle.specs?.seats,
+      "vehicleTransmission": vehicle.specs?.transmission,
+      "fuelType": vehicle.specs?.fuel,
+      "image": vehicle.images?.exterior?.[0] || vehicle.images?.thumbnail,
+      "offers": {
+        "@type": "Offer",
+        "price": vehicle.pricing?.daily,
+        "priceCurrency": "AED",
+        "availability": "https://schema.org/InStock"
+      }
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Home",
+          "item": "https://falconviewcarrentals.com"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Fleet",
+          "item": "https://falconviewcarrentals.com/fleet"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": vehicle.name,
+          "item": `https://falconviewcarrentals.com/vehicles/${vehicle.slug}`
+        }
+      ]
+    }
+  ];
+
   return (
-    <div className="min-h-screen bg-[#F7F7F5]">
-      {/* ── Sticky Nav ── */}
+    <>
+      <SEO 
+        title={`${vehicle.name} Rental Dubai | Falcon View`}
+        description={vehicle.tagline || vehicle.description?.substring(0, 150)}
+        canonicalUrl={`/vehicles/${vehicle.slug}`}
+        ogImage={images[0]}
+        jsonLd={vehicleJsonLd}
+      />
+      <div className="min-h-screen bg-[#F7F7F5]">
+        {/* ── Sticky Nav ── */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-gray-100 shadow-sm">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-4">
           <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-gray-500 hover:text-gray-900 transition-colors shrink-0" aria-label="Go back">
@@ -566,6 +624,7 @@ const VehicleDetailPage: React.FC = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

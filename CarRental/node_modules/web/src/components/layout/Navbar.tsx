@@ -23,7 +23,7 @@ const Navbar: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const navigate = useNavigate();
-  const { compareList, setCompareOpen, setCmdkOpen } = useAppStore();
+  const { compareList, setCompareOpen } = useAppStore();
   const { isAuthenticated, user, logout } = useAuthStore();
 
   useEffect(() => {
@@ -61,10 +61,7 @@ const Navbar: React.FC = () => {
         role="banner"
       >
         <div
-          className={cn(
-            'flex items-center justify-between pl-3 pr-4 py-3 rounded-full transition-all duration-500 w-[680px] md:w-[860px] lg:w-[1000px] max-w-[95vw] border border-subtle bg-surface-glass backdrop-blur-[24px] saturate-[180%]',
-            isScrolled ? 'shadow-card-md' : 'shadow-none'
-          )}
+          className="flex items-center justify-between pl-2.5 pr-2.5 rounded-[18px] w-[620px] md:w-[790px] lg:w-[920px] max-w-[95vw] border border-white/[0.06] bg-[#080808] shadow-[0_8px_32px_rgba(0,0,0,0.6)] h-[56px] transition-all duration-300"
         >
           {/* ── Logo Only (Wings cropped) ── */}
           <motion.a
@@ -79,10 +76,10 @@ const Navbar: React.FC = () => {
               }
             }}
             className="shrink-0 flex items-center justify-center"
-            whileHover={{ scale: 1.08 }}
+            whileHover={{ scale: 1.04 }}
             aria-label="Falcon View home"
           >
-            <div className="flex items-center justify-center py-1" style={{ width: 135, height: 48 }}>
+            <div className="flex items-center justify-center" style={{ width: 130, height: 50 }}>
               <img
                 src={falconLogo}
                 alt="Falcon View Logo"
@@ -92,13 +89,13 @@ const Navbar: React.FC = () => {
           </motion.a>
 
           {/* ── Desktop nav ── */}
-          <nav className="hidden md:flex items-center gap-2 mx-4" role="navigation">
+          <nav className="hidden md:flex items-center gap-4 mx-4" role="navigation">
             {NAV_LINKS.map((link) => (
               <button
                 key={link.href}
                 onClick={() => handleNavClick(link.href, link.isRoute)}
                 className={cn(
-                  'relative px-5 py-2.5 font-grotesk text-body-sm tracking-wide font-medium rounded-full transition-all duration-300',
+                  'relative px-3 py-1.5 font-grotesk text-[13px] tracking-wide font-medium rounded-[18px] transition-all duration-300',
                   linkColor,
                   activeLink === link.href && 'text-white'
                 )}
@@ -107,7 +104,7 @@ const Navbar: React.FC = () => {
                 {activeLink === link.href && (
                   <motion.span
                     layoutId="pill-indicator"
-                    className="absolute inset-0 rounded-full bg-accent-orange/15"
+                    className="absolute inset-0 rounded-[18px] bg-accent-orange/15"
                     transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                   />
                 )}
@@ -116,28 +113,18 @@ const Navbar: React.FC = () => {
           </nav>
 
           {/* ── Actions ── */}
-          <div className="hidden md:flex items-center gap-1.5">
-            <button
-              onClick={() => setCmdkOpen(true)}
-              className={cn('w-10 h-10 rounded-full border flex items-center justify-center transition-all duration-300', iconColor)}
-              aria-label="Search"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              </svg>
-            </button>
-
+          <div className="hidden md:flex items-center gap-1">
             <button
               onClick={() => setCompareOpen(true)}
-              className={cn('relative w-10 h-10 rounded-full border flex items-center justify-center transition-all duration-300', iconColor)}
+              className={cn('relative w-[36px] h-[36px] rounded-[18px] border flex items-center justify-center transition-all duration-300', iconColor)}
               aria-label={`Compare (${compareList.length})`}
             >
-              <BarChart2 size={16} />
+              <BarChart2 size={14} />
               <AnimatePresence>
                 {compareList.length > 0 && (
                   <motion.span
                     initial={{ scale: 0 }} animate={{ scale: 1 }} exit={{ scale: 0 }}
-                    className="absolute -top-1 -right-1 w-4 h-4 bg-accent-orange text-white text-[9px] font-bold rounded-full flex items-center justify-center shadow-amber-glow"
+                    className="absolute -top-0.5 -right-0.5 w-3.5 h-3.5 bg-accent-orange text-white text-[8px] font-bold rounded-full flex items-center justify-center shadow-none"
                   >
                     {compareList.length}
                   </motion.span>
@@ -154,13 +141,13 @@ const Navbar: React.FC = () => {
                     navigate('/login');
                   }
                 }}
-                className={cn('w-10 h-10 rounded-full border flex items-center justify-center transition-all duration-300 relative', iconColor)}
+                className={cn('w-[36px] h-[36px] rounded-[18px] border flex items-center justify-center transition-all duration-300 relative', iconColor)}
                 aria-label="Account"
               >
                 {isAuthenticated && user?.profile_image ? (
-                  <img src={user.profile_image} alt="User profile" className="w-full h-full rounded-full object-cover" />
+                  <img src={user.profile_image} alt="User profile" className="w-full h-full rounded-[18px] object-cover" />
                 ) : (
-                  <User size={16} />
+                  <User size={14} />
                 )}
               </button>
 
@@ -213,10 +200,10 @@ const Navbar: React.FC = () => {
             </div>
 
             <motion.button
-              whileHover={{ scale: 1.02, y: -2 }}
+              whileHover={{ scale: 1.02, y: -0.5 }}
               whileTap={{ scale: 0.98 }}
               onClick={() => navigate('/fleet')}
-              className="bg-accent-orange hover:bg-orange-400 text-white font-grotesk font-semibold text-body-sm px-6 py-3 rounded-full transition-colors shadow-amber-sm hover:shadow-amber-glow ml-2"
+              className="bg-accent-orange hover:bg-orange-400 text-white font-grotesk font-semibold text-body-sm px-4 h-[36px] rounded-[18px] transition-colors ml-1.5 flex items-center justify-center"
             >
               Book now
             </motion.button>
@@ -224,15 +211,15 @@ const Navbar: React.FC = () => {
 
           {/* ── Mobile toggle ── */}
           <button
-            className={cn('md:hidden w-9 h-9 rounded-full border flex items-center justify-center ml-auto transition-all', iconColor)}
+            className={cn('md:hidden w-[36px] h-[36px] rounded-[18px] border flex items-center justify-center ml-auto transition-all', iconColor)}
             onClick={() => setMobileOpen((v) => !v)}
             aria-expanded={mobileOpen}
             aria-label="Toggle menu"
           >
             <AnimatePresence mode="wait">
               {mobileOpen
-                ? <motion.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.2 }}><X size={15}/></motion.span>
-                : <motion.span key="m" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }}><Menu size={15}/></motion.span>
+                ? <motion.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.2 }}><X size={14}/></motion.span>
+                : <motion.span key="m" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }}><Menu size={14}/></motion.span>
               }
             </AnimatePresence>
           </button>

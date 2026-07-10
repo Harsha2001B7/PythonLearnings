@@ -11,6 +11,7 @@ import { formatAED } from '../lib/formatters';
 import { cn } from '../lib/cn';
 import { useAppStore, useToastStore } from '../store';
 import { falconLogo } from '../components/layout/Navbar';
+import SEO from '../components/seo/SEO';
 
 // ─── Types ────────────────────────────────────────────────────────
 type Category = 'all' | 'sedan' | 'hatchback' | 'suv' | '7seater' | 'coupe';
@@ -252,9 +253,31 @@ const FleetPage: React.FC = () => {
 
   const hasActiveFilters = search || category !== 'all' || maxPrice < 600 || seats !== 'all' || deliveryOnly;
 
+  const fleetJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "itemListElement": fleetData.slice(0, 10).map((v: any, index: number) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "item": {
+        "@type": "CarRental",
+        "name": v.name,
+        "url": `https://falconviewcarrentals.com/vehicles/${v.slug}`,
+        "image": v.images.thumbnail
+      }
+    }))
+  };
+
   return (
-    <div className="min-h-screen bg-[#F7F7F5]">
-      {/* ── Sticky Header ── */}
+    <>
+      <SEO 
+        title="Our Luxury Fleet | Falcon View Car Rentals Dubai"
+        description="Browse our curated fleet of luxury sedans, SUVs, and 7-seaters. Filter by price, category, and features. Free delivery anywhere in the UAE."
+        canonicalUrl="/fleet"
+        jsonLd={fleetJsonLd}
+      />
+      <div className="min-h-screen bg-[#F7F7F5]">
+        {/* ── Sticky Header ── */}
       <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-xl border-b border-gray-100 shadow-sm">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center gap-4">
@@ -284,8 +307,9 @@ const FleetPage: React.FC = () => {
                 placeholder="Search vehicles..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-[13px] text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-orange-400 focus:bg-white transition-all"
+                className="w-full pl-9 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-[13px] placeholder:text-gray-400 focus:outline-none focus:border-orange-400 focus:bg-white transition-all"
                 aria-label="Search vehicles"
+                style={{ colorScheme: 'light', color: '#111827', caretColor: '#FF6B00' }}
               />
               {search && (
                 <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700">
@@ -506,6 +530,7 @@ const FleetPage: React.FC = () => {
         </div>
       </footer>
     </div>
+    </>
   );
 };
 

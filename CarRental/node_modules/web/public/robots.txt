@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://falconviewcarrentals.com/sitemap.xml

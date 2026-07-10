@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import SEO from '../components/seo/SEO';
 import Navbar, { falconLogo } from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
 import { ToastContainer } from '../components/Toast';
@@ -301,8 +302,41 @@ const Home: React.FC = () => {
     return () => clearTimeout(t);
   }, [preloaderDone]);
 
+  const homeJsonLd = [
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Falcon View Car Rentals",
+      "url": "https://falconviewcarrentals.com",
+      "logo": "https://falconviewcarrentals.com/favicon.png",
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+971-50-099-9733",
+        "contactType": "customer service"
+      }
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "Falcon View Car Rentals",
+      "image": "https://falconviewcarrentals.com/falconviewbackground.png",
+      "telephone": "+971500999733",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Dubai",
+        "addressRegion": "Dubai",
+        "addressCountry": "AE"
+      }
+    }
+  ];
+
   return (
     <>
+      <SEO 
+        title="Luxury Car Rental Dubai | Drive Dubai, Delivered to you" 
+        canonicalUrl="/"
+        jsonLd={homeJsonLd}
+      />
       <Preloader done={preloaderDone} />
 
       <div className="min-h-screen">
