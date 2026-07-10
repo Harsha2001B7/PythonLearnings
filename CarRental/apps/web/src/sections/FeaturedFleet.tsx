@@ -157,7 +157,10 @@ const FeaturedFleet: React.FC = () => {
               <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                onClick={() => handleWishlist(vehicle.id, vehicle.name)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleWishlist(vehicle.id, vehicle.name);
+                }}
                 className={cn(
                   'absolute top-3 right-3 w-9 h-9 rounded-full bg-white/85 backdrop-blur-sm flex items-center justify-center shadow-card-sm transition-colors',
                   wishlist.includes(vehicle.id) ? 'text-vanta-danger' : 'text-vanta-ink-subtle hover:text-vanta-ink'
