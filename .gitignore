@@ -1,3 +1,26 @@
-Ai/.env
-Ai/test_gemini.py
-CarRental\apps\backend\.env
+# Environment
+.env
+.env.*
+!.env.example
+
+# Node
+node_modules/
+**/node_modules/
+
+# Vite
+.vite/
+dist/
+build/
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+venv/
+.venv/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
