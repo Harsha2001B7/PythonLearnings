@@ -5,7 +5,7 @@ from typing import List
 class Settings(BaseSettings):
     PROJECT_NAME: str = "FalconViewCarRentals"
     API_V1_STR: str = "/api/v1"
-    BACKEND_CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:5173"]
+    BACKEND_CORS_ORIGINS: List[str] = ["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:5173","https://falconviewcarrental.vercel.app"]
     
     # Path to the sqlite database
     # Construct absolute path to apps/data/sqlite/falconview.db
