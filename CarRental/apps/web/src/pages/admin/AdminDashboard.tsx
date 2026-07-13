@@ -884,7 +884,7 @@ const AdminDashboard: React.FC = () => {
               <div data-lenis-prevent className="p-6 overflow-y-auto flex-1 space-y-6">
                 <div className="space-y-6">
                   {/* Row 1 */}
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Brand (Auto-assigned)</label>
                       <input
@@ -927,7 +927,7 @@ const AdminDashboard: React.FC = () => {
                   </div>
 
                   {/* Row 2 */}
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Brand Name</label>
                       <select
@@ -968,7 +968,7 @@ const AdminDashboard: React.FC = () => {
                   </div>
 
                   {/* Row 3 */}
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Daily rate (AED / day)</label>
                       <input
@@ -999,7 +999,7 @@ const AdminDashboard: React.FC = () => {
                   </div>
 
                   {/* Specs */}
-                  <div className="grid grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <div>
                       <label className="block text-[9px] font-mono uppercase tracking-wider text-vanta-ink-muted mb-1">Engine specs</label>
                       <input
@@ -1095,7 +1095,7 @@ const AdminDashboard: React.FC = () => {
                     <h4 className="font-grotesk font-bold text-white text-sm mb-3">Vehicle Media / Images</h4>
                     
                     {/* Previews of existing or selected images */}
-                    <div className="grid grid-cols-4 gap-4 mb-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                       {/* DB Previews (Existing images) */}
                       {editingVehicleId && (() => {
                         const currentEditingCar = fleet.find(v => v.id === editingVehicleId);

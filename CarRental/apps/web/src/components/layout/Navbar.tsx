@@ -211,15 +211,15 @@ const Navbar: React.FC = () => {
 
           {/* ── Mobile toggle ── */}
           <button
-            className={cn('md:hidden w-[36px] h-[36px] rounded-[18px] border flex items-center justify-center ml-auto transition-all', iconColor)}
+            className={cn('md:hidden w-11 h-11 rounded-full border flex items-center justify-center ml-auto transition-all', iconColor)}
             onClick={() => setMobileOpen((v) => !v)}
             aria-expanded={mobileOpen}
             aria-label="Toggle menu"
           >
             <AnimatePresence mode="wait">
               {mobileOpen
-                ? <motion.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.2 }}><X size={14}/></motion.span>
-                : <motion.span key="m" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }}><Menu size={14}/></motion.span>
+                ? <motion.span key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.2 }}><X size={16}/></motion.span>
+                : <motion.span key="m" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.2 }}><Menu size={16}/></motion.span>
               }
             </AnimatePresence>
           </button>
@@ -234,33 +234,109 @@ const Navbar: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3, ease: ease.snap }}
-            className="fixed inset-0 z-[850] bg-vanta-paper flex flex-col"
+            className="fixed inset-0 z-[850] bg-[#0A0A0A] flex flex-col"
             role="dialog"
             aria-label="Mobile navigation"
           >
-            <div className="flex-1 flex flex-col justify-center px-8 gap-2 pt-20">
+            <div className="flex-1 flex flex-col justify-center px-8 gap-1 pt-24 overflow-y-auto">
               {NAV_LINKS.map((link, i) => (
                 <motion.button
                   key={link.href}
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: i * 0.07, duration: 0.4, ease: ease.elegant }}
-                  onClick={() => handleNavClick(link.href)}
-                  className="text-left py-4 font-display text-4xl font-light text-vanta-ink border-b border-vanta-border hover:text-orange-500 transition-colors"
+                  transition={{ delay: i * 0.05, duration: 0.4, ease: ease.elegant }}
+                  onClick={() => handleNavClick(link.href, link.isRoute)}
+                  className="text-left py-3 font-display text-3xl font-light text-white/90 border-b border-white/5 hover:text-orange-500 transition-colors"
                 >
                   {link.label}
                 </motion.button>
               ))}
+
+              {/* Dynamic Authentication links on mobile */}
+              {isAuthenticated ? (
+                <>
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2, duration: 0.4 }}
+                  >
+                    <Link
+                      to="/profile"
+                      onClick={() => setMobileOpen(false)}
+                      className="block text-left py-3 font-display text-3xl font-light text-white/90 border-b border-white/5 hover:text-orange-500 transition-colors"
+                    >
+                      My Profile
+                    </Link>
+                  </motion.div>
+                  {user?.role_id === 1 && (
+                    <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.25, duration: 0.4 }}
+                    >
+                      <Link
+                        to="/admin"
+                        onClick={() => setMobileOpen(false)}
+                        className="block text-left py-3 font-display text-3xl font-light text-vanta-amber border-b border-white/5 hover:text-amber-400 transition-colors"
+                      >
+                        Admin Portal
+                      </Link>
+                    </motion.div>
+                  )}
+                  <motion.button
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3, duration: 0.4 }}
+                    onClick={() => {
+                      setMobileOpen(false);
+                      logout();
+                      navigate('/');
+                    }}
+                    className="text-left py-3 font-display text-3xl font-light text-red-400 border-b border-white/5 hover:text-red-300 transition-colors"
+                  >
+                    Logout
+                  </motion.button>
+                </>
+              ) : (
+                <>
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2, duration: 0.4 }}
+                  >
+                    <Link
+                      to="/login"
+                      onClick={() => setMobileOpen(false)}
+                      className="block text-left py-3 font-display text-3xl font-light text-white/90 border-b border-white/5 hover:text-orange-500 transition-colors"
+                    >
+                      Login
+                    </Link>
+                  </motion.div>
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.25, duration: 0.4 }}
+                  >
+                    <Link
+                      to="/register"
+                      onClick={() => setMobileOpen(false)}
+                      className="block text-left py-3 font-display text-3xl font-light text-white/90 border-b border-white/5 hover:text-orange-500 transition-colors"
+                    >
+                      Register
+                    </Link>
+                  </motion.div>
+                </>
+              )}
             </div>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
-              className="px-8 pb-10 flex gap-3"
+              className="px-8 pb-10 pt-4 flex gap-3"
             >
               <button
                 className="bg-orange-500 hover:bg-orange-400 text-white font-grotesk font-bold text-[15px] px-6 py-3.5 rounded-full flex-1 transition-colors"
-                onClick={() => handleNavClick('#fleet')}
+                onClick={() => handleNavClick('/fleet', true)}
               >
                 Book now
               </button>

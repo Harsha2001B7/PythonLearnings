@@ -208,7 +208,7 @@ const UserProfile: React.FC = () => {
               <form onSubmit={handleProfileSubmit(onSubmit => updateProfileMutation.mutate(onSubmit))} className="space-y-6">
                 <h3 className="font-grotesk text-xl font-bold text-white border-b border-vanta-border pb-3 mb-6">Profile Settings</h3>
                 
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="block text-[11px] font-mono uppercase tracking-[0.15em] text-vanta-ink-muted">First Name</label>
                     <input
@@ -233,7 +233,7 @@ const UserProfile: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="block text-[11px] font-mono uppercase tracking-[0.15em] text-vanta-ink-muted">Phone Number</label>
                     <input

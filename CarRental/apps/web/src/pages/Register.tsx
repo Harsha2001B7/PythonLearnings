@@ -159,7 +159,7 @@ const Register: React.FC = () => {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-3.5">
               
               {/* Grid of First/Last Name */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="block text-[10px] font-mono uppercase tracking-[0.15em] text-vanta-ink-muted">
                     First Name
@@ -229,7 +229,7 @@ const Register: React.FC = () => {
               </div>
 
               {/* Grid of Phone/Country */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="block text-[10px] font-mono uppercase tracking-[0.15em] text-vanta-ink-muted">
                     Phone Number
@@ -276,7 +276,7 @@ const Register: React.FC = () => {
               </div>
 
               {/* Grid of Passwords */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <label className="block text-[10px] font-mono uppercase tracking-[0.15em] text-vanta-ink-muted">
                     Password
