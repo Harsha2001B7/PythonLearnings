@@ -74,7 +74,7 @@ const Footer: React.FC = () => {
               </h3>
               <p className="text-text-secondary text-body-md">New arrivals, exclusive deals, and UAE driving tips — delivered monthly.</p>
             </div>
-            <form onSubmit={handleNewsletter} className="flex gap-2">
+            <form onSubmit={handleNewsletter} className="flex flex-col sm:flex-row gap-2">
               <input
                 type="email"
                 value={email}
@@ -88,7 +88,7 @@ const Footer: React.FC = () => {
                 type="submit"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.97 }}
-                className="bg-accent-orange text-white px-8 py-4 rounded-xl font-grotesk font-semibold text-body-md flex items-center gap-2 hover:bg-orange-400 transition-colors whitespace-nowrap shadow-amber-sm hover:shadow-amber-glow"
+                className="bg-accent-orange text-white px-8 py-4 rounded-xl font-grotesk font-semibold text-body-md flex items-center justify-center gap-2 hover:bg-orange-400 transition-colors whitespace-nowrap shadow-amber-sm hover:shadow-amber-glow w-full sm:w-auto"
               >
                 {submitted ? 'Subscribed ✓' : (<>Subscribe <ArrowRight size={16} /></>)}
               </motion.button>
@@ -172,7 +172,7 @@ const Footer: React.FC = () => {
 
         {/* Contact + Legal */}
         <div className="border-t border-subtle pt-10 flex flex-col md:flex-row justify-between gap-8 items-start md:items-center">
-          <div className="flex flex-wrap gap-8">
+          <div className="flex flex-wrap gap-4 sm:gap-8">
             {[
               { icon: MapPin, text: 'Ansar Gallery Building, Al Karama, Dubai', href: 'https://share.google/tlEqLM8WjwUwnpm1z' },
               { icon: Phone, text: '+971 50 099 9733', href: 'tel:+971500999733' },

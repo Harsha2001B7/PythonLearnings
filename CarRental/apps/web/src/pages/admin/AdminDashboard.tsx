@@ -389,7 +389,7 @@ const AdminDashboard: React.FC = () => {
             <Link to="/" className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-vanta-amber hover:underline mb-3">
               <ArrowLeft size={12} /> Public Portal
             </Link>
-            <h1 className="font-grotesk text-4xl font-extrabold text-white flex items-center gap-3">
+            <h1 className="font-grotesk text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white flex flex-wrap items-center gap-3">
               Admin Portal <span className="bg-vanta-amber/10 border border-vanta-amber/30 text-vanta-amber text-xs font-mono px-3 py-1 rounded-full uppercase tracking-wider">Vault Control</span>
             </h1>
           </div>
@@ -449,7 +449,7 @@ const AdminDashboard: React.FC = () => {
           </div>
 
           {/* Main Dashboard Section */}
-          <div className="lg:col-span-4 bg-vanta-panel border border-vanta-border rounded-2xl p-8 relative overflow-hidden backdrop-blur-xl min-h-[600px]">
+          <div className="lg:col-span-4 bg-vanta-panel border border-vanta-border rounded-2xl p-4 sm:p-6 lg:p-8 relative overflow-hidden backdrop-blur-xl min-h-[500px]">
             
             {/* OVERVIEW PANEL */}
             {activeTab === 'overview' && (
@@ -862,11 +862,11 @@ const AdminDashboard: React.FC = () => {
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="bg-vanta-panel border border-vanta-border w-full max-w-[800px] max-h-[85vh] rounded-2xl z-50 relative flex flex-col overflow-hidden"
+              className="bg-vanta-panel border border-vanta-border w-full max-w-[95vw] sm:max-w-[800px] max-h-[90vh] sm:max-h-[85vh] rounded-2xl z-50 relative flex flex-col overflow-hidden"
             >
               {/* Modal Header */}
-              <div className="p-6 border-b border-vanta-border flex justify-between items-center bg-vanta-panel">
-                <h3 className="font-grotesk text-2xl font-bold text-white">
+              <div className="p-4 sm:p-6 border-b border-vanta-border flex justify-between items-center bg-vanta-panel">
+                <h3 className="font-grotesk text-lg sm:text-2xl font-bold text-white">
                   {editingVehicleId ? 'Update Vehicle specifications' : 'Add Vehicle to Fleet'}
                 </h3>
                 <button
