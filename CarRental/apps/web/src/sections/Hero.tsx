@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { openWhatsApp, getWhatsAppUrl } from '../utils/whatsapp';
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
 import {
   MessageCircle,
@@ -339,7 +340,7 @@ const SummaryModal: React.FC<{
                   Browse Matching Fleet →
                 </button>
                 <a
-                  href={`https://wa.me/971500999733?text=${encodeURIComponent(
+                  href={getWhatsAppUrl(
                     `Hi Falcon View! Rental: ${data.tab}, ${calc?.days || '?'} days. Delivery to: ${
                       data.delivery || 'TBD'
                     }. Car type: ${data.carType || 'Any'}. Driver age: ${data.driverAge}. Licence: ${
@@ -347,7 +348,7 @@ const SummaryModal: React.FC<{
                     }.${data.extras.length ? ' Extras: ' + data.extras.join(', ') : ''}${
                       data.promo ? '. Promo: ' + data.promo : ''
                     }`
-                  )}`}
+                  )}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={onClose}
@@ -756,10 +757,7 @@ const Hero: React.FC = () => {
   const handleMouseLeave = React.useCallback(() => setMouse({ x: 0, y: 0 }), []);
 
   const handleWhatsApp = () => {
-    window.open(
-      'https://wa.me/971500999733?text=Hi%20Falcon%20View%2C%20I%27d%20like%20to%20book%20a%20car',
-      '_blank'
-    );
+    openWhatsApp("Hi Falcon View, I'd like to book a car");
   };
 
   return (

@@ -269,11 +269,7 @@ const FleetExplorer: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* Rating */}
-                      <div className="flex items-center gap-1">
-                        {[...Array(5)].map((_, i) => <Star key={i} size={9} className={i < Math.floor(vehicle.rating) ? 'text-vanta-amber fill-vanta-amber' : 'text-vanta-border fill-vanta-border'} />)}
-                        <span className="text-[10px] text-vanta-ink-muted ml-1">{vehicle.rating} ({vehicle.reviewCount})</span>
-                      </div>
+
 
                       <div className="flex gap-2 mt-auto">
                         <motion.button

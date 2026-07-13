@@ -1,6 +1,6 @@
-export const API_BASE_URL =
-  import.meta.env.VITE_API_URL ??
-  "https://falconviewcarrental.onrender.com/api/v1";
+import { API_BASE_URL as BASE_URL } from './env';
+
+export const API_BASE_URL = BASE_URL;
 
 export const API_BASE = API_BASE_URL.replace("/api/v1", "");
 

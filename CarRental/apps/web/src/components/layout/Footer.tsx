@@ -7,6 +7,8 @@ import { falconLogo } from './Navbar';
 import instagramLogo from '../../../assets/instagramlogo.svg';
 import whatsappLogo from '../../../assets/whatsapplogo.svg';
 
+import { openWhatsApp } from '../../utils/whatsapp';
+
 const Footer: React.FC = () => {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
@@ -22,7 +24,7 @@ const Footer: React.FC = () => {
   };
 
   const handleWhatsApp = () => {
-    window.open('https://wa.me/971500999733?text=Hi%20Falcon%20View%2C%20I%20have%20a%20question', '_blank');
+    openWhatsApp('Hi Falcon View, I have a question');
   };
 
   const scrollTo = (id: string) => {

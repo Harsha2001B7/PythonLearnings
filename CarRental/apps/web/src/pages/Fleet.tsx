@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { getWhatsAppUrl } from '../utils/whatsapp';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -57,9 +58,7 @@ const VehicleCard: React.FC<{
     addToast(isWishlisted ? `Removed ${vehicle.name} from wishlist` : `Added ${vehicle.name} to wishlist`);
   };
 
-  const whatsappMsg = encodeURIComponent(
-    `Hi Falcon View! I'm interested in the ${vehicle.name} (AED ${vehicle.pricePerDay}/day). Please send availability and pricing.`
-  );
+  const whatsappMsg = `Hi Falcon View! I'm interested in the ${vehicle.name} (AED ${vehicle.pricePerDay}/day). Please send availability and pricing.`;
 
   return (
     <motion.article
@@ -139,15 +138,7 @@ const VehicleCard: React.FC<{
           )}
         </div>
 
-        {/* Rating */}
-        <div className="flex items-center gap-1.5">
-          <div className="flex items-center gap-0.5">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} size={10} className={i < Math.floor(vehicle.rating) ? 'text-orange-400 fill-orange-400' : 'text-gray-200 fill-gray-200'} />
-            ))}
-          </div>
-          <span className="text-[11px] text-gray-500">{vehicle.rating} ({vehicle.reviewCount} reviews)</span>
-        </div>
+
 
         {/* Price + CTA */}
         <div className="flex items-end justify-between gap-3 pt-3 border-t border-gray-100 mt-auto">
@@ -159,7 +150,7 @@ const VehicleCard: React.FC<{
             <p className="text-[11px] text-gray-400">{formatAED(vehicle.pricePerDay * 30)}/mo · {formatAED(vehicle.pricePerWeek)}/week (weekly)</p>
           </div>
           <a
-            href={`https://wa.me/971500999733?text=${whatsappMsg}`}
+            href={getWhatsAppUrl(whatsappMsg)}
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
@@ -507,7 +498,7 @@ const FleetPage: React.FC = () => {
           <h2 className="font-grotesk font-bold text-2xl md:text-3xl text-white mb-3">Can't find what you're looking for?</h2>
           <p className="text-gray-400 mb-6 max-w-md mx-auto">Our team can source any vehicle in Dubai. Message us on WhatsApp and we'll find your perfect match within the hour.</p>
           <a
-            href="https://wa.me/971500999733?text=Hi%20Falcon%20View%2C%20I%27m%20looking%20for%20a%20specific%20vehicle%20not%20on%20your%20website."
+            href={getWhatsAppUrl("Hi Falcon View, I'm looking for a specific vehicle not on your website.")}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-grotesk font-semibold text-[15px] px-8 py-4 rounded-full transition-colors shadow-[0_4px_20px_rgba(34,197,94,0.4)]"
@@ -524,7 +515,7 @@ const FleetPage: React.FC = () => {
             <ArrowLeft size={14} /> Back to Homepage
           </Link>
           <p className="text-gray-400 text-[12px] font-mono">© 2026 Falcon View Car Rentals L.L.C · Dubai</p>
-          <a href="https://wa.me/971500999733" target="_blank" rel="noopener noreferrer"
+          <a href={getWhatsAppUrl("")} target="_blank" rel="noopener noreferrer"
             className="flex items-center gap-1.5 text-green-600 hover:text-green-700 text-[13px] font-medium transition-colors">
             <MessageCircle size={14} /> +971 50 099 9733
           </a>

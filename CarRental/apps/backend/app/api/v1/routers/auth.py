@@ -323,7 +323,7 @@ def forgot_password(req: PasswordResetRequest, db: Session = Depends(get_db)):
     db.commit()
     
     # In production, send email. For local, we print/return it for testing.
-    print(f"PASSWORD RESET LINK: http://localhost:5173/reset-password?token={token}")
+    print(f"PASSWORD RESET LINK: {settings.FRONTEND_URL}/reset-password?token={token}")
     return {"message": "Password reset link generated.", "token": token} # Return token for easy testing/auto-filling
 
 @router.post("/reset-password")

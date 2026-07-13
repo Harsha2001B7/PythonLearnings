@@ -9,6 +9,7 @@ import { Eye, EyeOff, Lock, Mail, ArrowRight } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import { useToastStore } from '../store';
 import api from '../services/api/axios';
+import { GOOGLE_CLIENT_ID } from '../config/oauth';
 import { ease, duration } from '../lib/easing';
 import falconLogo from '../../assets/falconviewLogotrans.png';
 import googleSvg from '../../assets/signinwithgoogle.svg';
@@ -41,7 +42,7 @@ const Login: React.FC = () => {
       const g = (window as any).google;
       if (g) {
         g.accounts.id.initialize({
-          client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID || '291772363929-25to6jat1j1puo3kmghrlf3aue5b3qvh.apps.googleusercontent.com',
+          client_id: GOOGLE_CLIENT_ID,
           callback: async (response: any) => {
             setLoading(true);
             try {

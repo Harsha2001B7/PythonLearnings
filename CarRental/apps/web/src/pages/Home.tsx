@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { openWhatsApp, getWhatsAppUrl } from '../utils/whatsapp';
 import SEO from '../components/seo/SEO';
 import Navbar, { falconLogo } from '../components/layout/Navbar';
 import Footer from '../components/layout/Footer';
@@ -79,8 +80,7 @@ const BookingModal: React.FC = () => {
   if (!selectedVehicleName) return null;
 
   const handleWhatsApp = () => {
-    const msg = encodeURIComponent(`Hi Falcon View, I'd like to book the ${selectedVehicleName}. Please send me availability and pricing.`);
-    window.open(`https://wa.me/971500999733?text=${msg}`, '_blank');
+    openWhatsApp(`Hi Falcon View, I'd like to book the ${selectedVehicleName}. Please send me availability and pricing.`);
     setSelectedVehicle(null);
   };
 
@@ -240,11 +240,9 @@ const CompareDrawer: React.FC = () => {
   );
 };
 
-// ── WhatsApp Circle FAB ───────────────────────────────────────────
-// Sits just above the existing ChatWidget (bottom-6 right-6 → offset by 1 widget-height)
 const WhatsAppFAB: React.FC = () => (
   <motion.a
-    href="https://wa.me/971500999733?text=Hi%20Falcon%20View%2C%20I%27d%20like%20to%20book%20a%20car"
+    href={getWhatsAppUrl("Hi Falcon View, I'd like to book a car")}
     target="_blank"
     rel="noopener noreferrer"
     aria-label="Chat on WhatsApp"

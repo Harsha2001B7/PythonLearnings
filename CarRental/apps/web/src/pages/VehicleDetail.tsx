@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ArrowLeft, ChevronLeft, ChevronRight, Star, Users, Fuel, Gauge,
   Calendar, MapPin, Shield, Phone, MessageCircle, ChevronDown, CheckCircle2,
-  Info, ArrowRight, Zap, Car,
+  Info, ArrowRight, Zap, Car, X,
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { vehicleService } from '../services/api/vehicles';
@@ -12,6 +12,7 @@ import { formatAED } from '../lib/formatters';
 import { cn } from '../lib/cn';
 import { falconLogo } from '../components/layout/Navbar';
 import api from '../services/api/axios';
+import { openWhatsApp, getWhatsAppUrl } from '../utils/whatsapp';
 import SEO from '../components/seo/SEO';
 
 // ─── Helpers ──────────────────────────────────────────────────────
@@ -85,66 +86,43 @@ const RelatedCard: React.FC<{ slug: string, fleetData: any[] }> = ({ slug, fleet
 };
 
 // ─── Sticky Booking Card ──────────────────────────────────────────
-const StickyBookingCard: React.FC<{ vehicle: any }> = ({ vehicle }) => {
+const StickyBookingCard: React.FC<{
+  vehicle: any;
+  duration: 'daily' | 'weekly' | 'monthly';
+  startDate: string;
+  endDate: string;
+  isBooking: boolean;
+  booked: boolean;
+  totalPrice: number;
+  units: number;
+  ratePerUnit: number;
+  unit: string;
+  handleDurationChange: (d: 'daily' | 'weekly' | 'monthly') => void;
+  handleStartDateChange: (start: string) => void;
+  setEndDate: (end: string) => void;
+  setBooked: (booked: boolean) => void;
+  handleWhatsAppBook: () => void;
+}> = ({
+  vehicle,
+  duration,
+  startDate,
+  endDate,
+  isBooking,
+  booked,
+  totalPrice,
+  units,
+  ratePerUnit,
+  unit,
+  handleDurationChange,
+  handleStartDateChange,
+  setEndDate,
+  setBooked,
+  handleWhatsAppBook
+}) => {
   const msPerDay = 86400000;
   const toDateStr = (ms: number) => new Date(ms).toISOString().split('T')[0];
-
-  const getDurationDays = (d: 'daily' | 'weekly' | 'monthly') =>
-    d === 'daily' ? 1 : d === 'weekly' ? 7 : 30;
-
   const today = toDateStr(Date.now());
-
-  const [duration, setDuration] = useState<'daily' | 'weekly' | 'monthly'>('daily');
-  const [startDate, setStartDate] = useState(today);
-  const [endDate, setEndDate] = useState(toDateStr(Date.now() + getDurationDays('daily') * msPerDay));
-  const [isBooking, setIsBooking] = useState(false);
-  const [booked, setBooked] = useState(false);
   const { pricing } = vehicle;
-
-  // Auto-adjust end date whenever duration type changes
-  const handleDurationChange = (d: 'daily' | 'weekly' | 'monthly') => {
-    setDuration(d);
-    setEndDate(toDateStr(new Date(startDate).getTime() + getDurationDays(d) * msPerDay));
-    setBooked(false);
-  };
-
-  // Auto-adjust end date whenever start date changes (keep same duration span)
-  const handleStartDateChange = (newStart: string) => {
-    setStartDate(newStart);
-    setEndDate(toDateStr(new Date(newStart).getTime() + getDurationDays(duration) * msPerDay));
-    setBooked(false);
-  };
-
-  // Compute totals
-  const diffDays = Math.max(1, Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / msPerDay));
-  const units = duration === 'daily' ? diffDays : duration === 'weekly' ? Math.ceil(diffDays / 7) : Math.ceil(diffDays / 30);
-  const ratePerUnit = (duration === 'daily' ? pricing?.daily : duration === 'weekly' ? pricing?.weekly : pricing?.monthly) || 0;
-  
-  const multiplier = duration === 'monthly' ? units : diffDays;
-  const totalPrice = parseFloat((ratePerUnit * multiplier).toFixed(2));
-  const unit = duration === 'monthly' ? '/mo' : '/day';
-
-  const handleWhatsAppBook = async () => {
-    setIsBooking(true);
-    try {
-      await api.post('/bookings/', {
-        vehicle_id: vehicle.id,
-        start_date: new Date(startDate).toISOString(),
-        end_date: new Date(endDate).toISOString(),
-        total_price: totalPrice,
-        duration_type: duration,
-      });
-      setBooked(true);
-    } catch {
-      // Still open WhatsApp even if the API call fails
-    } finally {
-      setIsBooking(false);
-      const waMsg = encodeURIComponent(
-        `Hi Falcon View! I'd like to book the ${vehicle.name}.\nRental type: ${duration}.\nPickup: ${startDate}  Return: ${endDate}.\nEstimated total: AED ${totalPrice}. Please confirm availability.`
-      );
-      window.open(`https://wa.me/971500999733?text=${waMsg}`, '_blank', 'noopener,noreferrer');
-    }
-  };
 
   return (
     <div className="bg-white border border-gray-100 rounded-2xl shadow-xl p-6 sticky top-24">
@@ -296,13 +274,72 @@ const VehicleDetailPage: React.FC = () => {
     );
   }
 
+  const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(false);
+
+  const msPerDay = 86400000;
+  const toDateStr = (ms: number) => new Date(ms).toISOString().split('T')[0];
+
+  const getDurationDays = (d: 'daily' | 'weekly' | 'monthly') =>
+    d === 'daily' ? 1 : d === 'weekly' ? 7 : 30;
+
+  const today = toDateStr(Date.now());
+
+  const [duration, setDuration] = useState<'daily' | 'weekly' | 'monthly'>('daily');
+  const [startDate, setStartDate] = useState(today);
+  const [endDate, setEndDate] = useState(toDateStr(Date.now() + getDurationDays('daily') * msPerDay));
+  const [isBooking, setIsBooking] = useState(false);
+  const [booked, setBooked] = useState(false);
+  const { pricing } = vehicle;
+
+  // Auto-adjust end date whenever duration type changes
+  const handleDurationChange = (d: 'daily' | 'weekly' | 'monthly') => {
+    setDuration(d);
+    setEndDate(toDateStr(new Date(startDate).getTime() + getDurationDays(d) * msPerDay));
+    setBooked(false);
+  };
+
+  // Auto-adjust end date whenever start date changes (keep same duration span)
+  const handleStartDateChange = (newStart: string) => {
+    setStartDate(newStart);
+    setEndDate(toDateStr(new Date(newStart).getTime() + getDurationDays(duration) * msPerDay));
+    setBooked(false);
+  };
+
+  // Compute totals
+  const diffDays = Math.max(1, Math.ceil((new Date(endDate).getTime() - new Date(startDate).getTime()) / msPerDay));
+  const units = duration === 'daily' ? diffDays : duration === 'weekly' ? Math.ceil(diffDays / 7) : Math.ceil(diffDays / 30);
+  const ratePerUnit = (duration === 'daily' ? pricing?.daily : duration === 'weekly' ? pricing?.weekly : pricing?.monthly) || 0;
+  
+  const multiplier = duration === 'monthly' ? units : diffDays;
+  const totalPrice = parseFloat((ratePerUnit * multiplier).toFixed(2));
+  const unit = duration === 'monthly' ? '/mo' : '/day';
+
+  const dynamicWaMsg = `Hi Falcon View! I'd like to book the ${vehicle.name}.\nRental type: ${duration}.\nPickup: ${startDate}  Return: ${endDate}.\nEstimated total: AED ${totalPrice}. Please confirm availability.`;
+
+  const handleWhatsAppBook = async () => {
+    setIsBooking(true);
+    try {
+      await api.post('/bookings/', {
+        vehicle_id: vehicle.id,
+        start_date: new Date(startDate).toISOString(),
+        end_date: new Date(endDate).toISOString(),
+        total_price: totalPrice,
+        duration_type: duration,
+      });
+      setBooked(true);
+    } catch {
+      // Still open WhatsApp even if the API call fails
+    } finally {
+      setIsBooking(false);
+      openWhatsApp(dynamicWaMsg);
+    }
+  };
+
   const images = (vehicle.images?.exterior?.length || 0) > 1
     ? vehicle.images.exterior
     : [vehicle.images?.thumbnail || ''];
 
-  const waMsg = encodeURIComponent(
-    `Hi Falcon View! I'd like to get a quote for the ${vehicle.name}. Please send pricing and availability.`
-  );
+  const waMsg = encodeURIComponent(dynamicWaMsg);
 
   const specRows = [
     { label: 'Engine', value: vehicle.specs?.engine },
@@ -394,7 +431,7 @@ const VehicleDetailPage: React.FC = () => {
           </nav>
           <div className="flex-1" />
           <a
-            href={`https://wa.me/971500999733?text=${waMsg}`}
+            href={getWhatsAppUrl(dynamicWaMsg)}
             target="_blank" rel="noopener noreferrer"
             className="hidden sm:flex items-center gap-2 bg-green-500 hover:bg-green-600 text-white font-grotesk font-semibold text-[13px] px-5 py-2.5 rounded-full transition-colors shadow-sm"
           >
@@ -475,13 +512,6 @@ const VehicleDetailPage: React.FC = () => {
               <h1 className="font-grotesk font-extrabold text-3xl sm:text-4xl text-gray-900 leading-tight">{vehicle.name}</h1>
               <p className="text-gray-500 text-[16px] mt-2">{vehicle.tagline}</p>
               <div className="flex flex-wrap items-center gap-4 mt-4">
-                <div className="flex items-center gap-1.5">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} size={14} className={i < Math.floor(vehicle.rating) ? 'text-orange-400 fill-orange-400' : 'text-gray-200 fill-gray-200'} />
-                  ))}
-                  <span className="font-grotesk font-bold text-[14px] text-gray-900 ml-1">{vehicle.rating}</span>
-                  <span className="text-gray-400 text-[13px]">({vehicle.reviewCount} verified rentals)</span>
-                </div>
                 {vehicle.deliveryAvailable && (
                   <span className="flex items-center gap-1.5 text-[13px] text-emerald-600 font-medium">
                     <MapPin size={13} /> Free delivery across Dubai
@@ -603,23 +633,38 @@ const VehicleDetailPage: React.FC = () => {
 
           {/* ── RIGHT COLUMN: Sticky booking card ── */}
           <div className="hidden lg:block">
-            <StickyBookingCard vehicle={vehicle} />
+            <StickyBookingCard
+              vehicle={vehicle}
+              duration={duration}
+              startDate={startDate}
+              endDate={endDate}
+              isBooking={isBooking}
+              booked={booked}
+              totalPrice={totalPrice}
+              units={units}
+              ratePerUnit={ratePerUnit}
+              unit={unit}
+              handleDurationChange={handleDurationChange}
+              handleStartDateChange={handleStartDateChange}
+              setEndDate={setEndDate}
+              setBooked={setBooked}
+              handleWhatsAppBook={handleWhatsAppBook}
+            />
           </div>
         </div>
 
         {/* Mobile booking bar */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 flex gap-3 lg:hidden z-40 shadow-2xl">
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 flex items-center justify-between gap-3 lg:hidden z-40 shadow-2xl">
           <div className="flex-1">
-            <p className="font-mono text-[10px] text-gray-400 uppercase tracking-wider">From</p>
-            <p className="font-grotesk font-bold text-[18px] text-gray-900">{formatAED(vehicle.pricing.daily)}<span className="text-gray-400 font-normal text-[11px]">/day</span></p>
+            <p className="font-mono text-[9px] text-gray-400 uppercase tracking-wider">Estimated Total</p>
+            <p className="font-grotesk font-bold text-[18px] text-gray-900">{formatAED(totalPrice)}<span className="text-gray-400 font-normal text-[11px] ml-1">({units} {duration === 'daily' ? 'day' : duration === 'weekly' ? 'week' : 'month'}{units > 1 ? 's' : ''})</span></p>
           </div>
-          <a
-            href={`https://wa.me/971500999733?text=${waMsg}`}
-            target="_blank" rel="noopener noreferrer"
-            className="flex items-center gap-2 bg-green-500 text-white font-grotesk font-bold text-[14px] px-5 py-3 rounded-xl shadow-lg shadow-green-500/20"
+          <button
+            onClick={() => setIsMobilePanelOpen(true)}
+            className="flex items-center gap-2 bg-orange-500 text-white font-grotesk font-bold text-[14px] px-5 py-3 rounded-xl shadow-lg shadow-orange-500/20"
           >
-            <MessageCircle size={15} /> Book Now
-          </a>
+            Configure & Book
+          </button>
           <a
             href="tel:+971500999733"
             className="flex items-center gap-2 bg-gray-900 text-white font-grotesk font-semibold text-[14px] px-4 py-3 rounded-xl"
@@ -628,6 +673,138 @@ const VehicleDetailPage: React.FC = () => {
             <Phone size={15} />
           </a>
         </div>
+
+        {/* Mobile Expandable Bottom Sheet */}
+        <AnimatePresence>
+          {isMobilePanelOpen && (
+            <>
+              {/* Backdrop */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 0.6 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setIsMobilePanelOpen(false)}
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 lg:hidden"
+              />
+              {/* Bottom Sheet */}
+              <motion.div
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="fixed bottom-0 left-0 right-0 bg-white rounded-t-[2.5rem] border-t border-gray-100 z-50 max-h-[85vh] overflow-y-auto px-6 pt-6 pb-8 lg:hidden shadow-2xl"
+              >
+                {/* Drag handle */}
+                <div className="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-5" />
+                
+                {/* Header */}
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="font-grotesk font-bold text-xl text-gray-900">{vehicle.name}</h3>
+                    <p className="text-[12px] text-gray-400">Select dates and book via WhatsApp</p>
+                  </div>
+                  <button
+                    onClick={() => setIsMobilePanelOpen(false)}
+                    className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-gray-200 transition-colors"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+
+                {/* Body Content */}
+                <div className="mb-4 bg-gray-50 p-4 rounded-2xl flex items-center justify-between">
+                  <div>
+                    <span className="font-grotesk font-bold text-2xl text-gray-900">{formatAED(ratePerUnit)}</span>
+                    <span className="text-gray-400 text-[12px] font-medium ml-1">{unit}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="block font-mono text-[9px] uppercase tracking-wider text-gray-400">Total Price</span>
+                    <span className="font-bold text-orange-500 text-lg">{formatAED(totalPrice)}</span>
+                  </div>
+                </div>
+
+                {/* Duration toggle */}
+                <div className="grid grid-cols-3 gap-1 bg-gray-100 p-1 rounded-xl mb-4">
+                  {(['daily', 'weekly', 'monthly'] as const).map(d => (
+                    <button
+                      key={d}
+                      onClick={() => handleDurationChange(d)}
+                      className={cn('py-2 rounded-lg font-grotesk font-semibold text-[12px] capitalize transition-all',
+                        duration === d ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                      )}
+                    >
+                      {d}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Date Pickers */}
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div>
+                    <label className="block font-mono text-[9px] uppercase tracking-wider text-gray-400 mb-1">Pickup Date</label>
+                    <input
+                      type="date"
+                      value={startDate}
+                      min={today}
+                      onChange={e => handleStartDateChange(e.target.value)}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-[13px] font-grotesk text-gray-800 focus:outline-none focus:border-orange-500 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="block font-mono text-[9px] uppercase tracking-wider text-gray-400 mb-1">Return Date</label>
+                    <input
+                      type="date"
+                      value={endDate}
+                      min={startDate}
+                      onChange={e => { setEndDate(e.target.value); setBooked(false); }}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-[13px] font-grotesk text-gray-800 focus:outline-none focus:border-orange-500 transition-colors"
+                    />
+                  </div>
+                </div>
+
+                {/* KM info */}
+                <div className="bg-orange-50 border border-orange-100 rounded-xl p-3 mb-5 text-[12px] text-orange-700">
+                  <p className="font-semibold mb-0.5">Included kilometres</p>
+                  <p>Daily: {pricing?.kmsDaily || '—'} km · Weekly: {pricing?.kmsWeekly || '—'} km/day · Monthly: {pricing?.kmsMonthly || '—'} km</p>
+                  <p className="mt-1 text-orange-600/70">Excess: AED {pricing?.excessPerKm || 0}/km</p>
+                </div>
+
+                {/* CTAs */}
+                <div className="flex flex-col gap-3">
+                  {booked && (
+                    <div className="flex items-center gap-2 bg-green-50 border border-green-100 rounded-xl px-4 py-3 text-[12px] text-green-700 font-grotesk">
+                      <CheckCircle2 size={14} className="text-green-500 shrink-0" />
+                      Booking recorded! Opening WhatsApp to confirm…
+                    </div>
+                  )}
+                  <button
+                    onClick={handleWhatsAppBook}
+                    disabled={isBooking}
+                    className="flex items-center justify-center gap-2 bg-green-500 hover:bg-green-600 disabled:opacity-60 text-white font-grotesk font-bold text-[14px] py-4 rounded-xl transition-colors shadow-lg shadow-green-500/20 w-full"
+                    aria-label="Book via WhatsApp"
+                  >
+                    {isBooking ? (
+                      <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.4 0 0 5.4 0 12h4z" />
+                      </svg>
+                    ) : (
+                      <MessageCircle size={16} />
+                    )}
+                    {isBooking ? 'Saving booking…' : 'Book via WhatsApp'}
+                  </button>
+                  <a
+                    href="tel:+971500999733"
+                    className="flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-800 text-white font-grotesk font-semibold text-[14px] py-3.5 rounded-xl transition-colors w-full"
+                    aria-label="Call to book"
+                  >
+                    <Phone size={15} /> Call +971 50 099 9733
+                  </a>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
       </div>
     </div>
     </>

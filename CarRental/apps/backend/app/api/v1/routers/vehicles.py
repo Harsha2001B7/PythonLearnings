@@ -101,7 +101,7 @@ def upload_vehicle_image(
     return {
         "id": db_image.id,
         "vehicle_id": db_image.vehicle_id,
-        "image_url": f"http://localhost:8000{db_image.image_url}",
+        "image_url": f"{settings.BACKEND_URL}{db_image.image_url}",
         "image_type": db_image.image_type
     }
 
