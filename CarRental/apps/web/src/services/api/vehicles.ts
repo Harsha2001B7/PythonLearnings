@@ -1,5 +1,6 @@
 import api from './axios';
 import { Vehicle } from '../../types';
+import { API_BASE } from '../../config/api';
 
 // Helper to transform backend vehicle to frontend Vehicle type
 const transformVehicle = (v: any): Vehicle => ({
@@ -23,7 +24,7 @@ const transformVehicle = (v: any): Vehicle => ({
     const getFullUrl = (url: string) => {
       if (!url) return '';
       if (url.startsWith('http://') || url.startsWith('https://')) return url;
-      return `http://localhost:8000${url}`;
+      return `${API_BASE}${url}`;
     };
     const explicitThumbnail = v.images?.find((img: any) => img.image_type === 'thumbnail')?.image_url;
     const fallbackImage = explicitThumbnail || v.images?.[0]?.image_url || '';

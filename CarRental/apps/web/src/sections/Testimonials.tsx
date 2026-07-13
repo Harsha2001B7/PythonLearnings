@@ -1,6 +1,7 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
+import { API_BASE } from '../config/api';
 import useEmblaCarousel from 'embla-carousel-react';
 import { useQuery } from '@tanstack/react-query';
 import { testimonialService } from '../services/api/testimonials';
@@ -177,7 +178,7 @@ const Testimonials: React.FC = () => {
                 <div className="flex items-center gap-3">
                   {active.image_url ? (
                     <div className="w-11 h-11 rounded-full overflow-hidden border border-gray-100 shrink-0 shadow-sm">
-                      <img src={`http://localhost:8000${active.image_url}`} alt={active.name} className="w-full h-full object-cover" />
+                      <img src={`${API_BASE}${active.image_url}`} alt={active.name} className="w-full h-full object-cover" />
                     </div>
                   ) : (
                     <InitialsAvatar initials={getInitials(active.name)} color="#C8873A" />

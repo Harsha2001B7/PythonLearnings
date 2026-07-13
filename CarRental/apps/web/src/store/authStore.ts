@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import axios from 'axios';
+import { API_BASE_URL } from '../config/api';
 
 export interface UserProfile {
   id: number;
@@ -128,7 +129,6 @@ export const useAuthStore = create<AuthState>((set) => ({
   initializeAuth: async () => {
     const token = getStoredItem('fv_access_token');
     const refresh = getStoredItem('fv_refresh_token');
-    const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
     if (!token) {
       set({
@@ -143,7 +143,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     try {
       // Validate token by fetching the profile
-      const response = await axios.get(`${baseUrl}/auth/me`, {
+      const response = await axios.get(`${API_BASE_URL}/auth/me`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const user = response.data;
@@ -160,12 +160,12 @@ export const useAuthStore = create<AuthState>((set) => ({
       // If validation fails, try refreshing the token
       if (refresh) {
         try {
-          const response = await axios.post(`${baseUrl}/auth/refresh`, {
+          const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
             refresh_token: refresh
           });
           const { access_token, refresh_token } = response.data;
 
-          const profileResponse = await axios.get(`${baseUrl}/auth/me`, {
+          const profileResponse = await axios.get(`${API_BASE_URL}/auth/me`, {
             headers: { Authorization: `Bearer ${access_token}` }
           });
           const user = profileResponse.data;
