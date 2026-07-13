@@ -43,9 +43,9 @@ async function handleGoogleCredential(
     });
     options.login(access_token, refresh_token, profileResponse.data, true);
     options.addToast(`Welcome back, ${profileResponse.data.first_name || 'User'}!`, 'success');
-    if (profileResponse.data.role_id === 1) {
-      options.navigate('/admin');
-    } else {
+      if (profileResponse.data.role_id === 1) {
+        options.navigate('/admin', { replace: true });
+      } else {
       options.navigate(options.from, { replace: true });
     }
   } catch (err: any) {
@@ -148,9 +148,9 @@ const Login: React.FC = () => {
       });
       login(access_token, refresh_token, profileResponse.data, !!data.rememberMe);
       addToast(`Welcome back, ${profileResponse.data.first_name || 'User'}!`, 'success');
-      if (profileResponse.data.role_id === 1) {
-        navigate('/admin');
-      } else {
+        if (profileResponse.data.role_id === 1) {
+          navigate('/admin', { replace: true });
+        } else {
         navigate(from, { replace: true });
       }
     } catch (error: any) {

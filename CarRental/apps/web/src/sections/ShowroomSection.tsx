@@ -94,7 +94,7 @@ const ShowroomSection: React.FC = () => {
           </div>
 
           {/* Right Side: Map */}
-          <div className="w-full lg:w-[35%] min-h-[250px] lg:min-h-[350px] rounded-[24px] overflow-hidden border-2 border-vanta-amber/30 shadow-[0_20px_50px_rgba(212,175,55,0.1)] group relative">
+          <div className="w-full lg:w-[35%] h-[300px] lg:h-[400px] rounded-[24px] overflow-hidden border-2 border-vanta-amber/30 shadow-[0_20px_50px_rgba(212,175,55,0.1)] group relative">
             {/* Interactive Cover for opening map when clicking the overlay (optional, but requested interactive map, so we just let the iframe handle it) */}
             <iframe 
               width="100%" 
