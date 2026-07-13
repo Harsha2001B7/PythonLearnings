@@ -24,3 +24,6 @@ venv/
 *.db
 *.sqlite
 *.sqlite3
+
+# Allow demo database
+!CarRental/apps/data/sqlite/falconview.db
