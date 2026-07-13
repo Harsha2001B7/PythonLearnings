@@ -13,6 +13,7 @@ import BookingProcess from '../sections/BookingProcess';
 import Testimonials from '../sections/Testimonials';
 import CorporateSection from '../sections/CorporateSection';
 import AppTeaser from '../sections/AppTeaser';
+import ShowroomSection from '../sections/ShowroomSection';
 import FaqSection from '../sections/FaqSection';
 import DeliveryInfoSection from '../sections/DeliveryInfoSection';
 import { useBookingStore, useAppStore, useToastStore } from '../store';
@@ -147,18 +148,18 @@ const CompareDrawer: React.FC = () => {
     <AnimatePresence>
       <motion.div key="compare-drawer"
         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[800] bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 z-[1000] bg-black/50 backdrop-blur-sm safe-area-top"
         onClick={() => setCompareOpen(false)}
       >
         <motion.aside
           initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
           transition={{ type: 'spring', stiffness: 300, damping: 32 }}
           onClick={(e) => e.stopPropagation()}
-          className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl border-t border-gray-100"
+          className="absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl border-t border-gray-100 flex flex-col max-h-[85vh] pb-[env(safe-area-inset-bottom)]"
           role="complementary" aria-label="Compare vehicles"
         >
-          <div className="section-container py-8">
-            <div className="flex items-center justify-between mb-6">
+          <div className="section-container pt-8 pb-4 shrink-0 border-b border-gray-100">
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <BarChart2 size={18} className="text-orange-500" />
                 <h2 className="font-grotesk font-bold text-xl text-gray-900">Comparing {vehicles.length} of 3 vehicles</h2>
@@ -170,7 +171,9 @@ const CompareDrawer: React.FC = () => {
                 </button>
               </div>
             </div>
+          </div>
             
+          <div className="section-container py-6 overflow-y-auto">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Active Vehicles */}
               {vehicles.map((v) => v && (
@@ -247,8 +250,8 @@ const WhatsAppFAB: React.FC = () => (
     target="_blank"
     rel="noopener noreferrer"
     aria-label="Chat on WhatsApp"
-    className="fixed z-[700] right-6 flex items-center justify-center bg-green-500 hover:bg-green-600 text-white rounded-full shadow-[0_4px_20px_rgba(34,197,94,0.5)] transition-colors"
-    style={{ width: 56, height: 56, bottom: '6rem' }}
+    className="fixed z-[700] right-6 flex items-center justify-center bg-green-500 hover:bg-green-600 text-white rounded-full shadow-[0_4px_20px_rgba(34,197,94,0.5)] transition-colors bottom-[100px] md:bottom-24"
+    style={{ width: 56, height: 56 }}
     initial={{ scale: 0, opacity: 0 }}
     animate={{ scale: 1, opacity: 1 }}
     transition={{ delay: 2.5, type: 'spring', stiffness: 300, damping: 20 }}
@@ -275,7 +278,7 @@ const FloatingCompareBtn: React.FC = () => {
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       onClick={() => setCompareOpen(true)}
-      className="fixed z-[700] bottom-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white font-grotesk font-semibold px-6 py-3 rounded-full flex items-center gap-2 shadow-[0_8px_30px_rgba(0,0,0,0.3)]"
+      className="fixed z-[700] bottom-[170px] right-6 translate-x-0 md:bottom-8 md:left-1/2 md:right-auto md:-translate-x-1/2 bg-gray-900 text-white font-grotesk font-semibold px-4 md:px-6 py-3 rounded-full flex items-center gap-2 shadow-[0_8px_30px_rgba(0,0,0,0.3)] text-sm md:text-base whitespace-nowrap"
     >
       <BarChart2 size={16} className="text-orange-500" />
       Compare {compareList.length} Vehicle{compareList.length > 1 ? 's' : ''}
@@ -349,14 +352,15 @@ const Home: React.FC = () => {
           {/* ── LIGHT sections: everything below ── */}
           <div data-theme="light">
             <MarqueeTicker />
+            <FleetExplorer />
             <FeaturedFleet />
             <WhyVanta />
-            <FleetExplorer />
             <BookingProcess />
             <Testimonials />
             <CorporateSection />
             <AppTeaser />
             <FaqSection />
+            <ShowroomSection />
           </div>
         </main>
 

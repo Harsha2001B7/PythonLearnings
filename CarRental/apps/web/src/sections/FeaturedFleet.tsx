@@ -125,7 +125,7 @@ const FeaturedFleet: React.FC = () => {
           {isLoading ? (
             <div className="w-full flex justify-center p-10"><div className="w-8 h-8 rounded-full border-2 border-orange-500/30 border-t-orange-500 animate-spin" /></div>
           ) : featuredVehicles.map((vehicle: any, i: number) => (
-            <div key={`${vehicle.id}-${i}`} className="flex-none w-[300px] sm:w-[340px] relative">
+            <div key={`${vehicle.id}-${i}`} className="flex-none w-[85vw] sm:w-[340px] relative">
               <motion.article
                 initial={{ opacity: 0, x: 40 }}
                 whileInView={{ opacity: 1, x: 0 }}

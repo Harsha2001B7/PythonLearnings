@@ -163,7 +163,7 @@ const Register: React.FC = () => {
         </div>
 
         {/* RIGHT SIDE: Register Form */}
-        <div className="w-full md:w-1/2 flex items-start md:items-center justify-center px-4 sm:px-6 md:px-12 lg:px-20 py-8 z-10 relative">
+        <div className="w-full md:w-1/2 flex items-start md:items-center justify-center px-4 sm:px-6 md:px-12 lg:px-20 py-12 pb-32 md:pb-8 z-10 relative min-h-screen md:min-h-0">
           {/* Subtle Background Glow */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[550px] h-[550px] rounded-full bg-gradient-to-r from-vanta-amber/10 to-orange-600/5 blur-[100px] pointer-events-none" />
 
@@ -397,13 +397,13 @@ const Register: React.FC = () => {
                 </div>
 
                 {/* Submit Button */}
-                <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-gradient-to-r from-vanta-amber to-orange-600 hover:from-orange-500 hover:to-vanta-amber text-white font-grotesk font-bold text-sm py-3.5 rounded-xl shadow-lg shadow-orange-500/10 flex items-center justify-center gap-2 mt-2 disabled:opacity-60 disabled:cursor-not-allowed"
-                >
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    type="submit"
+                    disabled={loading}
+                    className="w-full bg-gradient-to-r from-vanta-amber to-orange-600 hover:from-orange-500 hover:to-vanta-amber text-white font-grotesk font-bold text-sm py-4 rounded-xl shadow-lg shadow-orange-500/10 flex items-center justify-center gap-2 mt-2 disabled:opacity-60 disabled:cursor-not-allowed transition-all duration-300"
+                  >
                   {loading ? (
                     <div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />
                   ) : (

@@ -654,7 +654,7 @@ const VehicleDetailPage: React.FC = () => {
         </div>
 
         {/* Mobile booking bar */}
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 flex items-center justify-between gap-3 lg:hidden z-40 shadow-2xl">
+        <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl border-t border-gray-200 p-4 safe-area-bottom flex items-center justify-between gap-3 lg:hidden z-[100] shadow-2xl">
           <div className="flex-1">
             <p className="font-mono text-[9px] text-gray-400 uppercase tracking-wider">Estimated Total</p>
             <p className="font-grotesk font-bold text-[18px] text-gray-900">{formatAED(totalPrice)}<span className="text-gray-400 font-normal text-[11px] ml-1">({units} {duration === 'daily' ? 'day' : duration === 'weekly' ? 'week' : 'month'}{units > 1 ? 's' : ''})</span></p>

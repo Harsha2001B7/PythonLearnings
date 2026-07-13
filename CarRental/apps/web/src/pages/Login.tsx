@@ -191,7 +191,7 @@ const Login: React.FC = () => {
         </div>
 
         {/* RIGHT SIDE: Login Form */}
-        <div className="w-full md:w-1/2 flex items-center justify-center px-4 sm:px-8 md:px-12 lg:px-20 py-8 z-10 relative min-h-screen md:min-h-0">
+        <div className="w-full md:w-1/2 flex items-center justify-center px-4 sm:px-8 md:px-12 lg:px-20 py-12 pb-32 md:pb-8 z-10 relative min-h-screen md:min-h-0">
           {/* Subtle Background Glow */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[450px] h-[450px] rounded-full bg-gradient-to-r from-vanta-amber/10 to-orange-600/5 blur-[100px] pointer-events-none" />
 
@@ -234,12 +234,11 @@ const Login: React.FC = () => {
                     </span>
                     <input
                       type="email"
-                      placeholder="name@example.com"
-                      autoComplete="email"
+                      placeholder="you@example.com"
                       {...register('email')}
-                      className={`w-full bg-vanta-paper-soft/40 border ${
+                      className={`w-full bg-white/[0.03] border ${
                         errors.email ? 'border-red-500/50 focus:border-red-500' : 'border-white/[0.08] focus:border-vanta-amber'
-                      } rounded-xl py-3 pl-10 pr-4 text-sm text-white placeholder-vanta-ink-subtle focus:outline-none transition-all`}
+                      } rounded-xl py-3.5 pl-10 pr-4 text-sm text-white placeholder-vanta-ink-subtle focus:outline-none transition-all`}
                     />
                   </div>
                   {errors.email && (
@@ -267,11 +266,10 @@ const Login: React.FC = () => {
                     <input
                       type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
-                      autoComplete="current-password"
                       {...register('password')}
-                      className={`w-full bg-vanta-paper-soft/40 border ${
+                      className={`w-full bg-white/[0.03] border ${
                         errors.password ? 'border-red-500/50 focus:border-red-500' : 'border-white/[0.08] focus:border-vanta-amber'
-                      } rounded-xl py-3 pl-10 pr-10 text-sm text-white placeholder-vanta-ink-subtle focus:outline-none transition-all`}
+                      } rounded-xl py-3.5 pl-10 pr-10 text-sm text-white placeholder-vanta-ink-subtle focus:outline-none transition-all`}
                     />
                     <button
                       type="button"
@@ -306,7 +304,7 @@ const Login: React.FC = () => {
                   whileTap={{ scale: 0.98 }}
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-gradient-to-r from-vanta-amber to-orange-600 hover:from-orange-500 hover:to-vanta-amber text-white font-grotesk font-bold text-sm py-3.5 rounded-xl shadow-lg shadow-orange-500/10 flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full bg-gradient-to-r from-vanta-amber to-orange-600 hover:from-orange-500 hover:to-vanta-amber text-white font-grotesk font-bold text-sm py-4 rounded-xl shadow-lg shadow-orange-500/10 flex items-center justify-center gap-2 transition-all duration-300 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {loading ? (
                     <div className="w-5 h-5 rounded-full border-2 border-white/30 border-t-white animate-spin" />

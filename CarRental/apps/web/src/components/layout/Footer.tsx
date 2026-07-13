@@ -111,21 +111,10 @@ const Footer: React.FC = () => {
             <p className="text-text-subtle text-body-sm leading-relaxed mb-3 font-sans" dir="rtl">
               فالكون فيو لتأجير السيارات ش.ذ.م.م
             </p>
-            <p className="text-text-subtle text-caption leading-relaxed mb-4">
+            <p className="text-text-subtle text-caption leading-relaxed mb-6">
               Ansar Gallery Building, Hamsah-A Building<br />
               87556 3A St, Al Karama, Dubai, UAE
             </p>
-            <div className="w-full h-32 rounded-xl overflow-hidden border border-white/[0.08] mb-6">
-              <iframe
-                title="Office Location Map"
-                src="https://maps.google.com/maps?q=Ansar%20Gallery%20Building,%20Hamsah-A%20Building%20-%2087556%203A%20St%20-%20Al%20Karama%20-%20Dubai%20-%20United%20Arab%20Emirates&t=&z=14&ie=UTF8&iwloc=&output=embed"
-                width="100%"
-                height="100%"
-                style={{ border: 0, filter: 'grayscale(1) invert(0.9) contrast(1.2)' }}
-                allowFullScreen={false}
-                loading="lazy"
-              ></iframe>
-            </div>
             {/* Social + WhatsApp */}
             <div className="flex items-center gap-4">
               <motion.button
@@ -139,7 +128,7 @@ const Footer: React.FC = () => {
                 WhatsApp
               </motion.button>
               <a
-                href="https://instagram.com/falconviewcarrentals"
+                href="https://www.instagram.com/car_rental_dxbai?igsh=dmRwb2ZxaHp4NzZ4"
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram"

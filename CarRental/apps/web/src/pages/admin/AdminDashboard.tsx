@@ -566,47 +566,109 @@ const AdminDashboard: React.FC = () => {
                     <Loader2 className="w-8 h-8 text-vanta-amber animate-spin" />
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse text-left text-xs text-vanta-ink-muted">
-                      <thead>
-                        <tr className="border-b border-vanta-border font-mono text-[10px] uppercase tracking-wider">
-                          <th className="py-3 px-4">Car Details</th>
-                          <th className="py-3 px-4">Category</th>
-                          <th className="py-3 px-4">Daily pricing</th>
-                          <th className="py-3 px-4">Lease State</th>
-                          <th className="py-3 px-4 text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-vanta-border">
-                        {filteredVehicles.map((car) => (
-                          <tr key={car.id} className="hover:bg-white/[0.02] transition-colors">
-                            <td className="py-4 px-4 flex items-center gap-3">
-                              <img src={car.images.thumbnail} alt={car.name} className="w-12 h-9 rounded object-cover bg-vanta-paper border border-vanta-border" />
-                              <div>
-                                <p className="font-grotesk font-bold text-white">{car.name}</p>
-                                <span className="text-[10px] text-vanta-amber font-mono">{car.brand}</span>
-                              </div>
-                            </td>
-                            <td className="py-4 px-4 font-mono uppercase text-[10px]">{car.category}</td>
-                            <td className="py-4 px-4 font-mono font-semibold text-white">{formatAED(car.pricePerDay)}</td>
-                            <td className="py-4 px-4">
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
-                                car.available ? 'text-green-400 bg-green-500/10 border-green-500/20' : 'text-red-400 bg-red-500/10 border-red-500/20'
-                              }`}>
-                                {car.available ? 'ACTIVE' : 'INACTIVE'}
-                              </span>
-                            </td>
-                            <td className="py-4 px-4 text-right space-x-2 whitespace-nowrap flex items-center justify-end">
-                              {/* Sliding Toggle Switch */}
+                  <>
+                    <div className="hidden md:block">
+                      <div className="overflow-x-auto">
+                        <table className="w-full border-collapse text-left text-xs text-vanta-ink-muted">
+                          <thead>
+                            <tr className="border-b border-vanta-border font-mono text-[10px] uppercase tracking-wider">
+                              <th className="py-3 px-4">Car Details</th>
+                              <th className="py-3 px-4">Category</th>
+                              <th className="py-3 px-4">Daily pricing</th>
+                              <th className="py-3 px-4">Lease State</th>
+                              <th className="py-3 px-4 text-right">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-vanta-border">
+                            {filteredVehicles.map((car) => (
+                              <tr key={car.id} className="hover:bg-white/[0.02] transition-colors">
+                                <td className="py-4 px-4 flex items-center gap-3">
+                                  <img src={car.images.thumbnail} alt={car.name} className="w-12 h-9 rounded object-cover bg-vanta-paper border border-vanta-border" />
+                                  <div>
+                                    <p className="font-grotesk font-bold text-white">{car.name}</p>
+                                    <span className="text-[10px] text-vanta-amber font-mono">{car.brand}</span>
+                                  </div>
+                                </td>
+                                <td className="py-4 px-4 font-mono uppercase text-[10px]">{car.category}</td>
+                                <td className="py-4 px-4 font-mono font-semibold text-white">{formatAED(car.pricePerDay)}</td>
+                                <td className="py-4 px-4">
+                                  <span className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
+                                    car.available ? 'text-green-400 bg-green-500/10 border-green-500/20' : 'text-red-400 bg-red-500/10 border-red-500/20'
+                                  }`}>
+                                    {car.available ? 'ACTIVE' : 'INACTIVE'}
+                                  </span>
+                                </td>
+                                <td className="py-4 px-4 text-right space-x-2 whitespace-nowrap flex items-center justify-end">
+                                  {/* Sliding Toggle Switch */}
+                                  <Toggle
+                                    isSelected={car.available}
+                                    onChange={(selected) => toggleStatusMutation.mutate({ id: car.id, available: selected })}
+                                    size="sm"
+                                  />
+                                  
+                                  <button
+                                    onClick={() => handleEditVehicle(car)}
+                                    className="p-2 border border-vanta-border rounded-lg bg-vanta-paper hover:border-vanta-amber text-vanta-ink hover:text-vanta-amber transition-all"
+                                    title="Edit specs"
+                                  >
+                                    <Edit2 size={12} />
+                                  </button>
+                                  
+                                  <button
+                                    onClick={() => {
+                                      setVehicleToDeleteId(car.id);
+                                      setDeleteConfirmOpen(true);
+                                    }}
+                                    className="p-2 border border-vanta-border rounded-lg bg-vanta-paper hover:border-red-500/60 text-vanta-ink hover:text-red-400 transition-all"
+                                    title="Delete Vehicle"
+                                  >
+                                    <Trash2 size={12} />
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-4 md:hidden">
+                      {filteredVehicles.map((car) => (
+                        <div key={car.id} className="bg-vanta-paper border border-vanta-border rounded-xl p-4 flex flex-col gap-3">
+                          <div className="flex items-center gap-3 border-b border-vanta-border pb-3">
+                            <img src={car.images.thumbnail} alt={car.name} className="w-16 h-12 rounded object-cover bg-vanta-panel border border-vanta-border" />
+                            <div className="flex-1">
+                              <p className="font-grotesk font-bold text-white text-sm">{car.name}</p>
+                              <span className="text-[10px] text-vanta-amber font-mono">{car.brand}</span>
+                            </div>
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
+                              car.available ? 'text-green-400 bg-green-500/10 border-green-500/20' : 'text-red-400 bg-red-500/10 border-red-500/20'
+                            }`}>
+                              {car.available ? 'ACTIVE' : 'INACTIVE'}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div>
+                              <span className="block text-[9px] font-mono text-vanta-ink-subtle uppercase">Category</span>
+                              <span className="font-mono uppercase text-[10px] text-white">{car.category}</span>
+                            </div>
+                            <div>
+                              <span className="block text-[9px] font-mono text-vanta-ink-subtle uppercase">Daily Rate</span>
+                              <span className="font-mono font-semibold text-white">{formatAED(car.pricePerDay)}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between pt-2 border-t border-vanta-border mt-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[9px] font-mono uppercase text-vanta-ink-subtle">Status</span>
                               <Toggle
                                 isSelected={car.available}
                                 onChange={(selected) => toggleStatusMutation.mutate({ id: car.id, available: selected })}
                                 size="sm"
                               />
-                              
+                            </div>
+                            <div className="flex gap-2">
                               <button
                                 onClick={() => handleEditVehicle(car)}
-                                className="p-2 border border-vanta-border rounded-lg bg-vanta-paper hover:border-vanta-amber text-vanta-ink hover:text-vanta-amber transition-all"
+                                className="p-2 border border-vanta-border rounded-lg bg-vanta-panel hover:border-vanta-amber text-vanta-ink hover:text-vanta-amber transition-all"
                                 title="Edit specs"
                               >
                                 <Edit2 size={12} />
@@ -617,17 +679,17 @@ const AdminDashboard: React.FC = () => {
                                   setVehicleToDeleteId(car.id);
                                   setDeleteConfirmOpen(true);
                                 }}
-                                className="p-2 border border-vanta-border rounded-lg bg-vanta-paper hover:border-red-500/60 text-vanta-ink hover:text-red-400 transition-all"
+                                className="p-2 border border-vanta-border rounded-lg bg-vanta-panel hover:border-red-500/60 text-vanta-ink hover:text-red-400 transition-all"
                                 title="Delete Vehicle"
                               >
                                 <Trash2 size={12} />
                               </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
                 )}
               </div>
             )}
@@ -646,54 +708,125 @@ const AdminDashboard: React.FC = () => {
                 ) : bookings.length === 0 ? (
                   <p className="text-xs text-vanta-ink-subtle font-mono uppercase text-center py-16">No lease orders placed</p>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse text-left text-xs text-vanta-ink-muted">
-                      <thead>
-                        <tr className="border-b border-vanta-border font-mono text-[10px] uppercase tracking-wider">
-                          <th className="py-3 px-4">Lease ID</th>
-                          <th className="py-3 px-4">User</th>
-                          <th className="py-3 px-4">Vehicle</th>
-                          <th className="py-3 px-4">Lease Dates</th>
-                          <th className="py-3 px-4">Total Fee</th>
-                          <th className="py-3 px-4">State</th>
-                          <th className="py-3 px-4 text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-vanta-border">
-                        {bookings.map((b: any) => (
-                          <tr key={b.id} className="hover:bg-white/[0.02] transition-colors">
-                            <td className="py-4 px-4 font-mono text-white">#{b.id}</td>
-                            <td className="py-4 px-4">
+                  <>
+                    <div className="hidden md:block">
+                      <div className="overflow-x-auto">
+                        <table className="w-full border-collapse text-left text-xs text-vanta-ink-muted">
+                          <thead>
+                            <tr className="border-b border-vanta-border font-mono text-[10px] uppercase tracking-wider">
+                              <th className="py-3 px-4">Lease ID</th>
+                              <th className="py-3 px-4">User</th>
+                              <th className="py-3 px-4">Vehicle</th>
+                              <th className="py-3 px-4">Lease Dates</th>
+                              <th className="py-3 px-4">Total Fee</th>
+                              <th className="py-3 px-4">State</th>
+                              <th className="py-3 px-4 text-right">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-vanta-border">
+                            {bookings.map((b: any) => (
+                              <tr key={b.id} className="hover:bg-white/[0.02] transition-colors">
+                                <td className="py-4 px-4 font-mono text-white">#{b.id}</td>
+                                <td className="py-4 px-4">
+                                  <p className="font-semibold text-white">{b.user?.firstName} {b.user?.lastName}</p>
+                                  <span className="text-[10px] text-vanta-ink-subtle font-mono">{b.user?.email}</span>
+                                </td>
+                                <td className="py-4 px-4 font-semibold text-white">{b.vehicle?.name}</td>
+                                <td className="py-4 px-4 font-mono">
+                                  {b.startDate.split('T')[0]} to {b.endDate.split('T')[0]}
+                                </td>
+                                <td className="py-4 px-4 font-mono font-semibold text-white">{formatAED(b.totalPrice)}</td>
+                                <td className="py-4 px-4">
+                                  <span className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
+                                    b.status === 'confirmed' ? 'text-green-400 border-green-500/20 bg-green-500/5' : 
+                                    b.status === 'pending' ? 'text-amber-400 border-amber-500/20 bg-amber-500/5' :
+                                    'text-red-400 border-red-500/20 bg-red-500/5'
+                                  }`}>
+                                    {b.status}
+                                  </span>
+                                </td>
+                                <td className="py-4 px-4 text-right whitespace-nowrap space-x-1">
+                                  {b.status === 'pending' && (
+                                    <>
+                                      <button
+                                        onClick={() => bookingMutation.mutate({ id: b.id, status: 'confirmed' })}
+                                        className="p-2 border border-vanta-border rounded-lg bg-vanta-paper hover:border-green-500 text-green-400 transition-all"
+                                        title="Approve Lease"
+                                      >
+                                        <Check size={12} />
+                                      </button>
+                                      <button
+                                        onClick={() => bookingMutation.mutate({ id: b.id, status: 'cancelled' })}
+                                        className="p-2 border border-vanta-border rounded-lg bg-vanta-paper hover:border-red-500 text-red-400 transition-all"
+                                        title="Reject Lease"
+                                      >
+                                        <X size={12} />
+                                      </button>
+                                    </>
+                                  )}
+                                  {b.status === 'confirmed' && (
+                                    <button
+                                      onClick={() => bookingMutation.mutate({ id: b.id, status: 'completed' })}
+                                      className="px-3 py-1.5 border border-vanta-border rounded-lg bg-vanta-paper hover:border-green-500 text-white/90 text-[10px] font-mono hover:text-green-400 transition-all"
+                                    >
+                                      COMPLETE LEASE
+                                    </button>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-4 md:hidden">
+                      {bookings.map((b: any) => (
+                        <div key={b.id} className="bg-vanta-paper border border-vanta-border rounded-xl p-4 flex flex-col gap-3">
+                          <div className="flex justify-between items-start border-b border-vanta-border pb-3">
+                            <div>
+                              <span className="text-[10px] font-mono text-vanta-ink-subtle">Lease #{b.id}</span>
+                              <p className="font-semibold text-white">{b.vehicle?.name}</p>
+                            </div>
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
+                              b.status === 'confirmed' ? 'text-green-400 border-green-500/20 bg-green-500/5' : 
+                              b.status === 'pending' ? 'text-amber-400 border-amber-500/20 bg-amber-500/5' :
+                              'text-red-400 border-red-500/20 bg-red-500/5'
+                            }`}>
+                              {b.status}
+                            </span>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div>
+                              <span className="block text-[9px] font-mono text-vanta-ink-subtle uppercase">User</span>
                               <p className="font-semibold text-white">{b.user?.firstName} {b.user?.lastName}</p>
-                              <span className="text-[10px] text-vanta-ink-subtle font-mono">{b.user?.email}</span>
-                            </td>
-                            <td className="py-4 px-4 font-semibold text-white">{b.vehicle?.name}</td>
-                            <td className="py-4 px-4 font-mono">
-                              {b.startDate.split('T')[0]} to {b.endDate.split('T')[0]}
-                            </td>
-                            <td className="py-4 px-4 font-mono font-semibold text-white">{formatAED(b.totalPrice)}</td>
-                            <td className="py-4 px-4">
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
-                                b.status === 'confirmed' ? 'text-green-400 border-green-500/20 bg-green-500/5' : 
-                                b.status === 'pending' ? 'text-amber-400 border-amber-500/20 bg-amber-500/5' :
-                                'text-red-400 border-red-500/20 bg-red-500/5'
-                              }`}>
-                                {b.status}
-                              </span>
-                            </td>
-                            <td className="py-4 px-4 text-right whitespace-nowrap space-x-1">
+                              <span className="text-[10px] text-vanta-ink-subtle font-mono truncate max-w-full block">{b.user?.email}</span>
+                            </div>
+                            <div>
+                              <span className="block text-[9px] font-mono text-vanta-ink-subtle uppercase">Lease Dates</span>
+                              <span className="font-mono text-white block">{b.startDate.split('T')[0]}</span>
+                              <span className="font-mono text-white block">to {b.endDate.split('T')[0]}</span>
+                            </div>
+                          </div>
+                          
+                          <div className="flex justify-between items-center pt-3 border-t border-vanta-border">
+                            <div>
+                              <span className="block text-[9px] font-mono text-vanta-ink-subtle uppercase">Total Fee</span>
+                              <span className="font-mono font-semibold text-white">{formatAED(b.totalPrice)}</span>
+                            </div>
+                            <div className="flex gap-2">
                               {b.status === 'pending' && (
                                 <>
                                   <button
                                     onClick={() => bookingMutation.mutate({ id: b.id, status: 'confirmed' })}
-                                    className="p-2 border border-vanta-border rounded-lg bg-vanta-paper hover:border-green-500 text-green-400 transition-all"
+                                    className="p-2 border border-vanta-border rounded-lg bg-vanta-panel hover:border-green-500 text-green-400 transition-all"
                                     title="Approve Lease"
                                   >
                                     <Check size={12} />
                                   </button>
                                   <button
                                     onClick={() => bookingMutation.mutate({ id: b.id, status: 'cancelled' })}
-                                    className="p-2 border border-vanta-border rounded-lg bg-vanta-paper hover:border-red-500 text-red-400 transition-all"
+                                    className="p-2 border border-vanta-border rounded-lg bg-vanta-panel hover:border-red-500 text-red-400 transition-all"
                                     title="Reject Lease"
                                   >
                                     <X size={12} />
@@ -703,17 +836,17 @@ const AdminDashboard: React.FC = () => {
                               {b.status === 'confirmed' && (
                                 <button
                                   onClick={() => bookingMutation.mutate({ id: b.id, status: 'completed' })}
-                                  className="px-3 py-1.5 border border-vanta-border rounded-lg bg-vanta-paper hover:border-green-500 text-white/90 text-[10px] font-mono hover:text-green-400 transition-all"
+                                  className="px-3 py-1.5 border border-vanta-border rounded-lg bg-vanta-panel hover:border-green-500 text-white/90 text-[10px] font-mono hover:text-green-400 transition-all"
                                 >
-                                  COMPLETE LEASE
+                                  COMPLETE
                                 </button>
                               )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
                 )}
               </div>
             )}
@@ -744,50 +877,95 @@ const AdminDashboard: React.FC = () => {
                     <Loader2 className="w-8 h-8 text-vanta-amber animate-spin" />
                   </div>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse text-left text-xs text-vanta-ink-muted">
-                      <thead>
-                        <tr className="border-b border-vanta-border font-mono text-[10px] uppercase tracking-wider">
-                          <th className="py-3 px-4">User Details</th>
-                          <th className="py-3 px-4">Phone</th>
-                          <th className="py-3 px-4">Role</th>
-                          <th className="py-3 px-4">State</th>
-                          <th className="py-3 px-4 text-right">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-vanta-border">
-                        {filteredUsers.map((u: any) => (
-                          <tr key={u.id} className="hover:bg-white/[0.02] transition-colors">
-                            <td className="py-4 px-4">
+                  <>
+                    <div className="hidden md:block">
+                      <div className="overflow-x-auto">
+                        <table className="w-full border-collapse text-left text-xs text-vanta-ink-muted">
+                          <thead>
+                            <tr className="border-b border-vanta-border font-mono text-[10px] uppercase tracking-wider">
+                              <th className="py-3 px-4">User Details</th>
+                              <th className="py-3 px-4">Phone</th>
+                              <th className="py-3 px-4">Role</th>
+                              <th className="py-3 px-4">State</th>
+                              <th className="py-3 px-4 text-right">Actions</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-vanta-border">
+                            {filteredUsers.map((u: any) => (
+                              <tr key={u.id} className="hover:bg-white/[0.02] transition-colors">
+                                <td className="py-4 px-4">
+                                  <p className="font-semibold text-white">{u.first_name} {u.last_name}</p>
+                                  <span className="text-[10px] text-vanta-ink-subtle font-mono">{u.email}</span>
+                                </td>
+                                <td className="py-4 px-4 font-mono">{u.phone || 'N/A'}</td>
+                                <td className="py-4 px-4 font-mono text-[10px] uppercase">{u.role_id === 1 ? 'ADMIN' : 'USER'}</td>
+                                <td className="py-4 px-4">
+                                  <span className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
+                                    u.status === 'active' ? 'text-green-400 bg-green-500/10 border-green-500/20' : 'text-red-400 bg-red-500/10 border-red-500/20'
+                                  }`}>
+                                    {u.status.toUpperCase()}
+                                  </span>
+                                </td>
+                                <td className="py-4 px-4 text-right">
+                                  {u.id !== user?.id && (
+                                    <button
+                                      onClick={() => userStatusMutation.mutate({ id: u.id, status: u.status === 'active' ? 'disabled' : 'active' })}
+                                      className={`px-3 py-1.5 border border-vanta-border rounded-lg bg-vanta-paper text-[10px] font-mono transition-all ${
+                                        u.status === 'active' ? 'hover:border-red-500 text-red-400' : 'hover:border-green-500 text-green-400'
+                                      }`}
+                                    >
+                                      {u.status === 'active' ? 'DISABLE' : 'ENABLE'}
+                                    </button>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-4 md:hidden">
+                      {filteredUsers.map((u: any) => (
+                        <div key={u.id} className="bg-vanta-paper border border-vanta-border rounded-xl p-4 flex flex-col gap-3">
+                          <div className="flex justify-between items-start border-b border-vanta-border pb-3">
+                            <div>
                               <p className="font-semibold text-white">{u.first_name} {u.last_name}</p>
-                              <span className="text-[10px] text-vanta-ink-subtle font-mono">{u.email}</span>
-                            </td>
-                            <td className="py-4 px-4 font-mono">{u.phone || 'N/A'}</td>
-                            <td className="py-4 px-4 font-mono text-[10px] uppercase">{u.role_id === 1 ? 'ADMIN' : 'USER'}</td>
-                            <td className="py-4 px-4">
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
-                                u.status === 'active' ? 'text-green-400 bg-green-500/10 border-green-500/20' : 'text-red-400 bg-red-500/10 border-red-500/20'
-                              }`}>
-                                {u.status.toUpperCase()}
-                              </span>
-                            </td>
-                            <td className="py-4 px-4 text-right">
-                              {u.id !== user?.id && (
-                                <button
-                                  onClick={() => userStatusMutation.mutate({ id: u.id, status: u.status === 'active' ? 'disabled' : 'active' })}
-                                  className={`px-3 py-1.5 border border-vanta-border rounded-lg bg-vanta-paper text-[10px] font-mono transition-all ${
-                                    u.status === 'active' ? 'hover:border-red-500 text-red-400' : 'hover:border-green-500 text-green-400'
-                                  }`}
-                                >
-                                  {u.status === 'active' ? 'DISABLE' : 'ENABLE'}
-                                </button>
-                              )}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                              <span className="text-[10px] text-vanta-ink-subtle font-mono truncate">{u.email}</span>
+                            </div>
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
+                              u.status === 'active' ? 'text-green-400 bg-green-500/10 border-green-500/20' : 'text-red-400 bg-red-500/10 border-red-500/20'
+                            }`}>
+                              {u.status.toUpperCase()}
+                            </span>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div>
+                              <span className="block text-[9px] font-mono text-vanta-ink-subtle uppercase">Phone</span>
+                              <span className="font-mono text-white">{u.phone || 'N/A'}</span>
+                            </div>
+                            <div>
+                              <span className="block text-[9px] font-mono text-vanta-ink-subtle uppercase">Role</span>
+                              <span className="font-mono text-[10px] uppercase text-white">{u.role_id === 1 ? 'ADMIN' : 'USER'}</span>
+                            </div>
+                          </div>
+                          
+                          <div className="flex justify-end pt-3 border-t border-vanta-border">
+                            {u.id !== user?.id && (
+                              <button
+                                onClick={() => userStatusMutation.mutate({ id: u.id, status: u.status === 'active' ? 'disabled' : 'active' })}
+                                className={`px-4 py-2 border border-vanta-border rounded-lg bg-vanta-panel text-[10px] font-mono transition-all ${
+                                  u.status === 'active' ? 'hover:border-red-500 text-red-400' : 'hover:border-green-500 text-green-400'
+                                }`}
+                              >
+                                {u.status === 'active' ? 'DISABLE USER' : 'ENABLE USER'}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
                 )}
               </div>
             )}
@@ -806,28 +984,46 @@ const AdminDashboard: React.FC = () => {
                 ) : logs.length === 0 ? (
                   <p className="text-xs text-vanta-ink-subtle font-mono uppercase text-center py-16">Log history is empty</p>
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full border-collapse text-left text-xs text-vanta-ink-muted">
-                      <thead>
-                        <tr className="border-b border-vanta-border font-mono text-[10px] uppercase tracking-wider">
-                          <th className="py-3 px-4">Timestamp</th>
-                          <th className="py-3 px-4">Action</th>
-                          <th className="py-3 px-4">Details</th>
-                          <th className="py-3 px-4">IP Address</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-vanta-border">
-                        {logs.map((log: any) => (
-                          <tr key={log.id} className="hover:bg-white/[0.02] transition-colors">
-                            <td className="py-4 px-4 font-mono">{log.created_at.replace('T', ' ').split('.')[0]}</td>
-                            <td className="py-4 px-4 font-bold text-white">{log.action}</td>
-                            <td className="py-4 px-4">{log.details}</td>
-                            <td className="py-4 px-4 font-mono">{log.ip_address || 'N/A'}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+                  <>
+                    <div className="hidden md:block">
+                      <div className="overflow-x-auto">
+                        <table className="w-full border-collapse text-left text-xs text-vanta-ink-muted">
+                          <thead>
+                            <tr className="border-b border-vanta-border font-mono text-[10px] uppercase tracking-wider">
+                              <th className="py-3 px-4">Timestamp</th>
+                              <th className="py-3 px-4">Action</th>
+                              <th className="py-3 px-4">Details</th>
+                              <th className="py-3 px-4">IP Address</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-vanta-border">
+                            {logs.map((log: any) => (
+                              <tr key={log.id} className="hover:bg-white/[0.02] transition-colors">
+                                <td className="py-4 px-4 font-mono">{log.created_at.replace('T', ' ').split('.')[0]}</td>
+                                <td className="py-4 px-4 font-bold text-white">{log.action}</td>
+                                <td className="py-4 px-4">{log.details}</td>
+                                <td className="py-4 px-4 font-mono">{log.ip_address || 'N/A'}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-4 md:hidden">
+                      {logs.map((log: any) => (
+                        <div key={log.id} className="bg-vanta-paper border border-vanta-border rounded-xl p-4 flex flex-col gap-2">
+                          <div className="flex justify-between items-start border-b border-vanta-border pb-2">
+                            <span className="font-bold text-white">{log.action}</span>
+                            <span className="text-[10px] text-vanta-ink-subtle font-mono">{log.created_at.replace('T', ' ').split('.')[0]}</span>
+                          </div>
+                          <p className="text-xs text-vanta-ink-muted">{log.details}</p>
+                          <div className="pt-2">
+                            <span className="text-[9px] font-mono text-vanta-ink-subtle uppercase">IP: {log.ip_address || 'N/A'}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
                 )}
               </div>
             )}

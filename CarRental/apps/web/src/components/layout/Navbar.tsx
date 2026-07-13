@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNavigate, Link } from 'react-router-dom';
-import { Menu, X, BarChart2, User } from 'lucide-react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { Menu, X, BarChart2, User, ArrowLeft } from 'lucide-react';
 import { useAppStore } from '../../store';
 import { useAuthStore } from '../../store/authStore';
 import { ease, duration } from '../../lib/easing';
@@ -23,6 +23,8 @@ const Navbar: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+  const isHome = location.pathname === '/';
   const { compareList, setCompareOpen } = useAppStore();
   const { isAuthenticated, user, logout } = useAuthStore();
 
@@ -63,7 +65,19 @@ const Navbar: React.FC = () => {
         <div
           className="flex items-center justify-between pl-2.5 pr-2.5 rounded-full w-[620px] md:w-[790px] lg:w-[920px] max-w-[95vw] border border-white/[0.06] bg-[#080808] shadow-[0_8px_32px_rgba(0,0,0,0.6)] h-[56px] transition-all duration-300"
         >
-          {/* ── Logo Only (Wings cropped) ── */}
+          {/* ── Mobile Back Button (conditionally rendered) OR Logo ── */}
+          {!isHome ? (
+            <motion.button
+              onClick={() => navigate(-1)}
+              className="md:hidden shrink-0 flex items-center justify-center w-[50px] h-[50px] text-white/80 hover:text-white"
+              whileTap={{ scale: 0.95 }}
+              aria-label="Go back"
+            >
+              <ArrowLeft size={20} />
+            </motion.button>
+          ) : null}
+
+          {/* ── Logo ── */}
           <motion.a
             href="/"
             onClick={(e) => {
@@ -75,7 +89,10 @@ const Navbar: React.FC = () => {
                 navigate('/');
               }
             }}
-            className="shrink-0 flex items-center justify-center"
+            className={cn(
+              "shrink-0 flex items-center justify-center",
+              !isHome && "hidden md:flex" // Hide logo on mobile subpages
+            )}
             whileHover={{ scale: 1.04 }}
             aria-label="Falcon View home"
           >

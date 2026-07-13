@@ -140,7 +140,8 @@ export const ChatWidget: React.FC = () => {
         onClick={() => setOpen(!isOpen)}
         whileHover={{ scale: 1.08, y: -2 }}
         whileTap={{ scale: 0.94 }}
-        className="fixed bottom-6 right-6 z-[950] w-14 h-14 rounded-full bg-vanta-amber text-white flex items-center justify-center shadow-amber-glow"
+        className="fixed right-6 z-[950] w-14 h-14 rounded-full bg-vanta-amber text-white flex items-center justify-center shadow-amber-glow"
+        style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom, 24px))' }}
         aria-label={isOpen ? 'Close chat' : 'Open SAFRA concierge chat'}
         aria-expanded={isOpen}
       >
@@ -171,15 +172,15 @@ export const ChatWidget: React.FC = () => {
         {isOpen && (
           <motion.div
             key="chat-window"
-            initial={{ opacity: 0, scale: 0.92, y: 20, originX: 1, originY: 1 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.92, y: 20 }}
-            transition={{ duration: duration.normal, ease: ease.spring }}
-            className="fixed bottom-24 right-6 z-[940] w-[340px] sm:w-[380px] flex flex-col bg-vanta-paper border border-vanta-border rounded-2xl shadow-card-xl overflow-hidden"
+            initial={{ opacity: 0, y: 40, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 40, scale: 0.95 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            className="fixed right-6 z-[940] w-[340px] sm:w-[380px] flex flex-col bg-vanta-paper border border-vanta-border rounded-2xl shadow-card-xl overflow-hidden"
             role="dialog"
             aria-label="SAFRA AI Concierge"
             aria-modal="true"
-            style={{ maxHeight: '560px' }}
+            style={{ bottom: 'calc(6rem + env(safe-area-inset-bottom, 24px))', height: '600px', maxHeight: 'calc(100vh - 120px)' }}
           >
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 bg-vanta-panel border-b border-vanta-border">

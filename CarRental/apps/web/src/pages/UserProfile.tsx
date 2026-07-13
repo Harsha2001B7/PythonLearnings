@@ -141,7 +141,7 @@ const UserProfile: React.FC = () => {
     <div className="min-h-screen bg-vanta-paper text-vanta-ink">
       <Navbar />
 
-      <div className="section-container pt-36 pb-24">
+      <div className="section-container pt-36 pb-32 md:pb-24">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12 border-b border-vanta-border pb-8">
           <div>
@@ -216,7 +216,7 @@ const UserProfile: React.FC = () => {
                       {...regProfile('firstName')}
                       className={`w-full bg-vanta-paper border ${
                         profileErrors.firstName ? 'border-red-500/50' : 'border-vanta-border'
-                      } rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-vanta-amber transition-all`}
+                      } rounded-xl py-3.5 px-4 text-sm text-white focus:outline-none focus:border-vanta-amber transition-all`}
                     />
                     {profileErrors.firstName && <p className="text-xs text-red-400 font-mono">{profileErrors.firstName.message}</p>}
                   </div>
@@ -227,7 +227,7 @@ const UserProfile: React.FC = () => {
                       {...regProfile('lastName')}
                       className={`w-full bg-vanta-paper border ${
                         profileErrors.lastName ? 'border-red-500/50' : 'border-vanta-border'
-                      } rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-vanta-amber transition-all`}
+                      } rounded-xl py-3.5 px-4 text-sm text-white focus:outline-none focus:border-vanta-amber transition-all`}
                     />
                     {profileErrors.lastName && <p className="text-xs text-red-400 font-mono">{profileErrors.lastName.message}</p>}
                   </div>
@@ -241,7 +241,7 @@ const UserProfile: React.FC = () => {
                       {...regProfile('phone')}
                       className={`w-full bg-vanta-paper border ${
                         profileErrors.phone ? 'border-red-500/50' : 'border-vanta-border'
-                      } rounded-xl py-3 px-4 text-sm text-white focus:outline-none focus:border-vanta-amber transition-all`}
+                      } rounded-xl py-3.5 px-4 text-sm text-white focus:outline-none focus:border-vanta-amber transition-all`}
                     />
                     {profileErrors.phone && <p className="text-xs text-red-400 font-mono">{profileErrors.phone.message}</p>}
                   </div>

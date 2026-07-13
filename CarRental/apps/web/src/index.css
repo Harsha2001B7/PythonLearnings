@@ -339,3 +339,26 @@
   color-scheme: light;
 }
 
+/* ─────────────────────────────────────────────────────────────────
+   MOBILE UX UTILITIES (PWA / Native App Feel)
+   ───────────────────────────────────────────────────────────────── */
+@layer utilities {
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 24px);
+  }
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top, 24px);
+  }
+  /* Hide scrollbar for carousels but keep functionality */
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;     /* Firefox */
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;             /* Chrome, Safari and Opera */
+  }
+  /* Helper for sticky CTA spacing on mobile */
+  .mobile-cta-spacing {
+    padding-bottom: calc(90px + env(safe-area-inset-bottom, 24px));
+  }
+}
