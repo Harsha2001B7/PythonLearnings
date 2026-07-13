@@ -829,7 +829,7 @@ const Hero: React.FC = () => {
       <div className="relative w-full">
         <motion.div
           style={{ y: textY }}
-          className="relative z-10 section-container pt-40 pb-20 flex flex-col lg:flex-row items-start gap-20"
+          className="relative z-10 section-container pt-40 pb-20 flex flex-col lg:flex-row items-start gap-12 lg:gap-20"
         >
           {/* ── LEFT Column ── */}
           <div className="flex-1 flex flex-col gap-10 lg:pr-10 max-w-[620px]">
@@ -979,7 +979,7 @@ const Hero: React.FC = () => {
 
             {/* Animated Stats */}
             <motion.div
-              className="flex flex-wrap gap-10 pt-5 border-t border-white/[0.08]"
+              className="flex flex-wrap gap-6 sm:gap-10 pt-5 border-t border-white/[0.08]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 1.05 }}

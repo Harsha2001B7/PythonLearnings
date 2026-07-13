@@ -14,6 +14,7 @@ import Testimonials from '../sections/Testimonials';
 import CorporateSection from '../sections/CorporateSection';
 import AppTeaser from '../sections/AppTeaser';
 import FaqSection from '../sections/FaqSection';
+import DeliveryInfoSection from '../sections/DeliveryInfoSection';
 import { useBookingStore, useAppStore, useToastStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, BarChart2, MessageCircle, Plus } from 'lucide-react';
@@ -342,6 +343,8 @@ const Home: React.FC = () => {
         <main>
           {/* ── DARK section: Hero only ── */}
           <Hero />
+
+          <DeliveryInfoSection />
 
           {/* ── LIGHT sections: everything below ── */}
           <div data-theme="light">

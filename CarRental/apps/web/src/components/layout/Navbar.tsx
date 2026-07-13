@@ -61,7 +61,7 @@ const Navbar: React.FC = () => {
         role="banner"
       >
         <div
-          className="flex items-center justify-between pl-2.5 pr-2.5 rounded-[18px] w-[620px] md:w-[790px] lg:w-[920px] max-w-[95vw] border border-white/[0.06] bg-[#080808] shadow-[0_8px_32px_rgba(0,0,0,0.6)] h-[56px] transition-all duration-300"
+          className="flex items-center justify-between pl-2.5 pr-2.5 rounded-full w-[620px] md:w-[790px] lg:w-[920px] max-w-[95vw] border border-white/[0.06] bg-[#080808] shadow-[0_8px_32px_rgba(0,0,0,0.6)] h-[56px] transition-all duration-300"
         >
           {/* ── Logo Only (Wings cropped) ── */}
           <motion.a
