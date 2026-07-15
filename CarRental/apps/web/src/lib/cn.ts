@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────
-// cn — class name utility
+// Falcon View Car Rentals — class name utility
 // Combines clsx + tailwind-merge for conditional, merged classes
 // ─────────────────────────────────────────────────────────────────
 import { clsx, type ClassValue } from 'clsx';

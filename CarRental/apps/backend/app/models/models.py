@@ -1,14 +1,24 @@
 from sqlalchemy import Column, Integer, String, Float, Boolean, ForeignKey, Text, JSON, DateTime, Date
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 from app.db.base import Base
+
+
+def _utcnow():
+    """Return the current UTC time as a timezone-aware datetime.
+    Used as a SQLAlchemy column default callable to avoid deprecation warnings
+    from datetime.utcnow() in Python 3.12+.
+    """
+    return datetime.now(timezone.utc)
+
 
 class Role(Base):
     __tablename__ = "roles"
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(50), unique=True, nullable=False) # Admin, User
-    
+    name = Column(String(50), unique=True, nullable=False)  # Admin, User
+
     users = relationship("User", back_populates="role_rel")
+
 
 class User(Base):
     __tablename__ = "users"
@@ -21,10 +31,10 @@ class User(Base):
     role_id = Column(Integer, ForeignKey("roles.id"), nullable=True)
     profile_image = Column(String(255), nullable=True)
     country = Column(String(100), nullable=True)
-    status = Column(String(50), default="active") # active, disabled
+    status = Column(String(50), default="active")  # active, disabled
     is_verified = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=_utcnow)
+    updated_at = Column(DateTime, default=_utcnow, onupdate=_utcnow)
     last_login = Column(DateTime, nullable=True)
     google_sub = Column(String(255), unique=True, index=True, nullable=True)
     auth_provider = Column(String(50), default="LOCAL")
@@ -36,16 +46,18 @@ class User(Base):
     sessions = relationship("UserSession", back_populates="user", cascade="all, delete-orphan")
     activity_logs = relationship("ActivityLog", back_populates="user", cascade="all, delete-orphan")
 
+
 class RefreshToken(Base):
     __tablename__ = "refresh_tokens"
     id = Column(Integer, primary_key=True, index=True)
     token = Column(String(512), unique=True, index=True, nullable=False)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     expires_at = Column(DateTime, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=_utcnow)
     revoked_at = Column(DateTime, nullable=True)
 
     user = relationship("User", back_populates="refresh_tokens")
+
 
 class UserSession(Base):
     __tablename__ = "user_sessions"
@@ -53,10 +65,11 @@ class UserSession(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     ip_address = Column(String(50), nullable=True)
     user_agent = Column(String(255), nullable=True)
-    last_activity = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    last_activity = Column(DateTime, default=_utcnow, onupdate=_utcnow)
+    created_at = Column(DateTime, default=_utcnow)
 
     user = relationship("User", back_populates="sessions")
+
 
 class PasswordResetToken(Base):
     __tablename__ = "password_reset_tokens"
@@ -64,8 +77,9 @@ class PasswordResetToken(Base):
     token = Column(String(255), unique=True, index=True, nullable=False)
     email = Column(String(255), nullable=False)
     expires_at = Column(DateTime, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=_utcnow)
     used_at = Column(DateTime, nullable=True)
+
 
 class EmailVerificationToken(Base):
     __tablename__ = "email_verification_tokens"
@@ -73,17 +87,18 @@ class EmailVerificationToken(Base):
     token = Column(String(255), unique=True, index=True, nullable=False)
     email = Column(String(255), nullable=False)
     expires_at = Column(DateTime, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=_utcnow)
     used_at = Column(DateTime, nullable=True)
+
 
 class ActivityLog(Base):
     __tablename__ = "activity_logs"
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
-    action = Column(String(255), nullable=False) # e.g. "Create Vehicle", "Update Booking"
+    action = Column(String(255), nullable=False)
     details = Column(Text, nullable=True)
     ip_address = Column(String(50), nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime, default=_utcnow)
 
     user = relationship("User", back_populates="activity_logs")
 
@@ -94,16 +109,18 @@ class Brand(Base):
     name = Column(String, unique=True, index=True, nullable=False)
     slug = Column(String, unique=True, index=True, nullable=False)
     logo_url = Column(String)
-    
+
     vehicles = relationship("Vehicle", back_populates="brand_rel")
+
 
 class Category(Base):
     __tablename__ = "categories"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, unique=True, index=True, nullable=False)
     slug = Column(String, unique=True, index=True, nullable=False)
-    
+
     vehicles = relationship("Vehicle", back_populates="category_rel")
+
 
 class Vehicle(Base):
     __tablename__ = "vehicles"
@@ -116,29 +133,28 @@ class Vehicle(Base):
     year = Column(Integer, nullable=False)
     tagline = Column(String)
     description = Column(Text)
-    
+
     featured = Column(Boolean, default=False)
     is_popular = Column(Boolean, default=False)
     is_new_arrival = Column(Boolean, default=False)
     available = Column(Boolean, default=True)
     badge = Column(String)
-    
+
     rating = Column(Float, default=0.0)
     review_count = Column(Integer, default=0)
     min_driver_age = Column(Integer, default=21)
     delivery_available = Column(Boolean, default=True)
-    
+
     # Relationships
     brand_rel = relationship("Brand", back_populates="vehicles")
     category_rel = relationship("Category", back_populates="vehicles")
-    
+
     images = relationship("VehicleImage", back_populates="vehicle", cascade="all, delete-orphan")
     pricing = relationship("VehiclePricing", back_populates="vehicle", uselist=False, cascade="all, delete-orphan")
     specifications = relationship("VehicleSpecification", back_populates="vehicle", uselist=False, cascade="all, delete-orphan")
     features = relationship("VehicleFeature", back_populates="vehicle", cascade="all, delete-orphan")
     colors = relationship("VehicleColor", back_populates="vehicle", cascade="all, delete-orphan")
-    
-    # Store lists like licence_required, related_vehicles, keywords as JSON for simplicity, or related tables. JSON is fine for array of strings.
+
     licence_required = Column(JSON)
     related_vehicles = Column(JSON)
     keywords = Column(JSON)
@@ -146,14 +162,16 @@ class Vehicle(Base):
     seo_title = Column(String)
     seo_description = Column(String)
 
+
 class VehicleImage(Base):
     __tablename__ = "vehicle_images"
     id = Column(Integer, primary_key=True, index=True)
     vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=False)
     image_url = Column(String, nullable=False)
-    image_type = Column(String) # thumbnail, exterior, interior
-    
+    image_type = Column(String)  # thumbnail, exterior, interior
+
     vehicle = relationship("Vehicle", back_populates="images")
+
 
 class VehiclePricing(Base):
     __tablename__ = "vehicle_pricing"
@@ -170,8 +188,9 @@ class VehiclePricing(Base):
     salik_surcharge = Column(Float)
     vat_rate = Column(Float)
     delivery_fee = Column(Float, default=0)
-    
+
     vehicle = relationship("Vehicle", back_populates="pricing")
+
 
 class VehicleSpecification(Base):
     __tablename__ = "vehicle_specifications"
@@ -186,16 +205,18 @@ class VehicleSpecification(Base):
     transmission = Column(String)
     fuel = Column(String)
     year = Column(Integer)
-    
+
     vehicle = relationship("Vehicle", back_populates="specifications")
+
 
 class VehicleFeature(Base):
     __tablename__ = "vehicle_features"
     id = Column(Integer, primary_key=True, index=True)
     vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=False)
     feature_name = Column(String, nullable=False)
-    
+
     vehicle = relationship("Vehicle", back_populates="features")
+
 
 class VehicleColor(Base):
     __tablename__ = "vehicle_colors"
@@ -203,8 +224,9 @@ class VehicleColor(Base):
     vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=False)
     name = Column(String, nullable=False)
     hex_code = Column(String, nullable=False)
-    
+
     vehicle = relationship("Vehicle", back_populates="colors")
+
 
 class FAQ(Base):
     __tablename__ = "faqs"
@@ -212,9 +234,10 @@ class FAQ(Base):
     category = Column(String, nullable=True)
     question = Column(String, nullable=False)
     answer = Column(Text, nullable=False)
-    vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=True) # If null, it's a general FAQ
-    
+    vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=True)
+
     vehicle = relationship("Vehicle")
+
 
 class Testimonial(Base):
     __tablename__ = "testimonials"
@@ -225,6 +248,7 @@ class Testimonial(Base):
     rating = Column(Float, nullable=False)
     image_url = Column(String)
 
+
 class Offer(Base):
     __tablename__ = "offers"
     id = Column(Integer, primary_key=True, index=True)
@@ -232,6 +256,7 @@ class Offer(Base):
     description = Column(Text)
     discount_percentage = Column(Float)
     valid_until = Column(Date)
+
 
 class HeroBanner(Base):
     __tablename__ = "hero_banners"
@@ -243,11 +268,13 @@ class HeroBanner(Base):
     cta_link = Column(String)
     is_active = Column(Boolean, default=True)
 
+
 class SiteSetting(Base):
     __tablename__ = "site_settings"
     id = Column(Integer, primary_key=True, index=True)
     key = Column(String, unique=True, index=True, nullable=False)
     value = Column(String)
+
 
 class Booking(Base):
     __tablename__ = "bookings"
@@ -257,11 +284,12 @@ class Booking(Base):
     start_date = Column(DateTime, nullable=False)
     end_date = Column(DateTime, nullable=False)
     total_price = Column(Float, nullable=False)
-    status = Column(String, default="pending") # pending, confirmed, cancelled, completed
-    created_at = Column(DateTime, default=datetime.utcnow)
-    
+    status = Column(String, default="pending")  # pending, confirmed, cancelled, completed
+    created_at = Column(DateTime, default=_utcnow)
+
     user = relationship("User")
     vehicle = relationship("Vehicle")
+
 
 class MembershipTier(Base):
     __tablename__ = "membership_tiers"
@@ -276,6 +304,7 @@ class MembershipTier(Base):
     cta_label = Column(String(100))
 
     features = relationship("MembershipFeature", back_populates="tier", cascade="all, delete-orphan")
+
 
 class MembershipFeature(Base):
     __tablename__ = "membership_features"

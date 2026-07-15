@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────
-// VANTA — Zustand Stores
+// Falcon View Car Rentals — Zustand Stores
 // Typed, sliced into logical domains.
 // ─────────────────────────────────────────────────────────────────
 import { create } from 'zustand';

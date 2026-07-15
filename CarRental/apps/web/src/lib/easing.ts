@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────────
-// VANTA Animation Easing Constants
+// Falcon View Car Rentals — Animation Easing Constants
 // Shared between Motion and GSAP for consistent brand motion feel.
 // Named after the quality of motion they produce.
 // ─────────────────────────────────────────────────────────────────

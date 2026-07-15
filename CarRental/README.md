@@ -1,28 +1,90 @@
-# Luxury UAE Car Rental Platform
+# Falcon View Car Rentals
 
-A production-quality monorepo foundation for a luxury car rental platform targeted at the UAE market.
+A production-quality luxury car rental platform for the UAE market, built as a monorepo.
 
 ## Monorepo Structure
 
-- `apps/backend`: FastAPI application providing the API.
-- `apps/web`: React 19 web application for the premium user experience.
-- `apps/mobile`: Flutter mobile application.
-- `apps/admin`: Placeholder for future admin dashboard.
-- `packages/`: Shared packages like UI components, types, and utilities.
-- `infrastructure/`: Docker and Nginx configurations.
+```
+CarRental/
+├── apps/
+│   ├── backend/          # FastAPI Python backend (REST API)
+│   └── web/              # React 19 + Vite frontend
+├── apps/data/
+│   └── sqlite/           # SQLite database (local dev only)
+├── infrastructure/
+│   ├── docker/           # docker-compose for local development
+│   └── nginx/            # Nginx reverse proxy configuration
+└── docs/                 # Deployment and architecture documentation
+```
 
 ## Quickstart
 
+### Prerequisites
+
+- Python 3.11+
+- Node.js 20+
+- pip / npm
+
 ### Backend
-1. Navigate to `apps/backend`
-2. Run `uvicorn app.main:app --reload` (requires Python & FastAPI installed).
 
-### Web
-1. Navigate to `apps/web`
-2. Run `npm install`
-3. Run `npm run dev`
+```bash
+cd apps/backend
 
-### Mobile
-1. Navigate to `apps/mobile`
-2. Run `flutter pub get`
-3. Run `flutter run`
+# Create and activate virtual environment
+python -m venv venv
+source venv/bin/activate        # Linux/Mac
+# .\venv\Scripts\Activate.ps1   # Windows PowerShell
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env and fill in your values
+
+# Seed the database (first time only)
+python seed_auth.py
+python seed_memberships.py
+
+# Start the development server
+uvicorn app.main:app --reload
+```
+
+API docs available at: http://localhost:8000/docs
+
+### Frontend
+
+```bash
+cd apps/web
+
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env.local
+# Edit .env.local and fill in your values
+
+# Start the development server
+npm run dev
+```
+
+Frontend available at: http://localhost:5173
+
+## Deployment
+
+See [docs/AZURE_DEPLOYMENT.md](docs/AZURE_DEPLOYMENT.md) for full Azure deployment instructions.
+
+### Quick Reference
+
+| Service | Platform | Notes |
+|---------|----------|-------|
+| Backend | Azure App Service (Python 3.11) | Startup: `uvicorn app.main:app --host 0.0.0.0 --port 8000` |
+| Frontend | Azure Static Web Apps | Build: `npm run build`, Output: `dist/` |
+| Database | SQLite (dev) / Azure PostgreSQL (prod) | See `AZURE_DEPLOYMENT.md` for PostgreSQL migration |
+
+## Environment Variables
+
+- Backend: copy `apps/backend/.env.example` → `apps/backend/.env`
+- Frontend: copy `apps/web/.env.example` → `apps/web/.env.local`
+
+**Never commit populated `.env` files to source control.**

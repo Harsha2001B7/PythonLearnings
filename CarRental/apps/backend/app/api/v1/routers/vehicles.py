@@ -5,7 +5,7 @@ import os
 import shutil
 import uuid
 
-from app.api.dependencies import get_db, get_current_active_admin
+from app.api.dependencies import get_db, get_current_active_admin, get_optional_user
 from app.repositories.repositories import vehicle as vehicle_repo
 from app.schemas.schemas import Vehicle, VehicleCreate
 from app.core.config import settings
@@ -14,17 +14,29 @@ from app.models.models import VehicleImage
 router = APIRouter()
 
 @router.get("/", response_model=List[Vehicle])
-def read_vehicles(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    return vehicle_repo.get_multi(db, skip=skip, limit=limit)
+def read_vehicles(
+    skip: int = 0, 
+    limit: int = 100, 
+    db: Session = Depends(get_db), 
+    current_user: Any = Depends(get_optional_user)
+):
+    is_admin = bool(current_user and current_user.role_rel and current_user.role_rel.name == "Admin")
+    return vehicle_repo.get_multi(db, skip=skip, limit=limit, include_inactive=is_admin)
 
 @router.get("/featured", response_model=List[Vehicle])
 def read_featured_vehicles(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    vehicles = db.query(vehicle_repo.model).filter(vehicle_repo.model.featured == True).offset(skip).limit(limit).all()
+    vehicles = db.query(vehicle_repo.model).filter(
+        vehicle_repo.model.featured.is_(True),
+        vehicle_repo.model.available.is_(True)
+    ).offset(skip).limit(limit).all()
     return vehicles
 
 @router.get("/popular", response_model=List[Vehicle])
 def read_popular_vehicles(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
-    vehicles = db.query(vehicle_repo.model).filter(vehicle_repo.model.is_popular == True).offset(skip).limit(limit).all()
+    vehicles = db.query(vehicle_repo.model).filter(
+        vehicle_repo.model.is_popular.is_(True),
+        vehicle_repo.model.available.is_(True)
+    ).offset(skip).limit(limit).all()
     return vehicles
 
 @router.get("/{id}", response_model=Vehicle)

@@ -1,10 +1,17 @@
+// ─────────────────────────────────────────────────────────────────
+// Environment configuration
+// All values MUST be provided via Vite environment variables.
+// No secrets or production values are hardcoded here.
+// ─────────────────────────────────────────────────────────────────
+
 export const API_BASE_URL =
   import.meta.env.VITE_API_URL ??
-  "https://falconviewcarrental.onrender.com/api/v1";
+  "http://localhost:8000/api/v1";
 
+// Google OAuth Client ID — provided via environment variable only.
+// Never hardcode the real client ID here.
 export const GOOGLE_CLIENT_ID =
-  import.meta.env.VITE_GOOGLE_CLIENT_ID ??
-  "291772363929-25to6jat1j1puo3kmghrlf3aue5b3qvh.apps.googleusercontent.com";
+  import.meta.env.VITE_GOOGLE_CLIENT_ID ?? "";
 
 export const FRONTEND_URL =
   import.meta.env.VITE_FRONTEND_URL ??

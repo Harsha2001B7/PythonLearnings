@@ -42,7 +42,7 @@ class CRUDBase(Generic[ModelType, CreateSchemaType, UpdateSchemaType]):
         return db_obj
 
     def remove(self, db: Session, *, id: int) -> ModelType:
-        obj = db.query(self.model).get(id)
+        obj = db.get(self.model, id)
         db.delete(obj)
         db.commit()
         return obj
@@ -77,9 +77,13 @@ class CRUDVehicle(CRUDBase[Vehicle, VehicleCreate, VehicleCreate]):
             .first()
         )
 
-    def get_multi(self, db: Session, *, skip: int = 0, limit: int = 100) -> List[Vehicle]:
+    def get_multi(self, db: Session, *, skip: int = 0, limit: int = 100, include_inactive: bool = True) -> List[Vehicle]:
+        query = db.query(self.model)
+        if not include_inactive:
+            query = query.filter(self.model.available.is_(True))
+            
         return (
-            db.query(self.model)
+            query
             .options(
                 joinedload(Vehicle.brand_rel),
                 joinedload(Vehicle.category_rel),

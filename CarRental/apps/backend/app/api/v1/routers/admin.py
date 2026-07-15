@@ -48,7 +48,7 @@ def update_user_status(
     # Log activity
     log = ActivityLog(
         user_id=admin.id,
-        action=f"Update User Status",
+        action="Update User Status",
         details=f"User ID {user_id} status updated to {status_in.status}",
         ip_address=request.client.host if request.client else None
     )
@@ -109,7 +109,7 @@ def update_booking_status(
     # Log activity
     log = ActivityLog(
         user_id=admin.id,
-        action=f"Update Booking Status",
+        action="Update Booking Status",
         details=f"Booking ID {booking_id} status updated from {old_status} to {status_in.status}",
         ip_address=request.client.host if request.client else None
     )
