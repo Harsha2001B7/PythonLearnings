@@ -40,12 +40,30 @@ def _run_sqlite_migrations() -> None:
         if "avatar_url" not in columns:
             cursor.execute("ALTER TABLE users ADD COLUMN avatar_url VARCHAR(512)")
             altered = True
+        
+        # Ensure brand logos are seeded
+        logo_map = {
+            "mitsubishi": "/static/brands/mitsubishiBrandLogo.png",
+            "nissan": "/static/brands/nissanBrandLogo.png",
+            "mg": "/static/brands/mgBrandLogo.png",
+            "kia": "/static/brands/kiaBrandLogo.png",
+            "suzuki": "/static/brands/suzukiBrandLogo.png",
+            "mazda": "/static/brands/mazdaBrandLogo.png",
+            "toyota": "/static/brands/toyotaBrandLogo.png",
+            "dodge": "/static/brands/dodgeBrandLogo.png",
+            "hyundai": "/static/brands/hyundaiBrandLogo.png",
+            "kaiyi": "/static/brands/Kaiyi_logo.png"
+        }
+        for slug, logo in logo_map.items():
+            cursor.execute("UPDATE brands SET logo_url = ? WHERE slug = ? AND logo_url IS NULL", (logo, slug))
+            altered = True
+
         if altered:
             conn.commit()
-            logger.info("SQLite schema migration applied successfully.")
+            logger.info("SQLite schema migration and brand seeding applied successfully.")
         conn.close()
     except Exception as exc:
-        logger.error("SQLite migration failed: %s", exc)
+        logger.error("SQLite migration/seeding failed: %s", exc)
 
 
 @asynccontextmanager
