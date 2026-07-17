@@ -56,9 +56,7 @@ apps/data/sqlite/*.db-shm
 *.sqlite
 *.sqlite3
 
-# ── Uploads (generated at runtime) ───────────────────────────────────────────
-apps/backend/app/static/uploads/
-!apps/backend/app/static/uploads/brands/
+
 
 # ── IDE & OS ──────────────────────────────────────────────────────────────────
 .vscode/
