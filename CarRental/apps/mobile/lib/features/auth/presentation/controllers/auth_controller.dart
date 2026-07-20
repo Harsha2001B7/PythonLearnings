@@ -107,6 +107,12 @@ class AuthController extends StateNotifier<AuthState> {
 
   bool get isAuthenticated => state is AuthAuthenticated;
 
+  void updateUser(UserModel updatedUser) {
+    if (state is AuthAuthenticated) {
+      state = AuthAuthenticated(updatedUser);
+    }
+  }
+
   // ─── Helpers ──────────────────────────────────────────────────────────────
   String _dioErrorMessage(DioException e) {
     // Try to surface the backend's `detail` field first (FastAPI convention)

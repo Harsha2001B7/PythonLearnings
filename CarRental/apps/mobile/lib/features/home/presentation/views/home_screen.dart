@@ -8,7 +8,16 @@ import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../controllers/home_controller.dart';
 import '../../data/models/home_models.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import '../../../../core/router/app_router.dart';
+import '../../../profile/data/models/profile_models.dart';
+import '../../../profile/data/repositories/profile_repository.dart';
+import '../../../profile/presentation/views/my_bookings_screen.dart';
+
+final userBookingsProvider = FutureProvider.autoDispose<List<BookingModel>>((ref) async {
+  final repo = ref.read(profileRepositoryProvider);
+  return repo.fetchBookings();
+});
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -173,7 +182,6 @@ class _HomeHeader extends ConsumerWidget {
                 height: 44,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.orange, width: 2),
                   color: surface2,
                 ),
                 clipBehavior: Clip.antiAlias,
@@ -181,7 +189,7 @@ class _HomeHeader extends ConsumerWidget {
                     ? CachedNetworkImage(
                         imageUrl: u.avatar!,
                         fit: BoxFit.cover,
-                        errorWidget: (_, a, b) => _avatarFallback(u.firstName2),
+                        errorWidget: (context, url, error) => _avatarFallback(u.firstName2),
                       )
                     : _avatarFallback(u?.firstName2 ?? '?'),
               ),
@@ -258,55 +266,55 @@ class _HomeHeader extends ConsumerWidget {
           const SizedBox(height: 12),
 
           // Search bar
-          Container(
-            height: 52,
-            decoration: BoxDecoration(
-              color: isDark ? AppColors.surface2Dark : AppColors.surface2Light,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.05)
-                    : Colors.black.withValues(alpha: 0.05),
-                width: 1,
+          GestureDetector(
+            onTap: () => context.push(AppRoute.search),
+            child: Container(
+              height: 52,
+              decoration: BoxDecoration(
+                color: isDark ? AppColors.surface2Dark : AppColors.surface2Light,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  if (!isDark)
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.03),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                ],
               ),
-              boxShadow: [
-                if (!isDark)
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-              ],
-            ),
-            child: Row(
-              children: [
-                const SizedBox(width: 16),
-                Icon(Icons.search_rounded, size: 22, color: textMuted),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: TextField(
-                    readOnly: true,
-                    style: TextStyle(color: textColor, fontSize: 14),
-                    decoration: InputDecoration(
-                      hintText: 'Search by car, brand or category...',
-                      hintStyle: TextStyle(color: textMuted, fontSize: 14),
-                      border: InputBorder.none,
-                      isDense: true,
-                      contentPadding: EdgeInsets.zero,
+              child: Row(
+                children: [
+                  const SizedBox(width: 16),
+                  Icon(Icons.search_rounded, size: 22, color: textMuted),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      enabled: false, // Prevents keyboard from sliding up, relies on gesture
+                      style: TextStyle(color: textColor, fontSize: 14),
+                      decoration: InputDecoration(
+                        hintText: 'Search by car, brand or category...',
+                        hintStyle: TextStyle(color: textMuted, fontSize: 14),
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
                     ),
                   ),
-                ),
-                Container(
-                  width: 38,
-                  height: 38,
-                  margin: const EdgeInsets.only(right: 7),
-                  decoration: BoxDecoration(
-                    color: AppColors.orange,
-                    borderRadius: BorderRadius.circular(10),
+                  GestureDetector(
+                    onTap: () => context.go(AppRoute.fleet),
+                    child: Container(
+                      width: 38,
+                      height: 38,
+                      margin: const EdgeInsets.only(right: 7),
+                      decoration: BoxDecoration(
+                        color: AppColors.orange,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.tune_rounded, size: 20, color: Colors.white),
+                    ),
                   ),
-                  child: const Icon(Icons.tune_rounded, size: 20, color: Colors.white),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
@@ -327,7 +335,7 @@ class _HomeHeader extends ConsumerWidget {
 }
 
 // ─── Scrollable Home Content ──────────────────────────────────────────────────
-class _HomeContent extends StatelessWidget {
+class _HomeContent extends ConsumerWidget {
   const _HomeContent({
     required this.data,
     required this.offers,
@@ -349,7 +357,9 @@ class _HomeContent extends StatelessWidget {
   final Color borderColor;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final bookingsAsync = ref.watch(userBookingsProvider);
+
     return ListView(
       padding: EdgeInsets.zero,
       children: [
@@ -400,21 +410,45 @@ class _HomeContent extends StatelessWidget {
           ),
         ],
 
-        // ─── Recent Booking placeholder ───────────────────
-        // ⚠ PENDING: Wire to /api/v1/bookings/my endpoint in Phase 2
-        _SectionHeader(
-          title: 'Recent Booking',
-          actionLabel: 'History',
-          onAction: () {},
-          textColor: textColor,
-        ),
-        _RecentBookingPlaceholder(
-          isDark: isDark,
-          surface2: surface2,
-          textColor: textColor,
-          textMuted: textMuted,
-          borderColor: borderColor,
-          vehicles: data.featuredVehicles,
+        // ─── Recent Booking ───────────────────────────────
+        bookingsAsync.when(
+          data: (bookings) {
+            final recentBooking = bookings.isNotEmpty ? bookings.first : null;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _SectionHeader(
+                  title: 'Recent Booking',
+                  actionLabel: bookings.isNotEmpty ? 'History' : '',
+                  onAction: () {
+                    if (bookings.isNotEmpty) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MyBookingsScreen(),
+                        ),
+                      );
+                    }
+                  },
+                  textColor: textColor,
+                ),
+                _RecentBookingCard(
+                  booking: recentBooking,
+                  isDark: isDark,
+                  surface2: surface2,
+                  textColor: textColor,
+                  textMuted: textMuted,
+                  borderColor: borderColor,
+                  vehicles: data.featuredVehicles,
+                ),
+              ],
+            );
+          },
+          loading: () => const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Center(child: CircularProgressIndicator(color: AppColors.orange)),
+          ),
+          error: (err, stack) => const SizedBox(),
         ),
 
         const SizedBox(height: 24),
@@ -654,7 +688,7 @@ class _BrandTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {},
+      onTap: () => context.go('/fleet?brand=${Uri.encodeComponent(brand.name)}'),
       child: Column(
         children: [
           AnimatedContainer(
@@ -662,7 +696,7 @@ class _BrandTile extends StatelessWidget {
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              color: surface2,
+              color: Colors.white,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: borderColor),
             ),
@@ -672,11 +706,7 @@ class _BrandTile extends StatelessWidget {
                     child: CachedNetworkImage(
                       imageUrl: brand.logoUrl!,
                       fit: BoxFit.contain,
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.white70
-                          : Colors.black54,
-                      colorBlendMode: BlendMode.modulate,
-                      errorWidget: (_, a, b) => const Icon(
+                      errorWidget: (context, url, error) => const Icon(
                         Icons.directions_car_rounded,
                         size: 28,
                         color: AppColors.textMutedDark,
@@ -1016,10 +1046,10 @@ class _VehicleCardState extends State<_VehicleCard> {
 }
 }
 
-// ─── Recent Booking Placeholder ───────────────────────────────────────────────
-// ⚠ PENDING: Replace with real data from /api/v1/bookings/my in Phase 2
-class _RecentBookingPlaceholder extends StatelessWidget {
-  const _RecentBookingPlaceholder({
+// ─── Recent Booking Card ──────────────────────────────────────────────────────
+class _RecentBookingCard extends StatelessWidget {
+  const _RecentBookingCard({
+    required this.booking,
     required this.isDark,
     required this.surface2,
     required this.textColor,
@@ -1028,6 +1058,7 @@ class _RecentBookingPlaceholder extends StatelessWidget {
     required this.vehicles,
   });
 
+  final BookingModel? booking;
   final bool isDark;
   final Color surface2;
   final Color textColor;
@@ -1037,14 +1068,61 @@ class _RecentBookingPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Try to find the Mitsubishi Attrage image dynamically from the backend data
+    if (booking == null) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: surface2,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: borderColor),
+          ),
+          child: Column(
+            children: [
+              Icon(Icons.directions_car_rounded, size: 36, color: textMuted),
+              const SizedBox(height: 12),
+              Text(
+                'No Bookings Yet',
+                style: TextStyle(color: textColor, fontSize: 14, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Explore our premium fleet and start your rental experience!',
+                style: TextStyle(color: textMuted, fontSize: 12),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Dynamic data from booking
+    final b = booking!;
     String? imageUrl;
+    
+    // Find matching vehicle to get primary image
     if (vehicles.isNotEmpty) {
       final match = vehicles.firstWhere(
-        (v) => v.name.toLowerCase().contains('mitsubishi') || v.slug.toLowerCase().contains('mitsubishi'),
+        (v) => v.id == b.vehicleId,
         orElse: () => vehicles.first,
       );
       imageUrl = match.primaryImage;
+    }
+
+    final startFmt = b.startDate != null ? DateFormat('dd MMM').format(b.startDate!) : 'N/A';
+    final endFmt = b.endDate != null ? DateFormat('dd MMM yyyy').format(b.endDate!) : 'N/A';
+    final status = b.status.toLowerCase();
+
+    Color statusColor = AppColors.orange;
+    Color statusBg = AppColors.orange.withValues(alpha: 0.1);
+    if (status == 'completed' || status == 'approved') {
+      statusColor = AppColors.success;
+      statusBg = AppColors.success.withValues(alpha: 0.1);
+    } else if (status == 'cancelled' || status == 'rejected') {
+      statusColor = AppColors.error;
+      statusBg = AppColors.error.withValues(alpha: 0.1);
     }
 
     return Padding(
@@ -1072,24 +1150,9 @@ class _RecentBookingPlaceholder extends StatelessWidget {
                       ? CachedNetworkImage(
                           imageUrl: imageUrl,
                           fit: BoxFit.cover,
-                          placeholder: (context, url) => const Center(
-                            child: SizedBox(
-                              width: 14,
-                              height: 14,
-                              child: CircularProgressIndicator(strokeWidth: 1.5, color: AppColors.orange),
-                            ),
-                          ),
-                          errorWidget: (context, url, error) => const Icon(
-                            Icons.directions_car_rounded,
-                            size: 24,
-                            color: AppColors.orange,
-                          ),
+                          errorWidget: (context, url, error) => const Icon(Icons.directions_car_rounded, color: AppColors.orange),
                         )
-                      : const Icon(
-                          Icons.directions_car_rounded,
-                          size: 24,
-                          color: AppColors.orange,
-                        ),
+                      : const Icon(Icons.directions_car_rounded, color: AppColors.orange),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -1097,7 +1160,7 @@ class _RecentBookingPlaceholder extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Mitsubishi Attrage',
+                        b.vehicle?.name ?? 'Premium Car',
                         style: TextStyle(
                           color: textColor,
                           fontSize: 14,
@@ -1105,7 +1168,7 @@ class _RecentBookingPlaceholder extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '12 Jul – 14 Jul 2026',
+                        '$startFmt – $endFmt',
                         style: TextStyle(color: textMuted, fontSize: 12),
                       ),
                     ],
@@ -1114,32 +1177,17 @@ class _RecentBookingPlaceholder extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                   decoration: BoxDecoration(
-                    color: AppColors.successDim,
+                    color: statusBg,
                     borderRadius: BorderRadius.circular(100),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const SizedBox(
-                        width: 5,
-                        height: 5,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: AppColors.success,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      const Text(
-                        'Completed',
-                        style: TextStyle(
-                          color: AppColors.success,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    b.status.toUpperCase(),
+                    style: TextStyle(
+                      color: statusColor,
+                      fontSize: 9,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.5,
+                    ),
                   ),
                 ),
               ],
@@ -1148,9 +1196,9 @@ class _RecentBookingPlaceholder extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Total Paid', style: TextStyle(color: textMuted, fontSize: 12)),
-                const Text(
-                  'AED 130',
+                Text('Total Cost', style: TextStyle(color: textMuted, fontSize: 12)),
+                Text(
+                  'AED ${b.totalPrice?.toInt() ?? 0}',
                   style: TextStyle(
                     color: AppColors.orange,
                     fontSize: 14,

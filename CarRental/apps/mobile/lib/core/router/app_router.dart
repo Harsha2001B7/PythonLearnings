@@ -95,6 +95,12 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
+      // ─── Search Screen ──────────────────────────────────────────────────────
+      GoRoute(
+        path: AppRoute.search,
+        builder: (context, state) => const SearchPlaceholderScreen(),
+      ),
+
       // ─── User shell with bottom navigation ──────────────────────────────────
       ShellRoute(
         builder: (context, state, child) => MainNavigationShell(child: child),
@@ -104,12 +110,11 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const HomeScreen(),
           ),
           GoRoute(
-            path: AppRoute.search,
-            builder: (context, state) => const SearchPlaceholderScreen(),
-          ),
-          GoRoute(
             path: AppRoute.fleet,
-            builder: (context, state) => const FleetPlaceholderScreen(),
+            builder: (context, state) {
+              final brand = state.uri.queryParameters['brand'];
+              return FleetPlaceholderScreen(preselectedBrand: brand);
+            },
           ),
           GoRoute(
             path: AppRoute.profile,

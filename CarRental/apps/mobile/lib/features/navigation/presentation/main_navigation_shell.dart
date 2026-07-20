@@ -10,15 +10,13 @@ class MainNavigationShell extends ConsumerWidget {
 
   static const _destinations = [
     _NavItem(icon: Icons.home_rounded, label: 'Home', route: AppRoute.home),
-    _NavItem(icon: Icons.search_rounded, label: 'Search', route: AppRoute.search),
     _NavItem(icon: Icons.directions_car_rounded, label: 'Fleet', route: AppRoute.fleet),
     _NavItem(icon: Icons.person_rounded, label: 'Profile', route: AppRoute.profile),
   ];
 
   int _activeIndex(String location) {
-    if (location.startsWith(AppRoute.search)) return 1;
-    if (location.startsWith(AppRoute.fleet)) return 2;
-    if (location.startsWith(AppRoute.profile)) return 3;
+    if (location.startsWith(AppRoute.fleet)) return 1;
+    if (location.startsWith(AppRoute.profile)) return 2;
     return 0;
   }
 
@@ -41,7 +39,7 @@ class MainNavigationShell extends ConsumerWidget {
         child: SafeArea(
           top: false,
           child: SizedBox(
-            height: 64,
+            height: 68, // Increased to 68 to prevent overflow
             child: Row(
               children: List.generate(_destinations.length, (i) {
                 final item = _destinations[i];
@@ -53,9 +51,10 @@ class MainNavigationShell extends ConsumerWidget {
                     },
                     borderRadius: BorderRadius.circular(12),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      padding: const EdgeInsets.symmetric(vertical: 6),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
                             item.icon,

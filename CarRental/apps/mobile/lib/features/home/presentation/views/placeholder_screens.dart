@@ -15,12 +15,14 @@ class VehicleFilter {
   double maxPrice = 500;
   String selectedCategory = 'All'; // 'All', 'Sedan', 'Hatchback', 'SUV', etc.
   String selectedTrans = 'All';    // 'All', 'Automatic', 'Manual'
+  String selectedBrand = 'All';
 
   void reset() {
     minPrice = 50;
     maxPrice = 500;
     selectedCategory = 'All';
     selectedTrans = 'All';
+    selectedBrand = 'All';
   }
 }
 
@@ -263,7 +265,8 @@ class _SearchPlaceholderScreenState extends ConsumerState<SearchPlaceholderScree
 
 // ─── Fleet tab (Real screen instead of Placeholder) ──────────────────────────
 class FleetPlaceholderScreen extends ConsumerStatefulWidget {
-  const FleetPlaceholderScreen({super.key});
+  const FleetPlaceholderScreen({super.key, this.preselectedBrand});
+  final String? preselectedBrand;
 
   @override
   ConsumerState<FleetPlaceholderScreen> createState() => _FleetPlaceholderScreenState();
@@ -273,6 +276,7 @@ class _FleetPlaceholderScreenState extends ConsumerState<FleetPlaceholderScreen>
   List<VehicleModel> _allVehicles = [];
   List<VehicleModel> _displayedVehicles = [];
   List<CategoryModel> _categories = [];
+  List<BrandModel> _brands = [];
   bool _isLoading = true;
   String _selectedCategory = 'All';
   bool _sortAscending = true; // sort by price
@@ -283,6 +287,9 @@ class _FleetPlaceholderScreenState extends ConsumerState<FleetPlaceholderScreen>
   @override
   void initState() {
     super.initState();
+    if (widget.preselectedBrand != null) {
+      _filter.selectedBrand = widget.preselectedBrand!;
+    }
     _loadFleet();
   }
 
@@ -290,13 +297,15 @@ class _FleetPlaceholderScreenState extends ConsumerState<FleetPlaceholderScreen>
     final repo = ref.read(homeRepositoryProvider);
     final results = await Future.wait([
       repo.fetchAllVehicles(),
-      repo.fetchHomeData(), // has categories
+      repo.fetchHomeData(), // has categories & brands
     ]);
 
     if (!mounted) return;
     setState(() {
       _allVehicles = results[0] as List<VehicleModel>;
-      _categories = (results[1] as HomeData).categories;
+      final homeData = results[1] as HomeData;
+      _categories = homeData.categories;
+      _brands = homeData.brands;
       _isLoading = false;
       _applyFiltersAndSort();
     });
@@ -313,6 +322,9 @@ class _FleetPlaceholderScreenState extends ConsumerState<FleetPlaceholderScreen>
     // Apply Filter sheet filters
     if (_filter.selectedCategory != 'All') {
       list = list.where((v) => (v.categoryRel?.name ?? '').toLowerCase() == _filter.selectedCategory.toLowerCase()).toList();
+    }
+    if (_filter.selectedBrand != 'All') {
+      list = list.where((v) => (v.brandRel?.name ?? '').toLowerCase() == _filter.selectedBrand.toLowerCase()).toList();
     }
     if (_filter.selectedTrans != 'All') {
       list = list.where((v) => (v.transmission ?? '').toLowerCase() == _filter.selectedTrans.toLowerCase()).toList();
@@ -343,6 +355,7 @@ class _FleetPlaceholderScreenState extends ConsumerState<FleetPlaceholderScreen>
         return _FilterBottomSheet(
           filter: _filter,
           categories: _categories,
+          brands: _brands,
           onApply: () {
             _applyFiltersAndSort();
           },
@@ -611,11 +624,13 @@ class _FilterBottomSheet extends StatefulWidget {
   const _FilterBottomSheet({
     required this.filter,
     required this.categories,
+    required this.brands,
     required this.onApply,
   });
 
   final VehicleFilter filter;
   final List<CategoryModel> categories;
+  final List<BrandModel> brands;
   final VoidCallback onApply;
 
   @override
@@ -627,6 +642,7 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
   late double _maxPrice;
   late String _selectedCategory;
   late String _selectedTrans;
+  late String _selectedBrand;
 
   @override
   void initState() {
@@ -635,6 +651,7 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
     _maxPrice = widget.filter.maxPrice;
     _selectedCategory = widget.filter.selectedCategory;
     _selectedTrans = widget.filter.selectedTrans;
+    _selectedBrand = widget.filter.selectedBrand;
   }
 
   @override
@@ -684,6 +701,7 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                     _maxPrice = 500;
                     _selectedCategory = 'All';
                     _selectedTrans = 'All';
+                    _selectedBrand = 'All';
                   });
                 },
                 child: const Text(
@@ -733,7 +751,6 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              // All Option
               _buildFilterChip(
                 label: 'All',
                 isSelected: _selectedCategory == 'All',
@@ -756,7 +773,39 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
           ),
           const SizedBox(height: 20),
 
-          // 3. Transmission Choice
+          // 3. Brand Chips
+          Text(
+            'BRAND',
+            style: TextStyle(color: textMuted, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1),
+          ),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _buildFilterChip(
+                label: 'All',
+                isSelected: _selectedBrand == 'All',
+                onSelected: () => setState(() => _selectedBrand = 'All'),
+                surface2: surface2,
+                borderColor: borderColor,
+                textColor: textColor,
+              ),
+              ...widget.brands.map((b) {
+                return _buildFilterChip(
+                  label: b.name,
+                  isSelected: _selectedBrand == b.name,
+                  onSelected: () => setState(() => _selectedBrand = b.name),
+                  surface2: surface2,
+                  borderColor: borderColor,
+                  textColor: textColor,
+                );
+              }),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // 4. Transmission Choice
           Text(
             'TRANSMISSION',
             style: TextStyle(color: textMuted, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1),
@@ -767,7 +816,7 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
               _buildFilterChip(
                 label: 'All',
                 isSelected: _selectedTrans == 'All',
-                onSelected: () => setState(() => _selectedTrans == 'All'),
+                onSelected: () => setState(() => _selectedTrans = 'All'),
                 surface2: surface2,
                 borderColor: borderColor,
                 textColor: textColor,
@@ -776,7 +825,7 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
               _buildFilterChip(
                 label: 'Automatic',
                 isSelected: _selectedTrans == 'Automatic',
-                onSelected: () => setState(() => _selectedTrans == 'Automatic'),
+                onSelected: () => setState(() => _selectedTrans = 'Automatic'),
                 surface2: surface2,
                 borderColor: borderColor,
                 textColor: textColor,
@@ -804,6 +853,7 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
                 widget.filter.maxPrice = _maxPrice;
                 widget.filter.selectedCategory = _selectedCategory;
                 widget.filter.selectedTrans = _selectedTrans;
+                widget.filter.selectedBrand = _selectedBrand;
                 widget.onApply();
                 Navigator.pop(context);
               },

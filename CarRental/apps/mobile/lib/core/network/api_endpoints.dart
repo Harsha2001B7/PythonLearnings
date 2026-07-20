@@ -23,4 +23,7 @@ class ApiEndpoints {
   static const String categories = '$apiV1/categories/';
   static const String offers = '$apiV1/offers/';
   static const String bookingsMy = '$apiV1/bookings/my';
+  static const String userBookings = '$apiV1/users/me/bookings';
+  static const String faqs = '$apiV1/faqs/';
+  static const String settings = '$apiV1/settings/';
 }
