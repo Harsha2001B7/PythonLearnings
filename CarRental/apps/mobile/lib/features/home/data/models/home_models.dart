@@ -35,11 +35,18 @@ class VehicleModel {
     required this.slug,
     this.tagline,
     this.dailyPrice,
+    this.weeklyPrice,
+    this.monthlyPrice,
     this.badge,
     this.rating = 0.0,
     this.seats,
     this.transmission,
     this.fuel,
+    this.engine,
+    this.power,
+    this.doors,
+    this.luggage,
+    this.description,
     this.images = const [],
     this.brandRel,
     this.categoryRel,
@@ -52,11 +59,18 @@ class VehicleModel {
   final String slug;
   final String? tagline;
   final double? dailyPrice;
+  final double? weeklyPrice;
+  final double? monthlyPrice;
   final String? badge;
   final double rating;
   final int? seats;
   final String? transmission;
   final String? fuel;
+  final String? engine;
+  final String? power;
+  final int? doors;
+  final int? luggage;
+  final String? description;
   final List<String> images;
   final BrandModel? brandRel;
   final CategoryModel? categoryRel;
@@ -84,6 +98,14 @@ class VehicleModel {
     double? dailyPrice;
     if (daily != null) dailyPrice = (daily as num).toDouble();
 
+    final weekly = pricing?['weekly'];
+    double? weeklyPrice;
+    if (weekly != null) weeklyPrice = (weekly as num).toDouble();
+
+    final monthly = pricing?['monthly'];
+    double? monthlyPrice;
+    if (monthly != null) monthlyPrice = (monthly as num).toDouble();
+
     // Specs nested
     final specs = json['specifications'] as Map<String, dynamic>?;
 
@@ -98,11 +120,18 @@ class VehicleModel {
       slug: (json['slug'] as String?) ?? '',
       tagline: json['tagline'] as String?,
       dailyPrice: dailyPrice,
+      weeklyPrice: weeklyPrice,
+      monthlyPrice: monthlyPrice,
       badge: json['badge'] as String?,
       rating: ((json['rating'] as num?) ?? 0).toDouble(),
       seats: specs?['seats'] as int?,
       transmission: specs?['transmission'] as String?,
       fuel: specs?['fuel'] as String?,
+      engine: specs?['engine'] as String?,
+      power: specs?['power'] as String?,
+      doors: specs?['doors'] as int?,
+      luggage: specs?['luggage'] as int?,
+      description: json['description'] as String?,
       images: imageUrls,
       brandRel: brandJson != null ? BrandModel.fromJson(brandJson) : null,
       categoryRel: catJson != null ? CategoryModel.fromJson(catJson) : null,

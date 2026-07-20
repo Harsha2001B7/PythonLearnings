@@ -41,8 +41,10 @@ class HomeController extends StateNotifier<HomeState> {
   final HomeRepository _repo;
 
 
-  Future<void> fetch() async {
-    state = const HomeLoading();
+  Future<void> fetch({bool silent = false}) async {
+    if (!silent) {
+      state = const HomeLoading();
+    }
     try {
       final results = await Future.wait([
         _repo.fetchHomeData(),
@@ -57,7 +59,9 @@ class HomeController extends StateNotifier<HomeState> {
       debugPrint('Exception: $e');
       debugPrint('Stack trace:\n$stackTrace');
       debugPrint('====================================================');
-      state = HomeError('Failed to load home data: $e');
+      if (!silent) {
+        state = HomeError('Failed to load home data: $e');
+      }
     }
   }
 }

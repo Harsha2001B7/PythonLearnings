@@ -7,6 +7,8 @@ import '../../../../shared/widgets/theme_toggle_button.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../controllers/home_controller.dart';
 import '../../data/models/home_models.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/router/app_router.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -55,7 +57,7 @@ class HomeScreen extends ConsumerWidget {
                 HomeError(:final message) => _buildError(message, ref, isDark, textMuted),
                 HomeLoaded(:final data, :final offers) => RefreshIndicator(
                     color: AppColors.orange,
-                    onRefresh: () => ref.read(homeControllerProvider.notifier).fetch(),
+                    onRefresh: () => ref.read(homeControllerProvider.notifier).fetch(silent: true),
                     child: _HomeContent(
                       data: data,
                       offers: offers,
@@ -774,10 +776,12 @@ class _VehicleCardState extends State<_VehicleCard> {
     final price = widget.vehicle.dailyPrice?.toInt() ?? 0;
     final rating = widget.vehicle.rating;
 
-    return Container(
-      width: 220,
-      decoration: BoxDecoration(
-        color: widget.surface,
+    return GestureDetector(
+      onTap: () => context.push(AppRoute.vehicleDetail, extra: widget.vehicle),
+      child: Container(
+        width: 220,
+        decoration: BoxDecoration(
+          color: widget.surface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: widget.borderColor),
       ),
@@ -1007,8 +1011,9 @@ class _VehicleCardState extends State<_VehicleCard> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 // ─── Recent Booking Placeholder ───────────────────────────────────────────────

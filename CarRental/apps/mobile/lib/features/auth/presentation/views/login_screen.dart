@@ -284,40 +284,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                       const SizedBox(height: 32),
 
                       // ─── Brand header ──────────────────────────────────
-                      Row(
-                        children: [
-                          SizedBox(
-                            width: 44,
-                            height: 44,
-                            child: Image.asset(
-                              'lib/assets/falconviewLogotransparentbackground.png',
-                              fit: BoxFit.contain,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'FALCON VIEW',
-                                style: TextStyle(
-                                  color: textColor,
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 1,
-                                ),
-                              ),
-                              Text(
-                                'CAR RENTALS LLC',
-                                style: TextStyle(
-                                  color: textMutedColor,
-                                  fontSize: 9,
-                                  letterSpacing: 2,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                      SizedBox(
+                        width: 88,
+                        height: 88,
+                        child: Image.asset(
+                          'lib/assets/falconviewLogotransparentbackground.png',
+                          fit: BoxFit.contain,
+                        ),
                       ),
                       const SizedBox(height: 32),
 

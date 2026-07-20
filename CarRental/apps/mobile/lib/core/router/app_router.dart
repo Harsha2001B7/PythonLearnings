@@ -8,6 +8,8 @@ import '../../features/home/presentation/views/home_screen.dart';
 import '../../features/home/presentation/views/placeholder_screens.dart';
 import '../../features/profile/presentation/views/profile_screen.dart';
 import '../../features/navigation/presentation/main_navigation_shell.dart';
+import '../../features/home/data/models/home_models.dart';
+import '../../features/home/presentation/views/vehicle_detail_screen.dart';
 
 // ─── Route name constants ─────────────────────────────────────────────────────
 class AppRoute {
@@ -18,6 +20,7 @@ class AppRoute {
   static const search = '/search';
   static const fleet = '/fleet';
   static const profile = '/profile';
+  static const vehicleDetail = '/vehicle';
 
   /// Phase 1 admin placeholder — role_id == 1 users land here.
   /// Replace with full admin ShellRoute in Phase 2.
@@ -81,6 +84,15 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoute.adminHome,
         builder: (context, state) => const AdminPlaceholderScreen(),
+      ),
+
+      // ─── Vehicle Detail Screen ──────────────────────────────────────────────
+      GoRoute(
+        path: AppRoute.vehicleDetail,
+        builder: (context, state) {
+          final vehicle = state.extra as VehicleModel;
+          return VehicleDetailScreen(vehicle: vehicle);
+        },
       ),
 
       // ─── User shell with bottom navigation ──────────────────────────────────
