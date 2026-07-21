@@ -316,3 +316,47 @@ class MembershipFeature(Base):
     included = Column(Boolean, default=True)
 
     tier = relationship("MembershipTier", back_populates="features")
+
+
+class UserDevice(Base):
+    __tablename__ = "user_devices"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    fcm_token = Column(String(500), unique=True, index=True, nullable=False)
+    platform = Column(String(50), default="android")
+    device_name = Column(String(100), nullable=True)
+    app_version = Column(String(50), nullable=True)
+    created_at = Column(DateTime, default=_utcnow)
+    updated_at = Column(DateTime, default=_utcnow, onupdate=_utcnow)
+    last_seen = Column(DateTime, default=_utcnow)
+
+    user = relationship("User")
+
+
+class NotificationHistory(Base):
+    __tablename__ = "notification_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    sender_type = Column(String(50), default="system")
+    title = Column(String(200), nullable=False)
+    message = Column(Text, nullable=False)
+    notification_type = Column(String(100), nullable=False)
+    image_url = Column(String(500), nullable=True)
+    booking_id = Column(Integer, ForeignKey("bookings.id"), nullable=True)
+    vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=True)
+    vehicle_name = Column(String(100), nullable=True)
+    vehicle_image = Column(String(500), nullable=True)
+    booking_reference = Column(String(50), nullable=True)
+    status = Column(String(50), default="sent")
+    priority = Column(String(50), default="high")
+    is_read = Column(Boolean, default=False)
+    action_route = Column(String(200), nullable=True)
+    action_payload = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=_utcnow)
+
+    user = relationship("User")
+    booking = relationship("Booking")
+    vehicle = relationship("Vehicle")
+

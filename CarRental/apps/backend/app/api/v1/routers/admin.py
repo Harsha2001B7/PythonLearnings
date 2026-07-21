@@ -116,6 +116,44 @@ def update_booking_status(
     db.add(log)
     
     db.commit()
+
+    # Trigger push notification to user
+    try:
+        if booking.user_id:
+            from app.services.notification_service import NotificationService
+            st = status_in.status.lower()
+            v_name = booking.vehicle.name if booking.vehicle else "Vehicle"
+            v_img = booking.vehicle.images[0].image_url if (booking.vehicle and booking.vehicle.images) else None
+
+            if st in ("approved", "confirmed"):
+                title = "✅ Booking Approved!"
+                msg = f"Great news! Your booking for {v_name} (#FV-{booking.id}) has been approved by FalconView."
+                ntype = "booking_approved"
+            elif st in ("rejected", "cancelled"):
+                title = "❌ Booking Update"
+                msg = f"Your reservation for {v_name} (#FV-{booking.id}) status was updated to {st}."
+                ntype = "booking_rejected" if st == "rejected" else "booking_cancelled"
+            else:
+                title = "🚘 Booking Status Update"
+                msg = f"Your reservation for {v_name} (#FV-{booking.id}) is now {st}."
+                ntype = f"booking_{st}"
+
+            NotificationService.send_to_user(
+                db=db,
+                user_id=booking.user_id,
+                title=title,
+                message=msg,
+                notification_type=ntype,
+                booking_id=booking.id,
+                vehicle_id=booking.vehicle_id,
+                vehicle_name=v_name,
+                vehicle_image=v_img,
+                booking_reference=f"#FV-{booking.id}",
+                action_route="/vehicle",
+            )
+    except Exception as exc:
+        pass
+
     return {"message": f"Booking status updated to {status_in.status}"}
 
 @router.get("/activity-logs", response_model=List[ActivityLogSchema])

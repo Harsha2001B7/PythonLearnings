@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/theme_toggle_button.dart';
+import '../../../../shared/widgets/notification_bell_button.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../controllers/home_controller.dart';
 import '../../data/models/home_models.dart';
@@ -229,38 +230,8 @@ class _HomeHeader extends ConsumerWidget {
               const ThemeToggleButton(),
               const SizedBox(width: 4),
 
-              // Notification bell
-              Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: surface2,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.notifications_rounded,
-                      size: 22,
-                      color: textColor,
-                    ),
-                  ),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: AppColors.orange,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: surface, width: 1.5),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              // Notification bell button
+              const NotificationBellButton(),
             ],
           ),
           const SizedBox(height: 12),

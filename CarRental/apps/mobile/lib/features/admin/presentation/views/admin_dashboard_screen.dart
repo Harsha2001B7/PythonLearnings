@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/theme_toggle_button.dart';
+import '../../../../shared/widgets/notification_bell_button.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../data/repositories/admin_repository.dart';
 import '../../data/models/admin_models.dart';
@@ -67,15 +68,9 @@ class AdminDashboardScreen extends ConsumerWidget {
                     ),
                   ),
                   const ThemeToggleButton(),
+                  const SizedBox(width: 4),
+                  const NotificationBellButton(),
                   const SizedBox(width: 8),
-                  // Notification icon
-                  Container(
-                    width: 38,
-                    height: 38,
-                    decoration: BoxDecoration(color: surface2, shape: BoxShape.circle),
-                    child: Icon(Icons.notifications_rounded, size: 20, color: textColor),
-                  ),
-                  const SizedBox(width: 10),
                   // Admin Photo
                   Container(
                     width: 38,

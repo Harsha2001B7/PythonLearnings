@@ -7,6 +7,8 @@ import 'admin_bookings_screen.dart';
 import 'admin_settings_screen.dart';
 import 'admin_users_screen.dart';
 
+final adminTabProvider = StateProvider<int>((ref) => 0);
+
 class AdminNavigationShell extends ConsumerStatefulWidget {
   const AdminNavigationShell({super.key});
 
@@ -15,8 +17,6 @@ class AdminNavigationShell extends ConsumerStatefulWidget {
 }
 
 class _AdminNavigationShellState extends ConsumerState<AdminNavigationShell> {
-  int _activeIndex = 0;
-
   final _screens = const [
     AdminDashboardScreen(),
     AdminVehiclesScreen(),
@@ -27,6 +27,7 @@ class _AdminNavigationShellState extends ConsumerState<AdminNavigationShell> {
 
   @override
   Widget build(BuildContext context) {
+    final activeIndex = ref.watch(adminTabProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final navBg = isDark ? AppColors.surfaceDark : AppColors.surfaceLight;
     final borderColor = isDark ? AppColors.borderDark : AppColors.borderLight;
@@ -35,7 +36,7 @@ class _AdminNavigationShellState extends ConsumerState<AdminNavigationShell> {
     return Scaffold(
       body: IndexedStack(
         sizing: StackFit.expand,
-        index: _activeIndex,
+        index: activeIndex,
         children: _screens,
       ),
       bottomNavigationBar: Container(
@@ -49,11 +50,11 @@ class _AdminNavigationShellState extends ConsumerState<AdminNavigationShell> {
             height: 68,
             child: Row(
               children: [
-                _buildNavItem(0, Icons.dashboard_rounded, 'Dashboard', mutedColor),
-                _buildNavItem(1, Icons.directions_car_rounded, 'Vehicles', mutedColor),
-                _buildNavItem(2, Icons.calendar_month_rounded, 'Bookings', mutedColor),
-                _buildNavItem(3, Icons.people_rounded, 'Users', mutedColor),
-                _buildNavItem(4, Icons.settings_rounded, 'Settings', mutedColor),
+                _buildNavItem(0, Icons.dashboard_rounded, 'Dashboard', mutedColor, activeIndex),
+                _buildNavItem(1, Icons.directions_car_rounded, 'Vehicles', mutedColor, activeIndex),
+                _buildNavItem(2, Icons.calendar_month_rounded, 'Bookings', mutedColor, activeIndex),
+                _buildNavItem(3, Icons.people_rounded, 'Users', mutedColor, activeIndex),
+                _buildNavItem(4, Icons.settings_rounded, 'Settings', mutedColor, activeIndex),
               ],
             ),
           ),
@@ -62,14 +63,12 @@ class _AdminNavigationShellState extends ConsumerState<AdminNavigationShell> {
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label, Color mutedColor) {
-    final isActive = _activeIndex == index;
+  Widget _buildNavItem(int index, IconData icon, String label, Color mutedColor, int activeIndex) {
+    final isActive = activeIndex == index;
     return Expanded(
       child: InkWell(
         onTap: () {
-          setState(() {
-            _activeIndex = index;
-          });
+          ref.read(adminTabProvider.notifier).state = index;
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(

@@ -5,6 +5,7 @@ import '../../data/repositories/auth_repository.dart';
 // AuthException is defined in login_screen.dart — import it here so the
 // controller can re-throw typed exceptions that the view surfaces verbatim.
 import '../views/login_screen.dart';
+import '../../../../core/services/fcm_service.dart';
 
 // ─── Auth State ───────────────────────────────────────────────────────────────
 sealed class AuthState {
@@ -50,7 +51,12 @@ class AuthController extends StateNotifier<AuthState> {
   Future<void> _init() async {
     try {
       final user = await _repo.restoreSession();
-      state = user != null ? AuthAuthenticated(user) : const AuthUnauthenticated();
+      if (user != null) {
+        state = AuthAuthenticated(user);
+        FcmService.instance.syncTokenToBackend();
+      } else {
+        state = const AuthUnauthenticated();
+      }
     } catch (_) {
       state = const AuthUnauthenticated();
     }
@@ -63,6 +69,7 @@ class AuthController extends StateNotifier<AuthState> {
       final result =
           await _repo.loginWithEmail(email: email, password: password);
       state = AuthAuthenticated(result.user);
+      FcmService.instance.syncTokenToBackend();
     } on DioException catch (e) {
       final msg = _dioErrorMessage(e);
       state = AuthUnauthenticated(msg);
@@ -83,19 +90,21 @@ class AuthController extends StateNotifier<AuthState> {
     try {
       final result = await _repo.loginWithGoogle(idToken: idToken);
       state = AuthAuthenticated(result.user);
+      FcmService.instance.syncTokenToBackend();
     } on DioException catch (e) {
       final msg = _dioErrorMessage(e);
       state = AuthUnauthenticated(msg);
       throw AuthException(msg);
     } catch (e) {
-      const msg = 'Google authentication failed. Please try again.';
+      const msg = 'Google Sign-In failed. Please try again.';
       state = const AuthUnauthenticated(msg);
-      throw const AuthException(msg);
+      throw AuthException(msg.toString());
     }
   }
 
   // ─── Logout ───────────────────────────────────────────────────────────────
   Future<void> logout() async {
+    await FcmService.instance.unregisterTokenFromBackend();
     await _repo.logout();
     state = const AuthUnauthenticated();
   }

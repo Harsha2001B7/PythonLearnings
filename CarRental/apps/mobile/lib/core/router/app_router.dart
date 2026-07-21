@@ -13,6 +13,8 @@ import '../../features/home/data/models/home_models.dart';
 import '../../features/home/presentation/views/vehicle_detail_screen.dart';
 import '../../features/admin/presentation/views/admin_navigation_shell.dart';
 
+import '../../features/notifications/presentation/views/notification_center_screen.dart';
+
 // ─── Route name constants ─────────────────────────────────────────────────────
 class AppRoute {
   AppRoute._();
@@ -24,6 +26,7 @@ class AppRoute {
   static const fleet = '/fleet';
   static const profile = '/profile';
   static const vehicleDetail = '/vehicle';
+  static const notifications = '/notifications';
 
   /// Phase 1 admin placeholder — role_id == 1 users land here.
   /// Replace with full admin ShellRoute in Phase 2.
@@ -100,6 +103,12 @@ final routerProvider = Provider<GoRouter>((ref) {
           final vehicle = state.extra as VehicleModel;
           return VehicleDetailScreen(vehicle: vehicle);
         },
+      ),
+
+      // ─── Notification Center ───────────────────────────────────────────────
+      GoRoute(
+        path: AppRoute.notifications,
+        builder: (context, state) => const NotificationCenterScreen(),
       ),
 
       // ─── Search Screen ──────────────────────────────────────────────────────

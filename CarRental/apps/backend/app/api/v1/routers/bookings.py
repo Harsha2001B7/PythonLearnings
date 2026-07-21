@@ -35,6 +35,52 @@ def create_booking(
     db.add(db_booking)
     db.commit()
     db.refresh(db_booking)
+
+    # ── Trigger Push Notifications ──
+    try:
+        from app.services.notification_service import NotificationService
+        v_img = vehicle.images[0].image_url if vehicle.images else None
+
+        # 1. Notify User if authenticated
+        if current_user:
+            NotificationService.send_to_user(
+                db=db,
+                user_id=current_user.id,
+                title="🏎️ Booking Requested",
+                message=f"Your reservation request for {vehicle.name} (Ref #{db_booking.id}) has been received! Our team will contact you shortly.",
+                notification_type="booking_created",
+                booking_id=db_booking.id,
+                vehicle_id=vehicle.id,
+                vehicle_name=vehicle.name,
+                vehicle_image=v_img,
+                booking_reference=f"#FV-{db_booking.id}",
+                action_route="/vehicle",
+            )
+        # 2. Notify Admins with clean customer name and dates (no email)
+        if current_user:
+            user_label = f"{current_user.first_name or ''} {current_user.last_name or ''}".strip() or current_user.email
+        else:
+            user_label = "Guest Customer"
+
+        start_str = db_booking.start_date.strftime("%d %b") if db_booking.start_date else "N/A"
+        end_str = db_booking.end_date.strftime("%d %b %Y") if db_booking.end_date else "N/A"
+
+        NotificationService.send_to_admins(
+            db=db,
+            title=f"🏎️ New Booking: {user_label}",
+            message=f"Car: {vehicle.name}\nDates: {start_str} – {end_str} · Ref #{db_booking.id}",
+            notification_type="admin_new_booking",
+            booking_id=db_booking.id,
+            vehicle_id=vehicle.id,
+            vehicle_name=vehicle.name,
+            vehicle_image=v_img,
+            booking_reference=f"#FV-{db_booking.id}",
+            action_route="/admin",
+        )
+    except Exception as exc:
+        import logging
+        logging.getLogger(__name__).error(f"Error triggering push notification in create_booking: {exc}")
+
     return db_booking
 
 

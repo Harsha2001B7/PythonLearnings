@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/router/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'core/providers/theme_provider.dart';
+import 'core/services/fcm_service.dart';
 
 class FalconViewApp extends ConsumerWidget {
   const FalconViewApp({super.key});
@@ -19,6 +20,10 @@ class FalconViewApp extends ConsumerWidget {
       darkTheme: AppTheme.dark,
       themeMode: themeMode,
       routerConfig: router,
+      builder: (context, child) {
+        FcmService.instance.setNavigatorContext(context);
+        return child ?? const SizedBox.shrink();
+      },
     );
   }
 }

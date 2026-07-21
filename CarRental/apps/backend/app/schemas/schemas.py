@@ -285,3 +285,56 @@ class BookingResponse(ORMModel):
 
 class GoogleLoginRequest(BaseModel):
     id_token: str
+
+
+class DeviceRegisterRequest(BaseModel):
+    fcm_token: str
+    platform: Optional[str] = "android"
+    device_name: Optional[str] = None
+    app_version: Optional[str] = None
+
+
+class DeviceResponse(ORMModel):
+    id: int
+    user_id: int
+    fcm_token: str
+    platform: str
+    device_name: Optional[str] = None
+    app_version: Optional[str] = None
+    created_at: datetime
+    last_seen: datetime
+
+
+class NotificationResponse(ORMModel):
+    id: int
+    user_id: int
+    sender_type: str
+    title: str
+    message: str
+    notification_type: str
+    image_url: Optional[str] = None
+    booking_id: Optional[int] = None
+    vehicle_id: Optional[int] = None
+    vehicle_name: Optional[str] = None
+    vehicle_image: Optional[str] = None
+    booking_reference: Optional[str] = None
+    status: str
+    priority: str
+    is_read: bool
+    action_route: Optional[str] = None
+    action_payload: Optional[str] = None
+    created_at: datetime
+
+
+class UnreadCountResponse(BaseModel):
+    unread_count: int
+
+
+class TestNotificationRequest(BaseModel):
+    user_id: int
+    title: str
+    message: str
+    notification_type: Optional[str] = "admin_test"
+    image_url: Optional[str] = None
+    action_route: Optional[str] = None
+

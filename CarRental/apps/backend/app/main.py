@@ -84,6 +84,11 @@ async def lifespan(app: FastAPI):
 
     _run_sqlite_migrations()
 
+    # Ensure all DB models (including notification tables) are created
+    from app.models.models import Base
+    from app.db.database import engine
+    Base.metadata.create_all(bind=engine)
+
     yield
     # ── Shutdown ───────────────────────────────────────────────
     logger.info("Shutting down %s", settings.PROJECT_NAME)

@@ -184,6 +184,21 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
+
+    # Trigger Welcome Notification
+    try:
+        from app.services.notification_service import NotificationService
+        NotificationService.send_to_user(
+            db=db,
+            user_id=new_user.id,
+            title="👋 Welcome to FalconView!",
+            message="Thank you for joining UAE's premier luxury car rental platform. Explore our fleet and book your dream drive today!",
+            notification_type="welcome",
+            action_route="/fleet",
+        )
+    except Exception:
+        pass
+
     return new_user
 
 

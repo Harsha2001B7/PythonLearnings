@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "628916820824",
+    "project_id": "falconview-33208",
+    "storage_bucket": "falconview-33208.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:628916820824:android:b3245291934b9f18eba32d",
+        "android_client_info": {
+          "package_name": "com.example.luxury_car_rental"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAvmv18r1C7o7N2c6e12TB4gK5u3kefH4s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
