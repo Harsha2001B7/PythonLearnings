@@ -77,6 +77,7 @@ export interface Vehicle {
   isNewArrival?: boolean;
   isPopular?: boolean;
   available: boolean;
+  quantity?: number;
   badge?: string;
   rating: number;
   reviewCount: number;

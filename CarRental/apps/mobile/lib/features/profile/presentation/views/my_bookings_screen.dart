@@ -214,9 +214,16 @@ class _BookingCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '$startFmt – $endFmt',
-                      style: TextStyle(color: textMuted, fontSize: 12),
+                      'Rental: $startFmt – $endFmt',
+                      style: TextStyle(color: textMuted, fontSize: 11),
                     ),
+                    if (booking.createdAt != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        'Booked on ${DateFormat('dd MMM yyyy').format(booking.createdAt!)}',
+                        style: const TextStyle(color: AppColors.orange, fontSize: 11, fontWeight: FontWeight.w600),
+                      ),
+                    ],
                   ],
                 ),
               ),

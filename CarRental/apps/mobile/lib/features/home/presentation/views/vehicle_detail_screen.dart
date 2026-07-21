@@ -922,7 +922,7 @@ class _BookNowScreenState extends ConsumerState<_BookNowScreen> {
       // Make a real POST API call to store the booking in SQLite
       // Fixed 307 temporary redirect by using a trailing slash!
       await dio.post(
-        '${ApiEndpoints.baseUrl}${ApiEndpoints.bookingsMy.replaceAll('/my', '/')}', // Resolves to /api/v1/bookings/
+        '${ApiEndpoints.baseUrl}/api/v1/bookings/',
         data: {
           'vehicle_id': widget.vehicle.id,
           'start_date': widget.startDate.toIso8601String(),
@@ -1001,12 +1001,12 @@ class _BookNowScreenState extends ConsumerState<_BookNowScreen> {
       ),
       body: _submitting
           ? const Center(child: CircularProgressIndicator(color: AppColors.orange))
-          : Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+          : SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 24),
                   Text(
                     'BOOKING SUMMARY',
                     style: TextStyle(color: textMuted, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1),
@@ -1077,7 +1077,7 @@ class _BookNowScreenState extends ConsumerState<_BookNowScreen> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 32),
 
                   Text(
                     'CHOOSE BOOKING METHOD',
@@ -1154,7 +1154,7 @@ class _BookNowScreenState extends ConsumerState<_BookNowScreen> {
   }
 }
 
-// ─── Request Sent Screen (Success Page) ──────────────────────────────────────
+// ─── Request Sent Screen (Success confirmation) ────────────────────────────────
 class _RequestSentScreen extends StatelessWidget {
   const _RequestSentScreen({
     required this.vehicle,
@@ -1186,12 +1186,13 @@ class _RequestSentScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: bg,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const Spacer(),
+              const SizedBox(height: 16),
               // Checkmark Circle Icon
               Container(
                 width: 80,
@@ -1204,7 +1205,7 @@ class _RequestSentScreen extends StatelessWidget {
                   child: Icon(Icons.check_rounded, size: 44, color: Colors.white),
                 ),
               ),
-              const SizedBox(height: 28),
+              const SizedBox(height: 24),
 
               // Title
               Text(
@@ -1219,14 +1220,14 @@ class _RequestSentScreen extends StatelessWidget {
 
               // Subtitle description
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
                   'Your reservation request for the ${vehicle.name} has been received. Our team will contact you shortly.',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: textMuted, fontSize: 13, height: 1.5),
                 ),
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 24),
 
               // Booking Reference Box
               Container(
@@ -1278,8 +1279,7 @@ class _RequestSentScreen extends StatelessWidget {
                   ],
                 ),
               ),
-
-              const Spacer(),
+              const SizedBox(height: 28),
 
               // Chat on WhatsApp CTA Button
               SizedBox(
@@ -1321,7 +1321,7 @@ class _RequestSentScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 24),
             ],
           ),
         ),

@@ -50,6 +50,7 @@ interface VehicleInput {
   is_popular: boolean;
   is_new_arrival: boolean;
   available: boolean;
+  quantity?: number;
 }
 
 
@@ -104,6 +105,7 @@ const AdminDashboard: React.FC = () => {
         is_popular: car.is_popular,
         is_new_arrival: car.is_new_arrival,
         available: available,
+        quantity: car.quantity ?? 1,
         badge: car.badge,
         rating: car.rating,
         review_count: car.review_count,
@@ -169,7 +171,7 @@ const AdminDashboard: React.FC = () => {
     category_id: 2, brand_id: 10,
     pricing: { daily: 150, weekly: 1000, monthly: 3500 },
     specifications: { engine: '1.5L', power: '100 hp', torque: '150 Nm', seats: 5, doors: 4, luggage: 350, transmission: 'auto', fuel: 'petrol', year: 2024 },
-    featured: false, is_popular: false, is_new_arrival: false, available: true
+    featured: false, is_popular: false, is_new_arrival: false, available: true, quantity: 1
   });
 
   React.useEffect(() => {
@@ -340,7 +342,8 @@ const AdminDashboard: React.FC = () => {
       featured: car.featured || false,
       is_popular: car.isPopular || false,
       is_new_arrival: car.isNewArrival || false,
-      available: car.available || true
+      available: car.available || true,
+      quantity: car.quantity ?? 1
     });
     setVehicleModalOpen(true);
   };
@@ -352,7 +355,7 @@ const AdminDashboard: React.FC = () => {
       category_id: 2, brand_id: 10,
       pricing: { daily: 150, weekly: 1000, monthly: 3500 },
       specifications: { engine: '1.5L', power: '100 hp', torque: '150 Nm', seats: 5, doors: 4, luggage: 350, transmission: 'auto', fuel: 'petrol', year: 2024 },
-      featured: false, is_popular: false, is_new_arrival: false, available: true
+      featured: false, is_popular: false, is_new_arrival: false, available: true, quantity: 1
     });
     setVehicleModalOpen(true);
   };
@@ -593,9 +596,9 @@ const AdminDashboard: React.FC = () => {
                                 <td className="py-4 px-4 font-mono font-semibold text-white">{formatAED(car.pricePerDay)}</td>
                                 <td className="py-4 px-4">
                                   <span className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
-                                    car.available ? 'text-green-400 bg-green-500/10 border-green-500/20' : 'text-red-400 bg-red-500/10 border-red-500/20'
+                                    car.available && (car.quantity ?? 1) > 0 ? 'text-green-400 bg-green-500/10 border-green-500/20' : 'text-red-400 bg-red-500/10 border-red-500/20'
                                   }`}>
-                                    {car.available ? 'ACTIVE' : 'INACTIVE'}
+                                    {car.available && (car.quantity ?? 1) > 0 ? `AVAILABLE (Qty: ${car.quantity ?? 1})` : 'UNAVAILABLE'}
                                   </span>
                                 </td>
                                 <td className="py-4 px-4 text-right space-x-2 whitespace-nowrap flex items-center justify-end">
@@ -641,9 +644,9 @@ const AdminDashboard: React.FC = () => {
                               <span className="text-[10px] text-vanta-amber font-mono">{car.brand}</span>
                             </div>
                             <span className={`px-2 py-0.5 rounded text-[10px] font-mono border ${
-                              car.available ? 'text-green-400 bg-green-500/10 border-green-500/20' : 'text-red-400 bg-red-500/10 border-red-500/20'
+                              car.available && (car.quantity ?? 1) > 0 ? 'text-green-400 bg-green-500/10 border-green-500/20' : 'text-red-400 bg-red-500/10 border-red-500/20'
                             }`}>
-                              {car.available ? 'ACTIVE' : 'INACTIVE'}
+                              {car.available && (car.quantity ?? 1) > 0 ? `AVAILABLE (Qty: ${car.quantity ?? 1})` : 'UNAVAILABLE'}
                             </span>
                           </div>
                           <div className="grid grid-cols-2 gap-2 text-xs">
@@ -717,6 +720,7 @@ const AdminDashboard: React.FC = () => {
                               <th className="py-3 px-4">Lease ID</th>
                               <th className="py-3 px-4">User</th>
                               <th className="py-3 px-4">Vehicle</th>
+                              <th className="py-3 px-4">Booked On</th>
                               <th className="py-3 px-4">Lease Dates</th>
                               <th className="py-3 px-4">Total Fee</th>
                               <th className="py-3 px-4">State</th>
@@ -732,8 +736,11 @@ const AdminDashboard: React.FC = () => {
                                   <span className="text-[10px] text-vanta-ink-subtle font-mono">{b.user?.email}</span>
                                 </td>
                                 <td className="py-4 px-4 font-semibold text-white">{b.vehicle?.name}</td>
+                                <td className="py-4 px-4 font-mono text-vanta-amber text-[11px]">
+                                  {b.createdAt ? b.createdAt.split('T')[0] : 'N/A'}
+                                </td>
                                 <td className="py-4 px-4 font-mono">
-                                  {b.startDate.split('T')[0]} to {b.endDate.split('T')[0]}
+                                  {b.startDate ? b.startDate.split('T')[0] : 'N/A'} to {b.endDate ? b.endDate.split('T')[0] : 'N/A'}
                                 </td>
                                 <td className="py-4 px-4 font-mono font-semibold text-white">{formatAED(b.totalPrice)}</td>
                                 <td className="py-4 px-4">
@@ -1275,6 +1282,16 @@ const AdminDashboard: React.FC = () => {
                       />
                       <span className="text-xs font-mono uppercase text-vanta-ink-muted">Popular Car</span>
                     </label>
+                    <div>
+                      <label className="block text-[10px] font-mono uppercase text-vanta-ink-muted mb-1">Vehicle Quantity</label>
+                      <input
+                        type="number"
+                        min="0"
+                        value={vehicleForm.quantity ?? 1}
+                        onChange={(e) => setVehicleForm({ ...vehicleForm, quantity: parseInt(e.target.value) || 0 })}
+                        className="w-full bg-vanta-paper border border-vanta-border rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-vanta-amber"
+                      />
+                    </div>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="checkbox"

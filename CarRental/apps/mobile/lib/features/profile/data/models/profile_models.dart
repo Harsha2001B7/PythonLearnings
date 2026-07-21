@@ -22,13 +22,13 @@ class BookingModel {
 
   factory BookingModel.fromJson(Map<String, dynamic> json) {
     return BookingModel(
-      id: json['id'] as int,
-      vehicleId: json['vehicleId'] as int,
-      startDate: json['startDate'] != null ? DateTime.tryParse(json['startDate'] as String) : null,
-      endDate: json['endDate'] != null ? DateTime.tryParse(json['endDate'] as String) : null,
-      totalPrice: json['totalPrice'] != null ? (json['totalPrice'] as num).toDouble() : null,
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      vehicleId: (json['vehicle_id'] as num?)?.toInt() ?? (json['vehicleId'] as num?)?.toInt() ?? 0,
+      startDate: json['start_date'] != null ? DateTime.tryParse(json['start_date'] as String) : (json['startDate'] != null ? DateTime.tryParse(json['startDate'] as String) : null),
+      endDate: json['end_date'] != null ? DateTime.tryParse(json['end_date'] as String) : (json['endDate'] != null ? DateTime.tryParse(json['endDate'] as String) : null),
+      totalPrice: (json['total_price'] as num?)?.toDouble() ?? (json['totalPrice'] as num?)?.toDouble(),
       status: (json['status'] as String?) ?? 'pending',
-      createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt'] as String) : null,
+      createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at'] as String) : (json['createdAt'] != null ? DateTime.tryParse(json['createdAt'] as String) : null),
       vehicle: json['vehicle'] != null ? BookingVehicleModel.fromJson(json['vehicle'] as Map<String, dynamic>) : null,
     );
   }

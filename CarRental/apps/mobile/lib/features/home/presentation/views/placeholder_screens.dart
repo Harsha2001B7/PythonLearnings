@@ -11,15 +11,15 @@ import '../../data/models/home_models.dart';
 
 // ─── Filter Model Class ──────────────────────────────────────────────────────
 class VehicleFilter {
-  double minPrice = 50;
-  double maxPrice = 500;
+  double minPrice = 0;
+  double maxPrice = 5000;
   String selectedCategory = 'All'; // 'All', 'Sedan', 'Hatchback', 'SUV', etc.
   String selectedTrans = 'All';    // 'All', 'Automatic', 'Manual'
   String selectedBrand = 'All';
 
   void reset() {
-    minPrice = 50;
-    maxPrice = 500;
+    minPrice = 0;
+    maxPrice = 5000;
     selectedCategory = 'All';
     selectedTrans = 'All';
     selectedBrand = 'All';
@@ -728,8 +728,8 @@ class _FilterBottomSheetState extends State<_FilterBottomSheet> {
           ),
           RangeSlider(
             values: RangeValues(_minPrice, _maxPrice),
-            min: 50,
-            max: 500,
+            min: 0,
+            max: 5000,
             activeColor: AppColors.orange,
             inactiveColor: borderColor,
             onChanged: (values) {

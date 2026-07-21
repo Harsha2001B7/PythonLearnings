@@ -43,16 +43,11 @@ class HomeRepository {
   }
 
   Future<List<VehicleModel>> fetchAllVehicles() async {
-    try {
-      final response = await _dio.get(ApiEndpoints.vehicles);
-      final rawVehicles = response.data as List<dynamic>? ?? [];
-      return rawVehicles
-          .map((e) => VehicleModel.fromJson(e as Map<String, dynamic>))
-          .toList();
-    } catch (e) {
-      // Fallback to empty list
-      return [];
-    }
+    final response = await _dio.get(ApiEndpoints.vehicles);
+    final rawVehicles = response.data as List<dynamic>? ?? [];
+    return rawVehicles
+        .map((e) => VehicleModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   Future<List<OfferModel>> fetchOffers() async {

@@ -94,6 +94,7 @@ class VehicleBase(BaseModel):
     is_popular: bool = False
     is_new_arrival: bool = False
     available: bool = True
+    quantity: int = 1
     badge: Optional[str] = None
     rating: float = 0.0
     review_count: int = 0

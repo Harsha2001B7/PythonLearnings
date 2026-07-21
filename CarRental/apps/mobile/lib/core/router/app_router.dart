@@ -4,18 +4,21 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/controllers/auth_controller.dart';
 import '../../features/auth/presentation/views/splash_screen.dart';
 import '../../features/auth/presentation/views/login_screen.dart';
+import '../../features/auth/presentation/views/register_screen.dart';
 import '../../features/home/presentation/views/home_screen.dart';
 import '../../features/home/presentation/views/placeholder_screens.dart';
 import '../../features/profile/presentation/views/profile_screen.dart';
 import '../../features/navigation/presentation/main_navigation_shell.dart';
 import '../../features/home/data/models/home_models.dart';
 import '../../features/home/presentation/views/vehicle_detail_screen.dart';
+import '../../features/admin/presentation/views/admin_navigation_shell.dart';
 
 // ─── Route name constants ─────────────────────────────────────────────────────
 class AppRoute {
   AppRoute._();
   static const splash = '/splash';
   static const login = '/login';
+  static const register = '/register';
   static const home = '/';
   static const search = '/search';
   static const fleet = '/fleet';
@@ -48,7 +51,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       final authState = ref.read(authControllerProvider);
       final location = state.matchedLocation;
       final isOnSplash = location == AppRoute.splash;
-      final isOnLogin = location == AppRoute.login;
 
       // Always let splash render while auth state resolves
       if (isOnSplash) return null;
@@ -57,12 +59,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       if (authState is AuthInitializing) return AppRoute.splash;
 
       final isAuthenticated = authState is AuthAuthenticated;
+      final isOnAuth = location == AppRoute.login || location == AppRoute.register;
 
-      // Unauthenticated guard
-      if (!isAuthenticated && !isOnLogin) return AppRoute.login;
+      // Unauthenticated guard — only allow auth screens (/login, /register)
+      if (!isAuthenticated && !isOnAuth) return AppRoute.login;
 
-      // Authenticated guard — keep admin away from user shell and vice versa
-      if (isAuthenticated && isOnLogin) {
+      // Authenticated guard — keep logged in users away from login/register screens
+      if (authState is AuthAuthenticated && isOnAuth) {
         final user = authState.user;
         return user.isAdmin ? AppRoute.adminHome : AppRoute.home;
       }
@@ -79,11 +82,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoute.login,
         builder: (context, state) => const LoginScreen(),
       ),
+      GoRoute(
+        path: AppRoute.register,
+        builder: (context, state) => const RegisterScreen(),
+      ),
 
-      // ─── Admin placeholder (Phase 1) ────────────────────────────────────────
+      // ─── Admin Dashboard ──────────────────────────────────────────────────
       GoRoute(
         path: AppRoute.adminHome,
-        builder: (context, state) => const AdminPlaceholderScreen(),
+        builder: (context, state) => const AdminNavigationShell(),
       ),
 
       // ─── Vehicle Detail Screen ──────────────────────────────────────────────

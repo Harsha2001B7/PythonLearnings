@@ -176,7 +176,7 @@ const VehicleCard: React.FC<{
 
 // ─── Fleet Page ───────────────────────────────────────────────────
 const FleetPage: React.FC = () => {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
 
   // Initialize state from URL params
@@ -184,7 +184,7 @@ const FleetPage: React.FC = () => {
   const [category, setCategory] = useState<Category>((searchParams.get('category') as Category) || 'all');
   const [maxPrice, setMaxPrice] = useState(() => {
     const p = searchParams.get('maxPrice');
-    return p ? parseInt(p) : 600;
+    return p ? parseInt(p) : 5000;
   });
   const [seats, setSeats] = useState(searchParams.get('seats') || 'all');
   const [sortBy, setSortBy] = useState<SortKey>((searchParams.get('sort') as SortKey) || 'featured');
@@ -234,16 +234,17 @@ const FleetPage: React.FC = () => {
     search, setSearch, category, setCategory,
     maxPrice, setMaxPrice, seats, setSeats,
     deliveryOnly, setDeliveryOnly, sortBy, setSortBy,
-    totalResults: filteredVehicles.length,
+  totalResults: filteredVehicles.length,
     maxPossiblePrice: Math.max(...(fleetData.length ? fleetData.map((v: any) => v.pricePerDay) : [3000]))
   };
 
   const resetFilters = () => {
-    setSearch(''); setCategory('all'); setMaxPrice(600); setSeats('all');
+    setSearch(''); setCategory('all'); setMaxPrice(5000); setSeats('all');
     setDeliveryOnly(false); setSortBy('featured');
+    setSearchParams({});
   };
 
-  const hasActiveFilters = search || category !== 'all' || maxPrice < 600 || seats !== 'all' || deliveryOnly;
+  const hasActiveFilters = search || category !== 'all' || maxPrice < 5000 || seats !== 'all' || deliveryOnly || sortBy !== 'featured';
 
   const fleetJsonLd = {
     "@context": "https://schema.org",

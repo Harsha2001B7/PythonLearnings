@@ -5,6 +5,7 @@ import { API_BASE } from '../../config/api';
 // Helper to transform backend vehicle to frontend Vehicle type
 const transformVehicle = (v: any): Vehicle => ({
   ...v,
+  quantity: v.quantity ?? 1,
   pricePerDay: v.pricing?.daily || 0,
   pricePerWeek: v.pricing?.weekly || 0,
   pricing: v.pricing ? {

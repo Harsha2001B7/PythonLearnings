@@ -40,6 +40,13 @@ def _run_sqlite_migrations() -> None:
         if "avatar_url" not in columns:
             cursor.execute("ALTER TABLE users ADD COLUMN avatar_url VARCHAR(512)")
             altered = True
+
+        cursor.execute("PRAGMA table_info(vehicles)")
+        v_columns = [row[1] for row in cursor.fetchall()]
+        if "quantity" not in v_columns:
+            cursor.execute("ALTER TABLE vehicles ADD COLUMN quantity INTEGER DEFAULT 1")
+            cursor.execute("UPDATE vehicles SET quantity = 1 WHERE quantity IS NULL OR quantity = 0")
+            altered = True
         
         # Ensure brand logos are seeded
         logo_map = {
@@ -93,13 +100,16 @@ def create_app() -> FastAPI:
     )
 
     # Set up CORS
-    cors_origins = list(settings.BACKEND_CORS_ORIGINS)
-    if settings.FRONTEND_URL and settings.FRONTEND_URL not in cors_origins:
-        cors_origins.append(settings.FRONTEND_URL)
+    if settings.ENVIRONMENT == "development":
+        cors_origins = ["*"]
+    else:
+        cors_origins = [str(origin) for origin in settings.BACKEND_CORS_ORIGINS]
+        if settings.FRONTEND_URL and settings.FRONTEND_URL not in cors_origins:
+            cors_origins.append(settings.FRONTEND_URL)
 
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=[str(origin) for origin in cors_origins],
+        allow_origins=cors_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],

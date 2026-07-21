@@ -51,13 +51,16 @@ class VehicleModel {
     this.brandRel,
     this.categoryRel,
     this.available = true,
+    this.quantity = 1,
     this.featured = false,
+    this.keywords,
   });
 
   final int id;
   final String name;
   final String slug;
   final String? tagline;
+  final String? keywords;
   final double? dailyPrice;
   final double? weeklyPrice;
   final double? monthlyPrice;
@@ -75,6 +78,7 @@ class VehicleModel {
   final BrandModel? brandRel;
   final CategoryModel? categoryRel;
   final bool available;
+  final int quantity;
   final bool featured;
 
   String get primaryImage => images.isNotEmpty ? images.first : '';
@@ -114,11 +118,15 @@ class VehicleModel {
     // Category
     final catJson = json['category_rel'] as Map<String, dynamic>?;
 
+    final rawKeywords = json['keywords'] as List<dynamic>?;
+    final keywordsStr = rawKeywords?.map((e) => e.toString()).join(', ');
+
     return VehicleModel(
-      id: json['id'] as int,
+      id: (json['id'] as num?)?.toInt() ?? 0,
       name: (json['name'] as String?) ?? '',
       slug: (json['slug'] as String?) ?? '',
       tagline: json['tagline'] as String?,
+      keywords: keywordsStr,
       dailyPrice: dailyPrice,
       weeklyPrice: weeklyPrice,
       monthlyPrice: monthlyPrice,

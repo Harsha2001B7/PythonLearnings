@@ -48,6 +48,18 @@ def read_vehicle(id: int, db: Session = Depends(get_db)):
 
 @router.post("/", response_model=Vehicle)
 def create_vehicle(*, db: Session = Depends(get_db), vehicle_in: VehicleCreate, admin: Any = Depends(get_current_active_admin)):
+    # Check if a vehicle with the same name already exists under the selected brand
+    existing = db.query(vehicle_repo.model).filter(
+        vehicle_repo.model.brand_id == vehicle_in.brand_id,
+        vehicle_repo.model.name.ilike(vehicle_in.name.strip())
+    ).first()
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail=f"A vehicle with the name '{vehicle_in.name}' already exists under this brand."
+        )
+    if vehicle_in.quantity <= 0:
+        vehicle_in.available = False
     return vehicle_repo.create(db, obj_in=vehicle_in)
 
 @router.put("/{id}", response_model=Vehicle)
@@ -55,6 +67,22 @@ def update_vehicle(*, db: Session = Depends(get_db), id: int, vehicle_in: Vehicl
     vehicle = vehicle_repo.get(db, id=id)
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
+        
+    # Check duplicate on update if name or brand is changed
+    existing = db.query(vehicle_repo.model).filter(
+        vehicle_repo.model.brand_id == vehicle_in.brand_id,
+        vehicle_repo.model.name.ilike(vehicle_in.name.strip()),
+        vehicle_repo.model.id != id
+    ).first()
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Another vehicle with the name '{vehicle_in.name}' already exists under this brand."
+        )
+
+    if vehicle_in.quantity <= 0:
+        vehicle_in.available = False
+        
     return vehicle_repo.update(db, db_obj=vehicle, obj_in=vehicle_in)
 
 @router.delete("/{id}", response_model=Vehicle)
@@ -72,11 +100,25 @@ def upload_vehicle_image(
     db: Session = Depends(get_db),
     admin: Any = Depends(get_current_active_admin)
 ):
+    import time
     vehicle = vehicle_repo.get(db, id=vehicle_id)
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
         
-    filename = file.filename
+    # Generate clean, readable filename based on Brand & Vehicle Name
+    brand_name = vehicle.brand_rel.name if vehicle.brand_rel else "vehicle"
+    raw_ext = os.path.splitext(file.filename)[1].lower()
+    ext = raw_ext if raw_ext in (".jpg", ".jpeg", ".png", ".webp") else ".jpg"
+    
+    clean_raw = f"{brand_name}-{vehicle.name}".lower()
+    clean_slug = "".join([c if c.isalnum() else "-" for c in clean_raw])
+    clean_slug = "-".join(filter(None, clean_slug.split("-")))
+    
+    if image_type == "thumbnail":
+        filename = f"{clean_slug}-thumbnail{ext}"
+    else:
+        timestamp = int(time.time())
+        filename = f"{clean_slug}-{image_type}-{timestamp}{ext}"
     
     # If this is a thumbnail, delete all existing thumbnails first to keep only one
     if image_type == "thumbnail":
@@ -102,12 +144,20 @@ def upload_vehicle_image(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to save image: {str(e)}")
         
+    image_relative_url = f"/static/vehicles/{filename}"
+    
     db_image = VehicleImage(
         vehicle_id=vehicle_id,
-        image_url=f"/static/vehicles/{filename}",
+        image_url=image_relative_url,
         image_type=image_type
     )
     db.add(db_image)
+    
+    # Also update vehicle's primary_image if uploading a thumbnail
+    if image_type == "thumbnail":
+        vehicle.primary_image = image_relative_url
+        db.add(vehicle)
+        
     db.commit()
     db.refresh(db_image)
     return {

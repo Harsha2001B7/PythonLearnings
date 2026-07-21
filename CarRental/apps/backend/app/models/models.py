@@ -138,6 +138,7 @@ class Vehicle(Base):
     is_popular = Column(Boolean, default=False)
     is_new_arrival = Column(Boolean, default=False)
     available = Column(Boolean, default=True)
+    quantity = Column(Integer, default=1, nullable=False)
     badge = Column(String)
 
     rating = Column(Float, default=0.0)

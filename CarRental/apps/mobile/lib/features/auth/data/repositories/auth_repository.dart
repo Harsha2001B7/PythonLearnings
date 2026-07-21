@@ -35,6 +35,26 @@ class AuthRepository {
     return (tokens: tokens, user: user);
   }
 
+  // ─── Register ────────────────────────────────────────────────────────────
+  Future<void> register({
+    required String email,
+    required String password,
+    String? firstName,
+    String? lastName,
+    String? phone,
+  }) async {
+    await dio.post(
+      ApiEndpoints.register,
+      data: {
+        'email': email,
+        'password': password,
+        if (firstName != null && firstName.isNotEmpty) 'first_name': firstName,
+        if (lastName != null && lastName.isNotEmpty) 'last_name': lastName,
+        if (phone != null && phone.isNotEmpty) 'phone': phone,
+      },
+    );
+  }
+
   // ─── Google Sign-In ─────────────────────────────────────────────────────
   /// Sends the Google [idToken] to the backend and returns JWT tokens + user.
   Future<({AuthTokens tokens, UserModel user})> loginWithGoogle({

@@ -454,7 +454,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                         ),
                       ),
 
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 20),
 
                       // ─── Divider ─────────────────────────────────────
                       Row(
@@ -477,13 +477,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                               child: Divider(color: borderColor, thickness: 1)),
                         ],
                       ),
+                      const SizedBox(height: 20),
 
                       Center(
                         child: GestureDetector(
                           onTap: _isLoading ? null : _onGoogleSignIn,
                           child: Container(
                             width: double.infinity,
-                            height: 56,
+                            height: 50,
                             decoration: BoxDecoration(
                               color: Colors.white,
                               borderRadius: BorderRadius.circular(999),
@@ -500,15 +501,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                               children: [
                                 SvgPicture.asset(
                                   'lib/assets/google.svg',
-                                  height: 22,
-                                  width: 22,
+                                  height: 20,
+                                  width: 20,
                                 ),
-                                const SizedBox(width: 12),
+                                const SizedBox(width: 10),
                                 const Text(
                                   'Continue with Google',
                                   style: TextStyle(
                                     color: Colors.black,
-                                    fontSize: 16,
+                                    fontSize: 15,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -518,30 +519,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                         ),
                       ),
 
-                      const SizedBox(height: 28),
+                      const SizedBox(height: 24),
 
                       // ─── Register link ────────────────────────────────
                       Center(
-                        child: RichText(
-                          text: TextSpan(
-                            style: TextStyle(
-                              color: textMutedColor,
-                              fontSize: 13,
-                            ),
-                            children: const [
-                              TextSpan(text: 'New to Falcon View? '),
-                              TextSpan(
-                                text: 'Create Account',
+                        child: GestureDetector(
+                          onTap: () => context.push(AppRoute.register),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                            child: RichText(
+                              text: TextSpan(
                                 style: TextStyle(
-                                  color: AppColors.orange,
-                                  fontWeight: FontWeight.w600,
+                                  color: textMutedColor,
+                                  fontSize: 13,
                                 ),
+                                children: const [
+                                  TextSpan(text: 'New to Falcon View? '),
+                                  TextSpan(
+                                    text: 'Create Account',
+                                    style: TextStyle(
+                                      color: AppColors.orange,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 24),
                     ],
                   ),
                 ),
