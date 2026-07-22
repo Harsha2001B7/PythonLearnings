@@ -7,6 +7,7 @@ from app.db.session import get_db
 from app.models.models import User, Booking, ActivityLog
 from app.schemas.schemas import UserResponse, UserStatusUpdate, ActivityLog as ActivityLogSchema
 from app.api.dependencies import get_current_active_admin
+from app.core.config import settings
 
 router = APIRouter()
 
@@ -87,7 +88,8 @@ def get_admin_bookings(
             "id": b.vehicle.id,
             "name": b.vehicle.name,
             "model": b.vehicle.model,
-            "year": b.vehicle.year
+            "year": b.vehicle.year,
+            "primaryImage": (f"{settings.BACKEND_URL}{b.vehicle.images[0].image_url}" if b.vehicle.images and not b.vehicle.images[0].image_url.startswith('http') else (b.vehicle.images[0].image_url if b.vehicle.images else None))
         } if b.vehicle else None
     } for b in bookings]
 
@@ -152,7 +154,8 @@ def update_booking_status(
                 action_route="/vehicle",
             )
     except Exception as exc:
-        pass
+        import logging
+        logging.getLogger(__name__).error(f"Error sending booking status notification: {exc}")
 
     return {"message": f"Booking status updated to {status_in.status}"}
 

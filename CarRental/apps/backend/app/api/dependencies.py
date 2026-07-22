@@ -41,7 +41,11 @@ def get_current_user(db: Session = Depends(get_db), token: str = Depends(oauth2_
     return user
 
 def get_current_active_admin(current_user: User = Depends(get_current_user)) -> User:
-    if not current_user.role_rel or current_user.role_rel.name != "Admin":
+    is_admin = (
+        (current_user.role_rel and current_user.role_rel.name == "Admin")
+        or current_user.role_id == 1
+    )
+    if not is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="The user does not have enough privileges",

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../shared/widgets/theme_toggle_button.dart';
 import '../../data/repositories/admin_repository.dart';
@@ -209,28 +210,52 @@ class _AdminBookingManageCard extends StatelessWidget {
           ),
           Divider(color: borderColor, height: 20),
 
-          // Renter & Vehicle Info
+          // Vehicle Image + Info Row
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.person_outline_rounded, size: 16, color: textMuted),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  '${booking.user?.displayName ?? "User"} (${booking.user?.phone ?? "No Phone"})',
-                  style: TextStyle(color: textColor, fontSize: 12, fontWeight: FontWeight.w600),
+              // Vehicle Thumbnail
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: SizedBox(
+                  width: 60,
+                  height: 44,
+                  child: booking.vehicle?.primaryImage != null && booking.vehicle!.primaryImage!.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: booking.vehicle!.primaryImage!,
+                          fit: BoxFit.cover,
+                          errorWidget: (context, url, error) =>
+                              const Icon(Icons.directions_car_rounded, color: AppColors.orange, size: 24),
+                        )
+                      : Container(
+                          color: AppColors.orange.withValues(alpha: 0.1),
+                          child: const Icon(Icons.directions_car_rounded, color: AppColors.orange, size: 24),
+                        ),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Icon(Icons.directions_car_outlined, size: 16, color: textMuted),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               Expanded(
-                child: Text(
-                  '${booking.vehicle?.name ?? "Premium Car"} (${booking.vehicle?.year ?? "2023"})',
-                  style: TextStyle(color: textMuted, fontSize: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${booking.vehicle?.name ?? "Premium Car"} (${booking.vehicle?.year ?? "2023"})',
+                      style: TextStyle(color: textColor, fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.person_outline_rounded, size: 14, color: textMuted),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            '${booking.user?.displayName ?? "User"} (${booking.user?.phone ?? "No Phone"})',
+                            style: TextStyle(color: textMuted, fontSize: 11),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ],

@@ -3,8 +3,8 @@ class ApiEndpoints {
   ApiEndpoints._();
 
   // ─── Environment Configuration ──────────────────────────────────────────
-  // Set [useRenderProduction] to true when you want to switch to the live Render API.
-  // Set [useRenderProduction] to false when testing against local FastAPI backend.
+  // ⚠ IMPORTANT: Set [useRenderProduction] to true BEFORE building the APK for release!
+  // Set to false ONLY for local development with adb reverse or Wi-Fi.
   static const bool useRenderProduction = false;
 
   // ─── Local IP Configuration ─────────────────────────────────────────────

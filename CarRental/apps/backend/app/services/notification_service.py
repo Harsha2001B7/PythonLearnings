@@ -1,7 +1,7 @@
 import os
 import json
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
 
@@ -45,9 +45,11 @@ def _format_image_url(url: Optional[str]) -> Optional[str]:
         return None
     if url.startswith("http://") or url.startswith("https://"):
         return url
+    from app.core.config import settings
+    base = settings.BACKEND_URL.rstrip("/")
     if url.startswith("/"):
-        return f"http://127.0.0.1:8000{url}"
-    return f"http://127.0.0.1:8000/{url}"
+        return f"{base}{url}"
+    return f"{base}/{url}"
 
 
 class NotificationService:
@@ -62,7 +64,7 @@ class NotificationService:
     ) -> UserDevice:
         """Register or update an FCM token for a user."""
         existing = db.query(UserDevice).filter(UserDevice.fcm_token == fcm_token).first()
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
         if existing:
             existing.user_id = user_id
             existing.platform = platform
@@ -142,7 +144,7 @@ class NotificationService:
             is_read=False,
             action_route=action_route,
             action_payload=payload_str,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
         )
         db.add(record)
         db.commit()

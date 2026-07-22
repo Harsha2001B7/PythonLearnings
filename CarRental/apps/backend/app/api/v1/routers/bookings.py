@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.db.session import get_db
 from app.models.models import Booking, Vehicle, User
@@ -30,7 +30,7 @@ def create_booking(
         end_date=booking_in.end_date,
         total_price=booking_in.total_price,
         status="pending",
-        created_at=datetime.utcnow(),
+        created_at=datetime.now(timezone.utc),
     )
     db.add(db_booking)
     db.commit()
@@ -109,21 +109,3 @@ def get_all_bookings(
     return db.query(Booking).order_by(Booking.created_at.desc()).offset(skip).limit(limit).all()
 
 
-@router.patch("/{booking_id}/status", response_model=BookingResponse)
-def update_booking_status(
-    booking_id: int,
-    new_status: str,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_active_admin),
-):
-    """Admin: update booking status (confirmed, cancelled, completed)."""
-    booking = db.query(Booking).filter(Booking.id == booking_id).first()
-    if not booking:
-        raise HTTPException(status_code=404, detail="Booking not found")
-    allowed = {"pending", "confirmed", "cancelled", "completed"}
-    if new_status not in allowed:
-        raise HTTPException(status_code=400, detail=f"Status must be one of {allowed}")
-    booking.status = new_status
-    db.commit()
-    db.refresh(booking)
-    return booking

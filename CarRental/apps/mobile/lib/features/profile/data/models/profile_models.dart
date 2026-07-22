@@ -40,19 +40,22 @@ class BookingVehicleModel {
     required this.name,
     required this.model,
     required this.year,
+    this.primaryImage,
   });
 
   final int id;
   final String name;
   final String model;
   final int year;
+  final String? primaryImage;
 
   factory BookingVehicleModel.fromJson(Map<String, dynamic> json) {
     return BookingVehicleModel(
-      id: json['id'] as int,
+      id: (json['id'] as num?)?.toInt() ?? 0,
       name: (json['name'] as String?) ?? '',
       model: (json['model'] as String?) ?? '',
-      year: (json['year'] as int?) ?? 2023,
+      year: (json['year'] as num?)?.toInt() ?? 2023,
+      primaryImage: json['primaryImage'] as String?,
     );
   }
 }

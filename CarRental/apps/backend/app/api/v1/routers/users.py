@@ -6,6 +6,7 @@ from app.models.models import User
 from app.schemas.schemas import UserResponse, UserUpdate, UserPasswordUpdate
 from app.api.dependencies import get_current_user
 from app.core.security import get_password_hash, verify_password
+from app.core.config import settings
 
 router = APIRouter()
 
@@ -68,6 +69,7 @@ def get_my_bookings(
             "id": b.vehicle.id,
             "name": b.vehicle.name,
             "model": b.vehicle.model,
-            "year": b.vehicle.year
+            "year": b.vehicle.year,
+            "primaryImage": (f"{settings.BACKEND_URL}{b.vehicle.images[0].image_url}" if b.vehicle.images and not b.vehicle.images[0].image_url.startswith('http') else (b.vehicle.images[0].image_url if b.vehicle.images else None))
         } if b.vehicle else None
     } for b in bookings]

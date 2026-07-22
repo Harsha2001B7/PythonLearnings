@@ -13,6 +13,7 @@ import '../storage/secure_storage.dart';
 import '../network/api_endpoints.dart';
 import '../router/app_router.dart';
 import '../../features/admin/presentation/views/admin_navigation_shell.dart';
+import '../../features/profile/presentation/views/my_bookings_screen.dart';
 
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -250,16 +251,24 @@ class FcmService {
 
     final route = data['action_route'] as String?;
     final nType = data['notification_type'] as String?;
-    final isBooking = (nType != null && nType.contains('booking')) || route == '/admin';
+    final isBookingNotif = nType != null && nType.contains('booking');
 
-    if (isBooking || route == '/admin') {
+    if (route == '/admin' || (isBookingNotif && route != '/vehicle')) {
+      // Admin notification → switch to Admin Bookings tab
       try {
         final container = ProviderScope.containerOf(_navigatorContext!, listen: false);
-        container.read(adminTabProvider.notifier).state = 2; // Switch to Admin Bookings Tab (index 2)
+        container.read(adminTabProvider.notifier).state = 2;
       } catch (e) {
         debugPrint('Could not update adminTabProvider: $e');
       }
       _navigatorContext!.go(AppRoute.adminHome);
+    } else if (isBookingNotif) {
+      // Regular user booking notification → go to My Bookings
+      Navigator.of(_navigatorContext!).push(
+        MaterialPageRoute(
+          builder: (context) => const MyBookingsScreen(),
+        ),
+      );
     } else if (route == '/fleet') {
       _navigatorContext!.go(AppRoute.fleet);
     } else {

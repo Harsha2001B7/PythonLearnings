@@ -280,7 +280,7 @@ class SiteSetting(Base):
 class Booking(Base):
     __tablename__ = "bookings"
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
     vehicle_id = Column(Integer, ForeignKey("vehicles.id"), nullable=False)
     start_date = Column(DateTime, nullable=False)
     end_date = Column(DateTime, nullable=False)
@@ -338,7 +338,7 @@ class NotificationHistory(Base):
     __tablename__ = "notification_history"
 
     id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
     sender_type = Column(String(50), default="system")
     title = Column(String(200), nullable=False)
     message = Column(Text, nullable=False)

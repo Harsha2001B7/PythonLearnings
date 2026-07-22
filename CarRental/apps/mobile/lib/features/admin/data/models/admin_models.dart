@@ -115,12 +115,14 @@ class AdminBookingVehicleModel {
     required this.name,
     required this.model,
     required this.year,
+    this.primaryImage,
   });
 
   final int id;
   final String name;
   final String model;
   final int year;
+  final String? primaryImage;
 
   factory AdminBookingVehicleModel.fromJson(Map<String, dynamic> json) {
     return AdminBookingVehicleModel(
@@ -128,6 +130,7 @@ class AdminBookingVehicleModel {
       name: (json['name'] as String?) ?? '',
       model: (json['model'] as String?) ?? '',
       year: (json['year'] as num?)?.toInt() ?? 2023,
+      primaryImage: json['primaryImage'] as String?,
     );
   }
 }

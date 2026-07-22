@@ -92,6 +92,22 @@ def delete_vehicle(*, db: Session = Depends(get_db), id: int, admin: Any = Depen
         raise HTTPException(status_code=404, detail="Vehicle not found")
     return vehicle_repo.remove(db, id=id)
 
+@router.patch("/{id}/availability")
+def update_vehicle_availability(
+    id: int,
+    db: Session = Depends(get_db),
+    admin: Any = Depends(get_current_active_admin),
+    available: bool = True,
+):
+    """Toggle vehicle availability without overwriting other fields."""
+    vehicle = vehicle_repo.get(db, id=id)
+    if not vehicle:
+        raise HTTPException(status_code=404, detail="Vehicle not found")
+    vehicle.available = available
+    db.commit()
+    db.refresh(vehicle)
+    return {"id": vehicle.id, "name": vehicle.name, "available": vehicle.available}
+
 @router.post("/{vehicle_id}/upload-image")
 def upload_vehicle_image(
     vehicle_id: int,
