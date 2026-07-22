@@ -468,38 +468,75 @@ class _AdminVehicleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isAvail = vehicle.available && vehicle.quantity > 0;
-    final statusLabel = isAvail ? 'Available (Qty: ${vehicle.quantity})' : 'Unavailable';
     final statusColor = isAvail ? AppColors.success : AppColors.error;
-    final statusBg = (isAvail ? AppColors.success : AppColors.error).withValues(alpha: 0.1);
 
     return GestureDetector(
       onTap: onEdit,
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: surface2,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
           border: Border.all(color: borderColor),
         ),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: SizedBox(
-                width: 80,
-                height: 60,
-                child: vehicle.primaryImage.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: vehicle.primaryImage,
-                        fit: BoxFit.cover,
-                        errorWidget: (_, _, _) =>
-                            const Icon(Icons.directions_car_rounded, color: AppColors.orange, size: 28),
-                      )
-                    : const Icon(Icons.directions_car_rounded, color: AppColors.orange, size: 28),
-              ),
+            // Enlarged Thumbnail with Overlay Status Badge
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(14),
+                  child: SizedBox(
+                    width: 108,
+                    height: 82,
+                    child: vehicle.primaryImage.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: vehicle.primaryImage,
+                            fit: BoxFit.cover,
+                            errorWidget: (_, _, _) => Container(
+                              color: AppColors.surfaceDark,
+                              child: const Icon(Icons.directions_car_rounded, color: AppColors.orange, size: 32),
+                            ),
+                          )
+                        : Container(
+                            color: AppColors.surfaceDark,
+                            child: const Icon(Icons.directions_car_rounded, color: AppColors.orange, size: 32),
+                          ),
+                  ),
+                ),
+                // Top-Right Overlay Badge on Thumbnail
+                Positioned(
+                  top: 6,
+                  right: 6,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: statusColor,
+                      borderRadius: BorderRadius.circular(100),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.35),
+                          blurRadius: 4,
+                          offset: const Offset(0, 1),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      isAvail ? 'Available' : 'Rented',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 8,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(width: 14),
+
+            // Middle Info Column
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -507,53 +544,58 @@ class _AdminVehicleCard extends StatelessWidget {
                 children: [
                   Text(
                     vehicle.name,
-                    style: TextStyle(color: textColor, fontSize: 13, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      color: textColor,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 3),
                   Text(
-                    '${(vehicle.keywords != null && vehicle.keywords!.trim().isNotEmpty) ? "Plate: ${vehicle.keywords} · " : ""}${vehicle.transmission ?? "Auto"}',
-                    style: TextStyle(color: textMuted, fontSize: 10),
+                    '${vehicle.categoryRel?.name ?? "Vehicle"} · Qty: ${vehicle.quantity}',
+                    style: TextStyle(color: textMuted, fontSize: 11, fontWeight: FontWeight.w500),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  if (vehicle.keywords != null && vehicle.keywords!.trim().isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      'Plate: ${vehicle.keywords}',
+                      style: TextStyle(color: textMuted, fontSize: 10),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                  const SizedBox(height: 6),
                   Text(
                     'AED ${vehicle.dailyPrice?.toInt() ?? 0}/day',
-                    style: const TextStyle(color: AppColors.orange, fontSize: 12, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: AppColors.orange,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ],
               ),
             ),
+
+            // Right Actions & Toggle Switch
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(color: statusBg, borderRadius: BorderRadius.circular(100)),
-                      child: Text(
-                        statusLabel,
-                        style: TextStyle(color: statusColor, fontSize: 8, fontWeight: FontWeight.w800),
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error, size: 18),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      onPressed: onDelete,
-                      tooltip: 'Delete vehicle',
-                    ),
-                  ],
+                IconButton(
+                  icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error, size: 20),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: onDelete,
+                  tooltip: 'Delete vehicle',
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 12),
                 Transform.scale(
-                  scale: 0.75,
+                  scale: 0.8,
                   child: Switch(
                     value: vehicle.available,
                     onChanged: onStatusToggled,

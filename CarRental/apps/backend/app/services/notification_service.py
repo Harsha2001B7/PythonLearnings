@@ -203,7 +203,14 @@ class NotificationService:
                     db.delete(dev)
                     db.commit()
                 except Exception as e:
-                    logger.error(f"FCM push send error for token {dev.fcm_token[:15]}: {e}")
+                    if "invalid_grant" in str(e):
+                        logger.error(
+                            "FCM Service Account Key is invalid or has been revoked! "
+                            "Please download a new service account JSON key from Firebase Console (Project Settings -> Service Accounts) "
+                            "and save it to apps/backend/secrets/firebase-service-account.json."
+                        )
+                    else:
+                        logger.error(f"FCM push send error for token {dev.fcm_token[:15]}: {e}")
 
         return record
 

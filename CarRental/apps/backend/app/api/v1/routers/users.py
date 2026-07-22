@@ -125,7 +125,7 @@ def get_my_bookings(
     current_user: User = Depends(get_current_user)
 ):
     from app.models.models import Booking
-    bookings = db.query(Booking).filter(Booking.user_id == current_user.id).all()
+    bookings = db.query(Booking).filter(Booking.user_id == current_user.id).order_by(Booking.created_at.desc(), Booking.id.desc()).all()
     return [{
         "id": b.id,
         "vehicleId": b.vehicle_id,

@@ -90,6 +90,28 @@ def delete_vehicle(*, db: Session = Depends(get_db), id: int, admin: Any = Depen
     vehicle = vehicle_repo.get(db, id=id)
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
+        
+    # Delete all associated image files from disk before removing vehicle record
+    for img in vehicle.images:
+        if img.image_url:
+            filename = os.path.basename(img.image_url)
+            file_path = os.path.join(settings.UPLOADS_DIR, "vehicles", filename)
+            if os.path.exists(file_path):
+                try:
+                    os.remove(file_path)
+                except Exception:
+                    pass
+                    
+    prim_img = getattr(vehicle, "primary_image", None)
+    if prim_img:
+        filename = os.path.basename(prim_img)
+        file_path = os.path.join(settings.UPLOADS_DIR, "vehicles", filename)
+        if os.path.exists(file_path):
+            try:
+                os.remove(file_path)
+            except Exception:
+                pass
+
     return vehicle_repo.remove(db, id=id)
 
 @router.patch("/{id}/availability")
@@ -112,7 +134,7 @@ def update_vehicle_availability(
 def upload_vehicle_image(
     vehicle_id: int,
     file: UploadFile = File(...),
-    image_type: str = Form("exterior"),
+    image_type: str = Form("thumbnail"),
     db: Session = Depends(get_db),
     admin: Any = Depends(get_current_active_admin)
 ):
@@ -130,27 +152,39 @@ def upload_vehicle_image(
     clean_slug = "".join([c if c.isalnum() else "-" for c in clean_raw])
     clean_slug = "-".join(filter(None, clean_slug.split("-")))
     
-    if image_type == "thumbnail":
-        filename = f"{clean_slug}-thumbnail{ext}"
+    timestamp = int(time.time())
+    if image_type in ("thumbnail", "primary"):
+        filename = f"{clean_slug}-thumbnail-{timestamp}{ext}"
     else:
-        timestamp = int(time.time())
         filename = f"{clean_slug}-{image_type}-{timestamp}{ext}"
     
-    # If this is a thumbnail, delete all existing thumbnails first to keep only one
-    if image_type == "thumbnail":
-        old_thumbnails = db.query(VehicleImage).filter(
+    # Whenever a thumbnail/primary image is updated, delete all previous thumbnail/primary images from disk & DB
+    if image_type in ("thumbnail", "primary"):
+        old_images = db.query(VehicleImage).filter(
             VehicleImage.vehicle_id == vehicle_id,
-            VehicleImage.image_type == "thumbnail"
+            VehicleImage.image_type.in_(["thumbnail", "primary"])
         ).all()
-        for old_img in old_thumbnails:
-            old_filename = os.path.basename(old_img.image_url)
-            old_file_path = os.path.join(settings.UPLOADS_DIR, "vehicles", old_filename)
-            if os.path.exists(old_file_path):
+        for old_img in old_images:
+            if old_img.image_url:
+                old_filename = os.path.basename(old_img.image_url)
+                old_file_path = os.path.join(settings.UPLOADS_DIR, "vehicles", old_filename)
+                if os.path.exists(old_file_path):
+                    try:
+                        os.remove(old_file_path)
+                    except Exception:
+                        pass
+            db.delete(old_img)
+
+        # Also delete old primary_image file if different
+        prim_img = getattr(vehicle, "primary_image", None)
+        if prim_img:
+            old_prim_fn = os.path.basename(prim_img)
+            old_prim_path = os.path.join(settings.UPLOADS_DIR, "vehicles", old_prim_fn)
+            if os.path.exists(old_prim_path):
                 try:
-                    os.remove(old_file_path)
+                    os.remove(old_prim_path)
                 except Exception:
                     pass
-            db.delete(old_img)
             
     upload_path = os.path.join(settings.UPLOADS_DIR, "vehicles", filename)
     
@@ -169,10 +203,11 @@ def upload_vehicle_image(
     )
     db.add(db_image)
     
-    # Also update vehicle's primary_image if uploading a thumbnail
-    if image_type == "thumbnail":
-        vehicle.primary_image = image_relative_url
-        db.add(vehicle)
+    # Update vehicle's primary_image field if model has attribute
+    if image_type in ("thumbnail", "primary"):
+        if hasattr(vehicle, "primary_image"):
+            setattr(vehicle, "primary_image", image_relative_url)
+            db.add(vehicle)
         
     db.commit()
     db.refresh(db_image)

@@ -8,7 +8,9 @@ import '../../data/repositories/admin_repository.dart';
 import '../../data/models/admin_models.dart';
 
 final adminBookingsProvider = FutureProvider.autoDispose<List<AdminBookingModel>>((ref) async {
-  return ref.read(adminRepositoryProvider).fetchBookings();
+  final bookings = await ref.read(adminRepositoryProvider).fetchBookings();
+  bookings.sort((a, b) => b.id.compareTo(a.id));
+  return bookings;
 });
 
 class AdminBookingsScreen extends ConsumerWidget {

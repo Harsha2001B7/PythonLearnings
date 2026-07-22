@@ -66,7 +66,7 @@ def get_admin_bookings(
     db: Session = Depends(get_db),
     admin: User = Depends(get_current_active_admin)
 ):
-    bookings = db.query(Booking).offset(skip).limit(limit).all()
+    bookings = db.query(Booking).order_by(Booking.created_at.desc(), Booking.id.desc()).offset(skip).limit(limit).all()
     # Map models to JSON compatible output with nested items
     return [{
         "id": b.id,

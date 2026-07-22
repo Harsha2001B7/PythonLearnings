@@ -473,33 +473,345 @@ class _FleetPlaceholderScreenState extends ConsumerState<FleetPlaceholderScreen>
                   ),
                 ),
 
-                // 3. Vehicles List
+                // 3. Vehicles Categorized Sections (Vertical Stack of Horizontal Peeking Carousels)
                 Expanded(
                   child: _displayedVehicles.isEmpty
                       ? Center(child: Text('No vehicles found.', style: TextStyle(color: textMuted, fontSize: 14)))
-                      : ListView.separated(
-                          padding: const EdgeInsets.only(left: 20, right: 20, bottom: 20),
-                          itemCount: _displayedVehicles.length,
-                          separatorBuilder: (context, index) => const SizedBox(height: 12),
-                          itemBuilder: (context, idx) {
-                            return _SmallVehicleRowCard(
-                              vehicle: _displayedVehicles[idx],
-                              isDark: isDark,
-                              surface2: surface2,
-                              textColor: textColor,
-                              textMuted: textMuted,
-                              borderColor: borderColor,
-                            );
-                          },
+                      : _buildCategorizedFleet(
+                          isDark: isDark,
+                          surface2: surface2,
+                          textColor: textColor,
+                          textMuted: textMuted,
+                          borderColor: borderColor,
                         ),
                 ),
               ],
             ),
     );
   }
+
+  Widget _buildCategorizedFleet({
+    required bool isDark,
+    required Color surface2,
+    required Color textColor,
+    required Color textMuted,
+    required Color borderColor,
+  }) {
+    final Map<String, List<VehicleModel>> categorizedMap = {};
+    for (final v in _displayedVehicles) {
+      final catName = v.categoryRel?.name ?? 'Other';
+      categorizedMap.putIfAbsent(catName, () => []).add(v);
+    }
+    final entries = categorizedMap.entries.toList();
+
+    return ListView.separated(
+      padding: const EdgeInsets.only(bottom: 24),
+      physics: const BouncingScrollPhysics(),
+      itemCount: entries.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 24),
+      itemBuilder: (context, index) {
+        final entry = entries[index];
+        final catName = entry.key;
+        final list = entry.value;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Category Section Title Header
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 4,
+                        height: 16,
+                        decoration: BoxDecoration(
+                          color: AppColors.orange,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        catName,
+                        style: TextStyle(
+                          color: textColor,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: AppColors.orange.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(100),
+                    ),
+                    child: Text(
+                      '${list.length} ${list.length == 1 ? "car" : "cars"}',
+                      style: const TextStyle(
+                        color: AppColors.orange,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            // Horizontal Snap-Scroll Peek Carousel
+            _HorizontalPeekCategoryCarousel(
+              vehicles: list,
+              isDark: isDark,
+              surface2: surface2,
+              textColor: textColor,
+              textMuted: textMuted,
+              borderColor: borderColor,
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
-// ─── Small Vehicle Row Card (List view format matching Fleet design) ─────────
+// ─── Horizontal Peek Snap Category Carousel ──────────────────────────────────
+class _HorizontalPeekCategoryCarousel extends StatefulWidget {
+  const _HorizontalPeekCategoryCarousel({
+    required this.vehicles,
+    required this.isDark,
+    required this.surface2,
+    required this.textColor,
+    required this.textMuted,
+    required this.borderColor,
+  });
+
+  final List<VehicleModel> vehicles;
+  final bool isDark;
+  final Color surface2;
+  final Color textColor;
+  final Color textMuted;
+  final Color borderColor;
+
+  @override
+  State<_HorizontalPeekCategoryCarousel> createState() => _HorizontalPeekCategoryCarouselState();
+}
+
+class _HorizontalPeekCategoryCarouselState extends State<_HorizontalPeekCategoryCarousel> {
+  late final PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(viewportFraction: 0.85);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.vehicles.isEmpty) return const SizedBox.shrink();
+
+    return SizedBox(
+      height: 254,
+      child: PageView.builder(
+        controller: _pageController,
+        padEnds: false,
+        physics: const BouncingScrollPhysics(),
+        itemCount: widget.vehicles.length,
+        itemBuilder: (context, index) {
+          final vehicle = widget.vehicles[index];
+          return AnimatedBuilder(
+            animation: _pageController,
+            builder: (context, child) {
+              double page = index.toDouble();
+              if (_pageController.position.haveDimensions) {
+                page = _pageController.page ?? index.toDouble();
+              }
+              final distance = (page - index).abs();
+              final scale = (1.0 - (distance * 0.05)).clamp(0.94, 1.0);
+              final opacity = (1.0 - (distance * 0.35)).clamp(0.65, 1.0);
+
+              return Transform.scale(
+                scale: scale,
+                child: Opacity(
+                  opacity: opacity,
+                  child: child,
+                ),
+              );
+            },
+            child: Padding(
+              padding: const EdgeInsets.only(left: 20, right: 4),
+              child: _LargeFleetVehicleCard(
+                vehicle: vehicle,
+                isDark: widget.isDark,
+                surface2: widget.surface2,
+                textColor: widget.textColor,
+                textMuted: widget.textMuted,
+                borderColor: widget.borderColor,
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// ─── Large Vehicle Card with Dominant 16:9 Image & Status Overlay Badge ──────
+class _LargeFleetVehicleCard extends StatelessWidget {
+  const _LargeFleetVehicleCard({
+    required this.vehicle,
+    required this.isDark,
+    required this.surface2,
+    required this.textColor,
+    required this.textMuted,
+    required this.borderColor,
+  });
+
+  final VehicleModel vehicle;
+  final bool isDark;
+  final Color surface2;
+  final Color textColor;
+  final Color textMuted;
+  final Color borderColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final seats = vehicle.seats ?? 5;
+    final trans = vehicle.transmission ?? 'Auto';
+    final price = vehicle.dailyPrice?.toInt() ?? 0;
+    final isAvail = vehicle.available && vehicle.quantity > 0;
+
+    return GestureDetector(
+      onTap: () => context.push(AppRoute.vehicleDetail, extra: vehicle),
+      child: Container(
+        decoration: BoxDecoration(
+          color: surface2,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: borderColor),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Dominant Image with Status Badge Overlay
+            Stack(
+              children: [
+                SizedBox(
+                  height: 160,
+                  width: double.infinity,
+                  child: vehicle.primaryImage.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: vehicle.primaryImage,
+                          fit: BoxFit.cover,
+                          placeholder: (context, url) => Container(color: AppColors.surfaceDark),
+                          errorWidget: (context, url, error) => Container(
+                            color: AppColors.surfaceDark,
+                            child: const Icon(Icons.directions_car_rounded, size: 36, color: AppColors.textMutedDark),
+                          ),
+                        )
+                      : Container(
+                          color: AppColors.surfaceDark,
+                          child: const Icon(Icons.directions_car_rounded, size: 36, color: AppColors.textMutedDark),
+                        ),
+                ),
+                // Top-Right Status Badge Overlay
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: isAvail ? AppColors.success : AppColors.error,
+                      borderRadius: BorderRadius.circular(100),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.35),
+                          blurRadius: 6,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      isAvail ? 'AVAILABLE' : 'RENTED',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            // Info Details
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          vehicle.name,
+                          style: TextStyle(
+                            color: textColor,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w800,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'AED $price/day',
+                        style: const TextStyle(
+                          color: AppColors.orange,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${vehicle.categoryRel?.name ?? 'Vehicle'} · $seats Seats · $trans',
+                    style: TextStyle(
+                      color: textMuted,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Small Vehicle Row Card (Used by Search Screen) ─────────────────────────
 class _SmallVehicleRowCard extends StatelessWidget {
   const _SmallVehicleRowCard({
     required this.vehicle,
@@ -534,7 +846,6 @@ class _SmallVehicleRowCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            // Left Image
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: SizedBox(
@@ -557,8 +868,6 @@ class _SmallVehicleRowCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 14),
-
-            // Right Info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -578,36 +887,14 @@ class _SmallVehicleRowCard extends StatelessWidget {
                     '${vehicle.categoryRel?.name ?? 'Sedan'} · $seats Seats · $trans',
                     style: TextStyle(color: textMuted, fontSize: 11, fontWeight: FontWeight.w500),
                   ),
-                  const SizedBox(height: 6),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'AED $price/day',
-                        style: const TextStyle(
-                          color: AppColors.orange,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: vehicle.available
-                              ? AppColors.success.withValues(alpha: 0.12)
-                              : AppColors.error.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(100),
-                        ),
-                        child: Text(
-                          vehicle.available ? 'Available' : 'Rented',
-                          style: TextStyle(
-                            color: vehicle.available ? AppColors.success : AppColors.error,
-                            fontSize: 9,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
+                  const SizedBox(height: 4),
+                  Text(
+                    'AED $price/day',
+                    style: const TextStyle(
+                      color: AppColors.orange,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
                 ],
               ),

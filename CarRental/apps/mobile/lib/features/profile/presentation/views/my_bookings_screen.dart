@@ -21,7 +21,7 @@ final bookingsWithImagesProvider = FutureProvider.autoDispose<List<Map<String, d
   final bookings = results[0] as List<BookingModel>;
   final vehicles = results[1] as List<VehicleModel>;
 
-  return bookings.map((b) {
+  final list = bookings.map((b) {
     // Find matching vehicle to extract image URL
     final vehicleMatch = vehicles.firstWhere(
       (v) => v.id == b.vehicleId,
@@ -32,6 +32,8 @@ final bookingsWithImagesProvider = FutureProvider.autoDispose<List<Map<String, d
       'imageUrl': vehicleMatch.primaryImage,
     };
   }).toList();
+  list.sort((a, b) => (b['booking'] as BookingModel).id.compareTo((a['booking'] as BookingModel).id));
+  return list;
 });
 
 class MyBookingsScreen extends ConsumerWidget {

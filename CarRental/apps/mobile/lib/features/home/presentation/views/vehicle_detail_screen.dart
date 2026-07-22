@@ -44,9 +44,14 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
     final trans = widget.vehicle.transmission ?? 'Auto';
     final seats = widget.vehicle.seats ?? 5;
     final fuel = widget.vehicle.fuel ?? 'Petrol';
-    final power = widget.vehicle.power ?? '78 hp';
+    final rawPower = widget.vehicle.power;
+    final bool hasPower = rawPower != null &&
+        rawPower.trim().isNotEmpty &&
+        rawPower.trim() != '0' &&
+        rawPower.trim().toLowerCase() != '0 hp' &&
+        rawPower.trim().toLowerCase() != 'null';
+
     final price = widget.vehicle.dailyPrice?.toInt() ?? 0;
-    final rating = widget.vehicle.rating;
     final type = widget.vehicle.categoryRel?.name ?? 'Sedan';
     final desc = widget.vehicle.description ??
         'The ${widget.vehicle.name} offers a smooth, comfortable ride perfect for city commuting and airport transfers in Dubai. Fuel-efficient and well-maintained, it comes with full insurance, free delivery across Dubai, and 24/7 roadside assistance.';
@@ -171,33 +176,11 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
                         ),
                         const SizedBox(height: 8),
 
-                        // Rating & Tagline
+                        // Location & Category Subtitle (No Rating / Review count)
                         Row(
                           children: [
-                            const Icon(Icons.star_rounded, size: 18, color: AppColors.warning),
+                            const Icon(Icons.location_on_rounded, size: 16, color: AppColors.orange),
                             const SizedBox(width: 4),
-                            Text(
-                              rating.toStringAsFixed(1),
-                              style: TextStyle(
-                                color: textColor,
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '(127 reviews)',
-                              style: TextStyle(
-                                color: textMuted,
-                                fontSize: 13,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '·',
-                              style: TextStyle(color: textMuted),
-                            ),
-                            const SizedBox(width: 8),
                             Text(
                               '$type · Dubai, UAE',
                               style: TextStyle(
@@ -210,29 +193,41 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
                         ),
                         const SizedBox(height: 24),
 
-                        // Spec Grid
+                        // Spec Grid (Dynamic width tiles, Power optional)
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            _SpecTile(
-                              icon: Icons.settings_rounded,
-                              label: trans,
-                              sublabel: 'Transmission',
+                            Expanded(
+                              child: _SpecTile(
+                                icon: Icons.settings_rounded,
+                                label: trans,
+                                sublabel: 'Transmission',
+                              ),
                             ),
-                            _SpecTile(
-                              icon: Icons.airline_seat_recline_normal_rounded,
-                              label: '$seats',
-                              sublabel: 'Seats',
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _SpecTile(
+                                icon: Icons.airline_seat_recline_normal_rounded,
+                                label: '$seats',
+                                sublabel: 'Seats',
+                              ),
                             ),
-                            _SpecTile(
-                              icon: Icons.bolt_rounded,
-                              label: power,
-                              sublabel: 'Power',
-                            ),
-                            _SpecTile(
-                              icon: Icons.local_gas_station_rounded,
-                              label: fuel,
-                              sublabel: 'Fuel',
+                            if (hasPower) ...[
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: _SpecTile(
+                                  icon: Icons.bolt_rounded,
+                                  label: rawPower,
+                                  sublabel: 'Power',
+                                ),
+                              ),
+                            ],
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: _SpecTile(
+                                icon: Icons.local_gas_station_rounded,
+                                label: fuel,
+                                sublabel: 'Fuel',
+                              ),
                             ),
                           ],
                         ),
@@ -439,8 +434,7 @@ class _SpecTile extends StatelessWidget {
     final textMuted = isDark ? AppColors.textMutedDark : AppColors.textMutedLight;
 
     return Container(
-      width: 76,
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
       decoration: BoxDecoration(
         color: surface2,
         borderRadius: BorderRadius.circular(12),
