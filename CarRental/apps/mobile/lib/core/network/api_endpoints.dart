@@ -2,22 +2,18 @@
 class ApiEndpoints {
   ApiEndpoints._();
 
-  // ─── Environment Configuration ──────────────────────────────────────────
-  // ⚠ IMPORTANT: Set [useRenderProduction] to true BEFORE building the APK for release!
-  // Set to false ONLY for local development with adb reverse or Wi-Fi.
-  static const bool useRenderProduction = false;
-
-  // ─── Local IP Configuration ─────────────────────────────────────────────
-  // 192.168.1.113 connects directly over Wi-Fi without needing USB or adb reverse!
-  static const String wifiBaseUrl = 'http://192.168.1.113:8000';
+  // ─── Base URL Configuration ───────────────────────────────────────────────
   static const String adbLoopbackUrl = 'http://127.0.0.1:8000';
-  static const String renderBaseUrl = 'https://falconviewcarrental.onrender.com';
+  static const String wifiBaseUrl = 'http://192.168.1.113:8000';
+  
+  // Set your production backend URL here or pass via --dart-define=BACKEND_URL=...
+  static const String productionBaseUrl = String.fromEnvironment(
+    'BACKEND_URL',
+    defaultValue: adbLoopbackUrl,
+  );
 
-  // Default to Wi-Fi IP for seamless permanent phone connection
-  static const String localBaseUrl = adbLoopbackUrl;
-
-  /// Dynamic base URL getter based on [useRenderProduction]
-  static String get baseUrl => useRenderProduction ? renderBaseUrl : localBaseUrl;
+  /// Base URL getter
+  static String get baseUrl => productionBaseUrl;
 
   static const String apiV1 = '/api/v1';
 

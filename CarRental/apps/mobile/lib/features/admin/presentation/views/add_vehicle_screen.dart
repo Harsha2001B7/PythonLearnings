@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/network/api_endpoints.dart';
 import '../../../home/data/models/home_models.dart';
 import '../../../home/data/repositories/home_repository.dart';
 import '../../data/repositories/admin_repository.dart';
@@ -205,7 +206,7 @@ class _AddVehicleScreenState extends ConsumerState<AddVehicleScreen> {
         'review_count': 0,
         'min_driver_age': 21,
         'delivery_available': true,
-        'primary_image': 'https://falconviewcarrental.onrender.com/static/placeholder.png',
+        'primary_image': '${ApiEndpoints.baseUrl}/static/placeholder.png',
         'keywords': plate.isNotEmpty ? [plate] : <String>[],
         'pricing': {
           'daily': daily,
