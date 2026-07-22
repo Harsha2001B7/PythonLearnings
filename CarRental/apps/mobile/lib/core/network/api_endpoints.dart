@@ -29,6 +29,8 @@ class ApiEndpoints {
   static String get me => '$baseUrl$apiV1/auth/me';
   static String get logout => '$baseUrl$apiV1/auth/logout';
   static String get forgotPassword => '$baseUrl$apiV1/auth/forgot-password';
+  static String get userMe => '$baseUrl$apiV1/users/me';
+  static String get uploadAvatar => '$baseUrl$apiV1/users/me/upload-avatar';
 
   // ─── Home & Fleet Endpoints ─────────────────────────────────────────────
   static String get home => '$baseUrl$apiV1/home/';

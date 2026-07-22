@@ -1,7 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:dio/dio.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/router/app_router.dart';
 import '../../../../core/network/dio_client.dart';
@@ -9,6 +12,7 @@ import '../../../../core/network/api_endpoints.dart';
 import '../../../../shared/widgets/theme_toggle_button.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
 import '../../../auth/data/models/user_model.dart';
+import '../../../auth/data/repositories/auth_repository.dart';
 import '../../data/models/profile_models.dart';
 import '../../data/repositories/profile_repository.dart';
 import 'my_bookings_screen.dart';
@@ -99,6 +103,8 @@ class ProfileScreen extends ConsumerWidget {
                       ? CachedNetworkImage(
                           imageUrl: user.avatar!,
                           fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: double.infinity,
                           placeholder: (context, url) => Container(color: surface2),
                           errorWidget: (context, url, error) => _avatarFallback(user.firstName2),
                         )
@@ -384,13 +390,13 @@ class _EditPersonalInfoSheetState extends ConsumerState<_EditPersonalInfoSheet> 
   late final TextEditingController _lastCtrl;
   late final TextEditingController _phoneCtrl;
   late final TextEditingController _countryCtrl;
+  XFile? _pickedFile;
   bool _saving = false;
 
   @override
   void initState() {
     super.initState();
     _firstCtrl = TextEditingController(text: widget.user.firstName ?? widget.user.name.split(' ').first);
-    // Extract last name or default
     final parts = widget.user.name.split(' ');
     final defLast = parts.length > 1 ? parts.sublist(1).join(' ') : '';
     _lastCtrl = TextEditingController(text: widget.user.lastName ?? defLast);
@@ -407,6 +413,69 @@ class _EditPersonalInfoSheetState extends ConsumerState<_EditPersonalInfoSheet> 
     super.dispose();
   }
 
+  Future<void> _pickImage(ImageSource source) async {
+    final picker = ImagePicker();
+    try {
+      final picked = await picker.pickImage(
+        source: source,
+        maxWidth: 800,
+        maxHeight: 800,
+        imageQuality: 85,
+      );
+      if (picked != null) {
+        setState(() {
+          _pickedFile = picked;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to pick photo: $e')),
+        );
+      }
+    }
+  }
+
+  void _showImagePickerSourceSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Choose Profile Photo',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const Icon(Icons.photo_library_rounded, color: AppColors.orange),
+                title: const Text('Choose from Gallery'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickImage(ImageSource.gallery);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt_rounded, color: AppColors.orange),
+                title: const Text('Take a Photo'),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _pickImage(ImageSource.camera);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _onSave() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
@@ -414,9 +483,21 @@ class _EditPersonalInfoSheetState extends ConsumerState<_EditPersonalInfoSheet> 
     try {
       final dio = ref.read(dioProvider);
       
-      // Call PUT /users/me endpoint in the backend API
+      // 1. Upload avatar image if picked
+      if (_pickedFile != null) {
+        final fileName = _pickedFile!.path.split(RegExp(r'[/\\]')).last;
+        final formData = FormData.fromMap({
+          'file': await MultipartFile.fromFile(_pickedFile!.path, filename: fileName),
+        });
+        await dio.post(
+          ApiEndpoints.uploadAvatar,
+          data: formData,
+        );
+      }
+
+      // 2. Call PUT /users/me endpoint in the backend API
       final response = await dio.put(
-        '${ApiEndpoints.baseUrl}/api/v1/users/me',
+        ApiEndpoints.userMe,
         data: {
           'first_name': _firstCtrl.text.trim(),
           'last_name': _lastCtrl.text.trim(),
@@ -427,8 +508,14 @@ class _EditPersonalInfoSheetState extends ConsumerState<_EditPersonalInfoSheet> 
 
       final updatedUser = UserModel.fromJson(response.data as Map<String, dynamic>);
       
-      // Update local state dynamically via AuthController
+      // Update local state dynamically via AuthController (persists to storage)
       ref.read(authControllerProvider.notifier).updateUser(updatedUser);
+
+      // Re-fetch profile from backend to ensure 100% database alignment
+      try {
+        final freshProfile = await ref.read(authRepositoryProvider).fetchProfile();
+        ref.read(authControllerProvider.notifier).updateUser(freshProfile);
+      } catch (_) {}
 
       if (!mounted) return;
       Navigator.pop(context); // Close modal sheet
@@ -471,112 +558,182 @@ class _EditPersonalInfoSheetState extends ConsumerState<_EditPersonalInfoSheet> 
         color: surface,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      padding: EdgeInsets.fromLTRB(20, 12, 20, MediaQuery.viewInsetsOf(context).bottom + 20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Center(
-            child: Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: borderColor,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          padding: EdgeInsets.fromLTRB(20, 12, 20, MediaQuery.viewInsetsOf(context).bottom + 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Personal Information',
-                style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.w800),
-              ),
-              GestureDetector(
-                onTap: () => Navigator.pop(context),
-                child: Text('Cancel', style: TextStyle(color: textMuted, fontSize: 13, fontWeight: FontWeight.w600)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 24),
-
-          _saving
-              ? const Center(
-                  child: Padding(
-                    padding: EdgeInsets.symmetric(vertical: 40),
-                    child: CircularProgressIndicator(color: AppColors.orange),
-                  ),
-                )
-              : Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // First Name Field
-                      _fieldLabel('FIRST NAME', textMuted),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        controller: _firstCtrl,
-                        style: TextStyle(color: textColor, fontSize: 14),
-                        decoration: _inputDecoration('e.g. John', surface2, borderColor),
-                        validator: (v) => (v == null || v.isEmpty) ? 'First name is required' : null,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Last Name Field
-                      _fieldLabel('LAST NAME', textMuted),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        controller: _lastCtrl,
-                        style: TextStyle(color: textColor, fontSize: 14),
-                        decoration: _inputDecoration('e.g. Doe', surface2, borderColor),
-                        validator: (v) => (v == null || v.isEmpty) ? 'Last name is required' : null,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Phone Field
-                      _fieldLabel('PHONE NUMBER', textMuted),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        controller: _phoneCtrl,
-                        keyboardType: TextInputType.phone,
-                        style: TextStyle(color: textColor, fontSize: 14),
-                        decoration: _inputDecoration('e.g. +971 50 000 0000', surface2, borderColor),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Country Field
-                      _fieldLabel('COUNTRY', textMuted),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        controller: _countryCtrl,
-                        style: TextStyle(color: textColor, fontSize: 14),
-                        decoration: _inputDecoration('e.g. United Arab Emirates', surface2, borderColor),
-                      ),
-                      const SizedBox(height: 28),
-
-                      // Save Changes button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 52,
-                        child: ElevatedButton(
-                          onPressed: _onSave,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.orange,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                          ),
-                          child: const Text(
-                            'Save Changes',
-                            style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ),
-                    ],
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: borderColor,
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-        ],
+              ),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Personal Information',
+                    style: TextStyle(color: textColor, fontSize: 18, fontWeight: FontWeight.w800),
+                  ),
+                  GestureDetector(
+                    onTap: () => Navigator.pop(context),
+                    child: Text('Cancel', style: TextStyle(color: textMuted, fontSize: 13, fontWeight: FontWeight.w600)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+
+              _saving
+                  ? const Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 40),
+                        child: CircularProgressIndicator(color: AppColors.orange),
+                      ),
+                    )
+                  : Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // Avatar picker section
+                          Center(
+                            child: Stack(
+                              children: [
+                                GestureDetector(
+                                  onTap: () => _showImagePickerSourceSheet(context),
+                                  child: Container(
+                                    width: 90,
+                                    height: 90,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: surface2,
+                                      border: Border.all(color: AppColors.orange, width: 2.5),
+                                    ),
+                                    child: ClipOval(
+                                      child: SizedBox.expand(
+                                        child: _pickedFile != null
+                                            ? Image.file(
+                                                File(_pickedFile!.path),
+                                                fit: BoxFit.cover,
+                                              )
+                                            : (widget.user.avatar != null && widget.user.avatar!.isNotEmpty
+                                                ? CachedNetworkImage(
+                                                    imageUrl: widget.user.avatar!,
+                                                    fit: BoxFit.cover,
+                                                    placeholder: (context, url) => Container(color: surface2),
+                                                    errorWidget: (context, url, error) => Center(
+                                                      child: Text(
+                                                        widget.user.firstName2[0].toUpperCase(),
+                                                        style: const TextStyle(color: AppColors.orange, fontSize: 28, fontWeight: FontWeight.bold),
+                                                      ),
+                                                    ),
+                                                  )
+                                                : Center(
+                                                    child: Text(
+                                                      widget.user.firstName2[0].toUpperCase(),
+                                                      style: const TextStyle(color: AppColors.orange, fontSize: 28, fontWeight: FontWeight.bold),
+                                                    ),
+                                                  )),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Positioned(
+                                  right: 0,
+                                  bottom: 0,
+                                  child: GestureDetector(
+                                    onTap: () => _showImagePickerSourceSheet(context),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(7),
+                                      decoration: BoxDecoration(
+                                        color: AppColors.orange,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(color: surface, width: 2),
+                                      ),
+                                      child: const Icon(Icons.camera_alt_rounded, size: 16, color: Colors.white),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+
+                          // First Name Field
+                          _fieldLabel('FIRST NAME', textMuted),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: _firstCtrl,
+                            style: TextStyle(color: textColor, fontSize: 14),
+                            decoration: _inputDecoration('e.g. John', surface2, borderColor),
+                            validator: (v) => (v == null || v.isEmpty) ? 'First name is required' : null,
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Last Name Field
+                          _fieldLabel('LAST NAME', textMuted),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: _lastCtrl,
+                            style: TextStyle(color: textColor, fontSize: 14),
+                            decoration: _inputDecoration('e.g. Doe', surface2, borderColor),
+                            validator: (v) => (v == null || v.isEmpty) ? 'Last name is required' : null,
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Phone Field
+                          _fieldLabel('PHONE NUMBER', textMuted),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: _phoneCtrl,
+                            keyboardType: TextInputType.phone,
+                            style: TextStyle(color: textColor, fontSize: 14),
+                            decoration: _inputDecoration('e.g. +971 50 000 0000', surface2, borderColor),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Country Field
+                          _fieldLabel('COUNTRY', textMuted),
+                          const SizedBox(height: 6),
+                          TextFormField(
+                            controller: _countryCtrl,
+                            style: TextStyle(color: textColor, fontSize: 14),
+                            decoration: _inputDecoration('e.g. United Arab Emirates', surface2, borderColor),
+                          ),
+                          const SizedBox(height: 28),
+
+                          // Save Changes button
+                          SizedBox(
+                            width: double.infinity,
+                            height: 52,
+                            child: ElevatedButton(
+                              onPressed: _onSave,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.orange,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                              ),
+                              child: const Text(
+                                'Save Changes',
+                                style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+            ],
+          ),
+        ),
       ),
     );
   }

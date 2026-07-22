@@ -119,6 +119,7 @@ class AuthController extends StateNotifier<AuthState> {
   void updateUser(UserModel updatedUser) {
     if (state is AuthAuthenticated) {
       state = AuthAuthenticated(updatedUser);
+      _repo.persistUserProfile(updatedUser);
     }
   }
 

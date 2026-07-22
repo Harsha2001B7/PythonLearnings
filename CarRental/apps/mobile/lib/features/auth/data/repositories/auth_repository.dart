@@ -114,9 +114,22 @@ class AuthRepository {
     try {
       // First try: validate access token with /me
       final user = await _fetchProfile(accessToken);
+      await storage.saveUserProfile(user.toJsonString());
       return user;
-    } catch (_) {
-      // Second try: refresh the token if we have a refresh token
+    } on DioException catch (e) {
+      // Offline fallback: if network error, load cached user profile from secure storage
+      if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.connectionError) {
+        final cachedJson = await storage.getUserProfile();
+        if (cachedJson != null && cachedJson.isNotEmpty) {
+          try {
+            return UserModel.fromJsonString(cachedJson);
+          } catch (_) {}
+        }
+      }
+
+      // Second try: refresh token if unauthenticated
       if (refreshToken != null) {
         try {
           final newTokens = await refreshTokens(refreshToken);
@@ -130,7 +143,20 @@ class AuthRepository {
       }
       await storage.clearAll();
       return null;
+    } catch (_) {
+      final cachedJson = await storage.getUserProfile();
+      if (cachedJson != null && cachedJson.isNotEmpty) {
+        try {
+          return UserModel.fromJsonString(cachedJson);
+        } catch (_) {}
+      }
+      await storage.clearAll();
+      return null;
     }
+  }
+
+  Future<void> persistUserProfile(UserModel user) async {
+    await storage.saveUserProfile(user.toJsonString());
   }
 
   // ─── Private helpers ─────────────────────────────────────────────────────

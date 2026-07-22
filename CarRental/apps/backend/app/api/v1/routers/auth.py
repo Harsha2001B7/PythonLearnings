@@ -38,13 +38,17 @@ def get_me(current_user: User = Depends(get_current_user)):
     first_name = current_user.first_name or ""
     last_name = current_user.last_name or ""
     full_name = f"{first_name} {last_name}".strip() or current_user.email
+    avatar = current_user.profile_image or current_user.avatar_url
+    if avatar and not avatar.startswith("http://") and not avatar.startswith("https://"):
+        avatar = f"{settings.BACKEND_URL.rstrip('/')}{avatar}" if avatar.startswith('/') else f"{settings.BACKEND_URL.rstrip('/')}/{avatar}"
+
     return {
         "id": current_user.id,
         "name": full_name,
         "email": current_user.email,
         "role": role_name,
         "permissions": permissions,
-        "avatar": current_user.avatar_url or current_user.profile_image,
+        "avatar": avatar,
         "created_at": current_user.created_at,
         "first_name": current_user.first_name,
         "last_name": current_user.last_name,
@@ -98,11 +102,12 @@ async def google_login(request: Request, body: GoogleLoginRequest, db: Session =
             user.google_sub = google_sub
         if user.auth_provider == "LOCAL" or not user.auth_provider:
             user.auth_provider = "GOOGLE"
-        if avatar and user.avatar_url != avatar:
+        # Preserve user custom DB updates — only populate Google defaults if empty in SQLite DB!
+        if avatar and not user.avatar_url:
             user.avatar_url = avatar
-        if first_name and user.first_name != first_name:
+        if first_name and not user.first_name:
             user.first_name = first_name
-        if last_name and user.last_name != last_name:
+        if last_name and not user.last_name:
             user.last_name = last_name
     else:
         user_role = db.query(Role).filter(Role.name == "User").first()
